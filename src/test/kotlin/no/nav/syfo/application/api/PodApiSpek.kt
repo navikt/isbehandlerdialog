@@ -33,7 +33,7 @@ object PodApiSpek : Spek({
                     response.content shouldNotBeEqualTo null
                 }
             }
-            it("Returns ok on is_alive") {
+            it("Returns ok on is_ready") {
                 with(handleRequest(HttpMethod.Get, "/internal/is_ready")) {
                     response.status()?.isSuccess() shouldBeEqualTo true
                     response.content shouldNotBeEqualTo null
