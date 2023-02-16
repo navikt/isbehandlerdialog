@@ -1,7 +1,7 @@
 ![Build status](https://github.com/navikt/isbehandlerdialog/workflows/main/badge.svg?branch=master)
 
 # isbehandlerdialog
-Applikasjon for dialog mellom veileder og behandler sykefraværsoppfølgingen. Lagrer sendte og mottatte dialogmeldinger.
+Applikasjon for dialog mellom veileder og behandler i sykefraværsoppfølgingen. Lagrer sendte og mottatte dialogmeldinger.
 
 ## Technologies used
 
