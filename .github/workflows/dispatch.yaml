@@ -1,0 +1,24 @@
+name: Deploy to dev-gcp
+
+on:
+  workflow_dispatch:
+    inputs:
+      gitCommit:
+        description: "Complete git commit to deploy"
+        required: true
+        default: ""
+
+env:
+  IMAGE: docker.pkg.github.com/${{ github.repository }}/isbehandlerdialog:${{ github.event.inputs.gitCommit }}
+
+jobs:
+  deploy-dev:
+    name: Deploy to NAIS Dev-gcp
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/naiserator-dev.yaml
