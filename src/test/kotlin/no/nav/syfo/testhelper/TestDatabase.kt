@@ -27,18 +27,18 @@ class TestDatabase : DatabaseInterface {
     }
 }
 
-/*
 fun DatabaseInterface.dropData() {
+    /*
     val queryList = listOf(
     )
-    this.connection.use { connection ->
-        queryList.forEach { query ->
-            connection.prepareStatement(query).execute()
+        this.connection.use { connection ->
+            queryList.forEach { query ->
+                connection.prepareStatement(query).execute()
+            }
+            connection.commit()
         }
-        connection.commit()
-    }
+    */
 }
-*/
 
 class TestDatabaseNotResponding : DatabaseInterface {
 

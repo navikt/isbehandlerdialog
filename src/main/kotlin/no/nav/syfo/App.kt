@@ -12,6 +12,7 @@ import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.wellknown.getWellKnown
+import no.nav.syfo.dialogmelding.kafka.launchKafkaTaskDialogmeldingFromBehandler
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -51,6 +52,13 @@ fun main() {
     applicationEngineEnvironment.monitor.subscribe(ApplicationStarted) {
         applicationState.ready = true
         logger.info("Application is ready, running Java VM ${Runtime.version()}")
+        if (environment.readIncomingDialogmelding) {
+            launchKafkaTaskDialogmeldingFromBehandler(
+                applicationState = applicationState,
+                kafkaEnvironment = environment.kafka,
+                database = applicationDatabase,
+            )
+        }
     }
 
     val server = embeddedServer(

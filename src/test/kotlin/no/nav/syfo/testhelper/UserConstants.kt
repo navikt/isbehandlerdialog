@@ -1,7 +1,6 @@
 package no.nav.syfo.testhelper
 
-import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.domain.Virksomhetsnummer
+import no.nav.syfo.domain.*
 
 object UserConstants {
 
@@ -13,4 +12,9 @@ object UserConstants {
 
     val VIRKSOMHETSNUMMER_DEFAULT = Virksomhetsnummer(VIRKSOMHETSNUMMER)
     const val VEILEDER_IDENT = "Z999999"
+
+    val FASTLEGE_FNR = PersonIdent("12125678911")
+    val PARTNERID = PartnerId(321)
+    const val HERID = 404
+    const val HPRID = 1337
 }

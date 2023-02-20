@@ -71,3 +71,5 @@ spec:
       value: "dev-fss.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
       value: "https://syfo-tilgangskontroll.dev-fss-pub.nais.io"
+    - name: TOOGLE_READ_INCOMING_DIALOGMELDING
+      value: "false"

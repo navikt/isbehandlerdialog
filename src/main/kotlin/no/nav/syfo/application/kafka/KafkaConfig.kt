@@ -1,9 +1,11 @@
 package no.nav.syfo.application.kafka
 
 import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.*
 
@@ -20,6 +22,21 @@ inline fun <reified Serializer> kafkaAivenProducerConfig(
         this[ProducerConfig.LINGER_MS_CONFIG] = "1000"
         this[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.canonicalName
         this[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = Serializer::class.java.canonicalName
+    }
+}
+
+fun kafkaConsumerConfig(
+    kafkaEnvironment: KafkaEnvironment,
+): Properties {
+    return Properties().apply {
+        putAll(commonKafkaAivenConfig(kafkaEnvironment))
+
+        this[ConsumerConfig.GROUP_ID_CONFIG] = "isbehandlerdialog-v1"
+        this[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.canonicalName
+        this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
+        this[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = "false"
+        this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "100"
+        this[ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG] = "" + (10 * 1024 * 1024)
     }
 }
 

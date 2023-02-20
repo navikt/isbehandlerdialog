@@ -39,6 +39,7 @@ data class Environment(
             clientId = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
         ),
     ),
+    val readIncomingDialogmelding: Boolean = getEnvVar("TOOGLE_READ_INCOMING_DIALOGMELDING").toBoolean(),
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =
