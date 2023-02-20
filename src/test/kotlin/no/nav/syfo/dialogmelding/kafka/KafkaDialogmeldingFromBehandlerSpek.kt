@@ -22,22 +22,19 @@ class KafkaDialogmeldingFromBehandlerSpek : Spek({
         }
 
         describe("Read dialogmelding sent from behandler to NAV from Kafka Topic") {
+            describe("Happy path") {
+                it("Receive dialogmeldinger") {
+                    val dialogmelding = generateDialogmeldingFromBehandlerDTO(UUID.randomUUID())
+                    val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmelding)
 
-            describe("Receive dialogmelding from behandler") {
-                describe("Happy path") {
-                    it("Receive dialogmeldinger") {
-                        val dialogmelding = generateDialogmeldingFromBehandlerDTO(UUID.randomUUID())
-                        val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmelding)
-
-                        runBlocking {
-                            pollAndProcessDialogmeldingFromBehandler(
-                                kafkaConsumerDialogmeldingFromBehandler = mockConsumer,
-                                database = database,
-                            )
-                        }
-
-                        verify(exactly = 1) { mockConsumer.commitSync() }
+                    runBlocking {
+                        pollAndProcessDialogmeldingFromBehandler(
+                            kafkaConsumerDialogmeldingFromBehandler = mockConsumer,
+                            database = database,
+                        )
                     }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
                 }
             }
         }
