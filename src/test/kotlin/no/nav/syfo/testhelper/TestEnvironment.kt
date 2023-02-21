@@ -40,6 +40,7 @@ fun testEnvironment(
             clientId = "dev-fss.teamsykefravr.syfotilgangskontroll",
         ),
     ),
+    readIncomingDialogmelding = true,
 )
 
 fun testAppState() = ApplicationState(

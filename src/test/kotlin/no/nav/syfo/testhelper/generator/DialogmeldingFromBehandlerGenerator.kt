@@ -1,6 +1,7 @@
-package no.nav.syfo.testhelper
+package no.nav.syfo.testhelper.generator
 
 import no.nav.syfo.dialogmelding.kafka.KafkaDialogmeldingFromBehandlerDTO
+import no.nav.syfo.testhelper.UserConstants
 import java.time.LocalDateTime
 import java.util.*
 
