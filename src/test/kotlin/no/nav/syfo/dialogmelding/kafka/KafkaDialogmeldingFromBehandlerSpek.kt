@@ -3,6 +3,7 @@ package no.nav.syfo.dialogmelding.kafka
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
+import no.nav.syfo.dialogmelding.kafka.domain.KafkaDialogmeldingFromBehandlerDTO
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateDialogmeldingFromBehandlerDTO
 import org.apache.kafka.clients.consumer.*

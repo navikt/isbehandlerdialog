@@ -28,16 +28,15 @@ class TestDatabase : DatabaseInterface {
 }
 
 fun DatabaseInterface.dropData() {
-    /*
     val queryList = listOf(
+        "DELETE FROM DIALOGMELDING_IN"
     )
-        this.connection.use { connection ->
-            queryList.forEach { query ->
-                connection.prepareStatement(query).execute()
-            }
-            connection.commit()
+    this.connection.use { connection ->
+        queryList.forEach { query ->
+            connection.prepareStatement(query).execute()
         }
-    */
+        connection.commit()
+    }
 }
 
 class TestDatabaseNotResponding : DatabaseInterface {

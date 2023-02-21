@@ -3,6 +3,9 @@ package no.nav.syfo.dialogmelding.kafka
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaEnvironment
+import no.nav.syfo.dialogmelding.database.createNewDialogmeldingIn
+import no.nav.syfo.dialogmelding.kafka.domain.KafkaDialogmeldingFromBehandlerDTO
+import no.nav.syfo.dialogmelding.kafka.domain.toDialogmeldingIn
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.Logger
@@ -49,9 +52,15 @@ fun processConsumerRecords(
     consumerRecords: ConsumerRecords<String, KafkaDialogmeldingFromBehandlerDTO>,
     database: DatabaseInterface,
 ) {
-    consumerRecords.forEach {
-        val dialogmeldingFromBehandler = it.value()
-        log.info("Received a dialogmelding from behandler: navLogId: ${dialogmeldingFromBehandler.navLogId}, kontorOrgnr: ${dialogmeldingFromBehandler.legekontorOrgNr}, msgId: ${dialogmeldingFromBehandler.msgId}")
-        // TODO: Store incoming dialogmelding in database
+    database.connection.use { connection ->
+        consumerRecords.forEach {
+            val dialogmeldingFromBehandler = it.value()
+            log.info("Received a dialogmelding from behandler: navLogId: ${dialogmeldingFromBehandler.navLogId}, kontorOrgnr: ${dialogmeldingFromBehandler.legekontorOrgNr}, msgId: ${dialogmeldingFromBehandler.msgId}")
+            connection.createNewDialogmeldingIn(
+                dialogmeldingIn = dialogmeldingFromBehandler.toDialogmeldingIn(),
+                fellesformat = dialogmeldingFromBehandler.fellesformatXML,
+            )
+        }
+        connection.commit()
     }
 }
