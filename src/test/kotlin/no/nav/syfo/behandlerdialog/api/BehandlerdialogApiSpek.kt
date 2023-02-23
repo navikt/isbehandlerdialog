@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import no.nav.syfo.behandlerdialog.api.domain.BehandlerdialogDTO
 import no.nav.syfo.testhelper.*
-import no.nav.syfo.testhelper.generator.generateBehandlerdialog
+import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
@@ -23,7 +22,8 @@ class BehandlerdialogApiSpek : Spek({
                 externalMockEnvironment = externalMockEnvironment,
             )
 
-            val urlBehandlerdialogPerson = "$behandlerdialogApiBasePath$behandlerdialogApiPersonidentPath"
+            val urlGet = behandlerdialogApiBasePath
+            val urlPost = "$behandlerdialogApiBasePath$behandlerdialogApiMeldingPath"
 
             val validToken = generateJWT(
                 audience = externalMockEnvironment.environment.azure.appClientId,
@@ -31,11 +31,11 @@ class BehandlerdialogApiSpek : Spek({
                 navIdent = UserConstants.VEILEDER_IDENT,
             )
 
-            describe("Get behandlerdialoger for person") {
+            describe("Get melding to behandler for person") {
                 describe("Happy path") {
                     it("Returns OK from GET") {
                         with(
-                            handleRequest(HttpMethod.Get, urlBehandlerdialogPerson) {
+                            handleRequest(HttpMethod.Get, urlGet) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                                 addHeader(NAV_PERSONIDENT_HEADER, UserConstants.ARBEIDSTAKER_PERSONIDENT.value)
                             }
@@ -47,35 +47,35 @@ class BehandlerdialogApiSpek : Spek({
 
                 describe("Unhappy path") {
                     it("Returns status Unauthorized if no token is supplied") {
-                        testMissingToken(urlBehandlerdialogPerson, HttpMethod.Get)
+                        testMissingToken(urlGet, HttpMethod.Get)
                     }
                     it("returns status Forbidden if denied access to person") {
-                        testDeniedPersonAccess(urlBehandlerdialogPerson, validToken, HttpMethod.Get)
+                        testDeniedPersonAccess(urlGet, validToken, HttpMethod.Get)
                     }
                     it("returns status BadRequest if no $NAV_PERSONIDENT_HEADER is supplied") {
-                        testMissingPersonIdent(urlBehandlerdialogPerson, validToken, HttpMethod.Get)
+                        testMissingPersonIdent(urlGet, validToken, HttpMethod.Get)
                     }
                     it("returns status BadRequest if $NAV_PERSONIDENT_HEADER with invalid PersonIdent is supplied") {
-                        testInvalidPersonIdent(urlBehandlerdialogPerson, validToken, HttpMethod.Get)
+                        testInvalidPersonIdent(urlGet, validToken, HttpMethod.Get)
                     }
                 }
             }
 
-            describe("Create new behandlerdialog") {
-                val behandlerdialogDTO = generateBehandlerdialog()
+            describe("Create new melding to behandler") {
+                val behandlerdialogDTO = generateMeldingTilBehandler()
 
-                it("Will create a new behandlerdialog") {
+                it("Will create a new melding to behandler") {
                     with(
-                        handleRequest(HttpMethod.Post, urlBehandlerdialogPerson) {
+                        handleRequest(HttpMethod.Post, urlPost) {
                             addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                             addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                             addHeader(NAV_PERSONIDENT_HEADER, UserConstants.ARBEIDSTAKER_PERSONIDENT.value)
                             setBody(objectMapper.writeValueAsString(behandlerdialogDTO))
                         }
                     ) {
-                        val responseDTO = objectMapper.readValue<BehandlerdialogDTO>(response.content!!)
+                        val responseDTO = objectMapper.readValue<MeldingTilBehandlerDTO>(response.content!!)
                         response.status() shouldBeEqualTo HttpStatusCode.OK
-                        responseDTO.personIdent shouldBeEqualTo behandlerdialogDTO.personIdent
+                        response.call.getPersonIdent() shouldBeEqualTo UserConstants.ARBEIDSTAKER_PERSONIDENT
                         responseDTO.behandlerRef shouldBeEqualTo behandlerdialogDTO.behandlerRef
                         responseDTO.tekst shouldBeEqualTo behandlerdialogDTO.tekst
                     }
