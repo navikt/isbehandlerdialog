@@ -40,6 +40,7 @@ data class Environment(
         ),
     ),
     val readIncomingDialogmelding: Boolean = getEnvVar("TOOGLE_READ_INCOMING_DIALOGMELDING").toBoolean(),
+    val produceBehandlerDialogmeldingBestilling: Boolean = getEnvVar("TOGGLE_PRODUCE_BEHANDLER_DIALOGMELDING_BESTILLING").toBoolean(),
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =
