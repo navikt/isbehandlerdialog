@@ -41,6 +41,7 @@ fun testEnvironment(
         ),
     ),
     readIncomingDialogmelding = true,
+    produceBehandlerDialogmeldingBestilling = true,
 )
 
 fun testAppState() = ApplicationState(
