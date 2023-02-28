@@ -12,7 +12,7 @@ data class DialogmeldingFraBehandler(
     val msgId: String,
     val msgType: DialogmeldingType,
     val mottakId: String,
-    val conversationRef: UUID?,
+    val conversationRef: UUID,
     val parentRef: UUID?,
     val mottattTidspunkt: OffsetDateTime,
     val arbeidstakerPersonIdent: PersonIdent,

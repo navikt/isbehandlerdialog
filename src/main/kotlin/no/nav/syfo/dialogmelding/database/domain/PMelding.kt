@@ -9,7 +9,7 @@ data class PMelding(
     val createdAt: OffsetDateTime,
     val innkommende: Boolean,
     val type: String,
-    val conversation: UUID?,
+    val conversation: UUID,
     val parent: UUID?,
     val tidspunkt: OffsetDateTime,
     val arbeidstakerPersonIdent: PersonIdent,

@@ -67,7 +67,7 @@ fun Connection.createNewMelding(
         it.setBoolean(3, melding.innkommende)
         it.setString(4, melding.type)
         it.setString(5, melding.conversation.toString())
-        it.setString(6, melding.parent.toString())
+        it.setString(6, melding.parent?.toString())
         it.setObject(7, melding.tidspunkt)
         it.setString(8, melding.arbeidstakerPersonIdent.value)
         it.setString(9, melding.behandlerPersonIdent?.value)
@@ -99,11 +99,11 @@ fun ResultSet.toPMelding() =
         createdAt = getObject("created_at", OffsetDateTime::class.java),
         innkommende = getBoolean("innkommende"),
         type = getString("type"),
-        conversation = getString("conversation")?.let { UUID.fromString(it) },
+        conversation = getString("conversation")!!.let { UUID.fromString(it) },
         parent = getString("parent")?.let { UUID.fromString(it) },
         tidspunkt = getObject("tidspunkt", OffsetDateTime::class.java),
         arbeidstakerPersonIdent = PersonIdent(getString("arbeidstaker_personident")),
-        behandlerPersonIdent = getString("behandler_person_ident")?.let { PersonIdent(it) },
+        behandlerPersonIdent = getString("behandler_personident")?.let { PersonIdent(it) },
         behandlerRef = getString("behandler_ref")?.let { UUID.fromString(it) },
         tekst = getString("tekst"),
         antallVedlegg = getInt("antall_vedlegg"),
