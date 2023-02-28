@@ -1,11 +1,12 @@
 package no.nav.syfo.dialogmelding.domain
 
+import no.nav.syfo.dialogmelding.database.domain.PMelding
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.Virksomhetsnummer
 import java.time.OffsetDateTime
 import java.util.UUID
 
-data class DialogmeldingIn(
+data class DialogmeldingFraBehandler(
     val uuid: UUID,
     val createdAt: OffsetDateTime,
     val msgId: String,
@@ -23,6 +24,22 @@ data class DialogmeldingIn(
     val tekstNotatInnhold: String?,
     val antallVedlegg: Int,
 )
+
+fun DialogmeldingFraBehandler.toPMelding() =
+    PMelding(
+        uuid = uuid,
+        createdAt = createdAt,
+        innkommende = true,
+        type = msgType.name,
+        conversation = conversationRef,
+        parent = parentRef,
+        tidspunkt = mottattTidspunkt,
+        arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+        behandlerPersonIdent = behandlerPersonIdent,
+        behandlerRef = null,
+        tekst = tekstNotatInnhold,
+        antallVedlegg = antallVedlegg,
+    )
 
 enum class DialogmeldingType() {
     DIALOG_FORESPORSEL,

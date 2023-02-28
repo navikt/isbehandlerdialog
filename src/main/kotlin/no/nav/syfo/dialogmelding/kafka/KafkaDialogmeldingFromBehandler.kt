@@ -3,9 +3,10 @@ package no.nav.syfo.dialogmelding.kafka
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaEnvironment
-import no.nav.syfo.dialogmelding.database.createNewDialogmeldingIn
+import no.nav.syfo.dialogmelding.database.createNewMelding
+import no.nav.syfo.dialogmelding.domain.toPMelding
 import no.nav.syfo.dialogmelding.kafka.domain.KafkaDialogmeldingFromBehandlerDTO
-import no.nav.syfo.dialogmelding.kafka.domain.toDialogmeldingIn
+import no.nav.syfo.dialogmelding.kafka.domain.toDialogmeldingFraBehandler
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.Logger
@@ -56,8 +57,8 @@ fun processConsumerRecords(
         consumerRecords.forEach {
             val dialogmeldingFromBehandler = it.value()
             log.info("Received a dialogmelding from behandler: navLogId: ${dialogmeldingFromBehandler.navLogId}, kontorOrgnr: ${dialogmeldingFromBehandler.legekontorOrgNr}, msgId: ${dialogmeldingFromBehandler.msgId}")
-            connection.createNewDialogmeldingIn(
-                dialogmeldingIn = dialogmeldingFromBehandler.toDialogmeldingIn(),
+            connection.createNewMelding(
+                melding = dialogmeldingFromBehandler.toDialogmeldingFraBehandler().toPMelding(),
                 fellesformat = dialogmeldingFromBehandler.fellesformatXML,
             )
         }

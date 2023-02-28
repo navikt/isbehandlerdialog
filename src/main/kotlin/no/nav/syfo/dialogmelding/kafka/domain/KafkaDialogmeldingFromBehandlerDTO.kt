@@ -1,6 +1,6 @@
 package no.nav.syfo.dialogmelding.kafka.domain
 
-import no.nav.syfo.dialogmelding.domain.DialogmeldingIn
+import no.nav.syfo.dialogmelding.domain.DialogmeldingFraBehandler
 import no.nav.syfo.dialogmelding.domain.DialogmeldingType
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.Virksomhetsnummer
@@ -25,8 +25,8 @@ data class KafkaDialogmeldingFromBehandlerDTO(
     val fellesformatXML: String,
 )
 
-fun KafkaDialogmeldingFromBehandlerDTO.toDialogmeldingIn() =
-    DialogmeldingIn(
+fun KafkaDialogmeldingFromBehandlerDTO.toDialogmeldingFraBehandler() =
+    DialogmeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
         msgId = msgId,

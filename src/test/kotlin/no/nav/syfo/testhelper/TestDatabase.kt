@@ -29,7 +29,7 @@ class TestDatabase : DatabaseInterface {
 
 fun DatabaseInterface.dropData() {
     val queryList = listOf(
-        "DELETE FROM DIALOGMELDING_IN"
+        "DELETE FROM MELDING"
     )
     this.connection.use { connection ->
         queryList.forEach { query ->
