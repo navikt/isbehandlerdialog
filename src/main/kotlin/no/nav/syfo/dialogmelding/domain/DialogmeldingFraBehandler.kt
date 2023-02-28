@@ -40,9 +40,3 @@ fun DialogmeldingFraBehandler.toPMelding() =
         tekst = tekstNotatInnhold,
         antallVedlegg = antallVedlegg,
     )
-
-enum class DialogmeldingType() {
-    DIALOG_FORESPORSEL,
-    DIALOG_NOTAT,
-    OPPFOLGINGSPLAN,
-}
