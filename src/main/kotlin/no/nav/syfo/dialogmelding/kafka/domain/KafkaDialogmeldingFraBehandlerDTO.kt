@@ -28,13 +28,13 @@ fun KafkaDialogmeldingFromBehandlerDTO.toMeldingFraBehandler() =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
-        msgType = DialogmeldingType.valueOf(msgType),
+        type = DialogmeldingType.valueOf(msgType),
         conversationRef = UUID.fromString(conversationRef),
         parentRef = UUID.fromString(parentRef),
         mottattTidspunkt = mottattTidspunkt.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
         arbeidstakerPersonIdent = PersonIdent(personIdentPasient),
         behandlerPersonIdent = PersonIdent(personIdentBehandler),
-        tekstNotatInnhold = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold,
+        tekst = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold,
         antallVedlegg = antallVedlegg,
     )
 

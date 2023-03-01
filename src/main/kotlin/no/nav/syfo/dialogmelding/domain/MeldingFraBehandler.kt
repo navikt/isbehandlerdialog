@@ -8,13 +8,13 @@ import java.util.UUID
 data class MeldingFraBehandler(
     val uuid: UUID,
     val createdAt: OffsetDateTime,
-    val msgType: DialogmeldingType,
+    val type: DialogmeldingType,
     val conversationRef: UUID,
     val parentRef: UUID?,
     val mottattTidspunkt: OffsetDateTime,
     val arbeidstakerPersonIdent: PersonIdent,
     val behandlerPersonIdent: PersonIdent?,
-    val tekstNotatInnhold: String?,
+    val tekst: String?,
     val antallVedlegg: Int,
 )
 
@@ -23,13 +23,13 @@ fun MeldingFraBehandler.toPMelding() =
         uuid = uuid,
         createdAt = createdAt,
         innkommende = true,
-        type = msgType.name,
+        type = type.name,
         conversationRef = conversationRef,
         parentRef = parentRef,
         tidspunkt = mottattTidspunkt,
         arbeidstakerPersonIdent = arbeidstakerPersonIdent.value,
         behandlerPersonIdent = behandlerPersonIdent?.value,
         behandlerRef = null,
-        tekst = tekstNotatInnhold,
+        tekst = tekst,
         antallVedlegg = antallVedlegg,
     )
