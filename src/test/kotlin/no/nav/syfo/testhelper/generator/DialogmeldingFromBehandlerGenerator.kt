@@ -1,7 +1,7 @@
-package no.nav.syfo.testhelper.generator
+package no.nav.syfo.testhelper
 
-import no.nav.syfo.dialogmelding.kafka.KafkaDialogmeldingFromBehandlerDTO
-import no.nav.syfo.testhelper.UserConstants
+import no.nav.syfo.dialogmelding.domain.DialogmeldingType
+import no.nav.syfo.dialogmelding.kafka.domain.*
 import java.time.LocalDateTime
 import java.util.*
 
@@ -86,13 +86,30 @@ val fellesformatXML = """<?xml version="1.0" ?>
 
 fun generateDialogmeldingFromBehandlerDTO(uuid: UUID) = KafkaDialogmeldingFromBehandlerDTO(
     msgId = uuid.toString(),
+    msgType = DialogmeldingType.DIALOG_FORESPORSEL.name,
     navLogId = "1234asd123",
     mottattTidspunkt = LocalDateTime.now(),
-    personIdentPasient = "",
+    conversationRef = UUID.randomUUID().toString(),
+    parentRef = UUID.randomUUID().toString(),
+    personIdentPasient = UserConstants.ARBEIDSTAKER_PERSONIDENT.value,
     personIdentBehandler = UserConstants.FASTLEGE_FNR.value,
-    legekontorOrgNr = "",
+    legekontorOrgNr = "987654321",
     legekontorHerId = "",
     legekontorOrgName = "",
     legehpr = UserConstants.HPRID.toString(),
     fellesformatXML = fellesformatXML,
+    antallVedlegg = 0,
+    dialogmelding = Dialogmelding(
+        id = uuid.toString(),
+        innkallingMoterespons = null,
+        henvendelseFraLegeHenvendelse = null,
+        navnHelsepersonell = "",
+        signaturDato = LocalDateTime.now(),
+        foresporselFraSaksbehandlerForesporselSvar = ForesporselFraSaksbehandlerForesporselSvar(
+            temaKode = TemaKode("", "", "", "", "", ""),
+            datoNotat = LocalDateTime.now(),
+            dokIdNotat = null,
+            tekstNotatInnhold = "Dette er innholdet i et notat"
+        )
+    )
 )

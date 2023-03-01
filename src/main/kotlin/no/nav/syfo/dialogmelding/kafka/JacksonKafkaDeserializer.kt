@@ -1,5 +1,6 @@
 package no.nav.syfo.dialogmelding.kafka
 
+import no.nav.syfo.dialogmelding.kafka.domain.KafkaDialogmeldingFromBehandlerDTO
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.common.serialization.Deserializer
 
