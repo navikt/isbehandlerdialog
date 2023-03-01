@@ -3,7 +3,6 @@ package no.nav.syfo.dialogmelding.kafka.domain
 import no.nav.syfo.dialogmelding.domain.MeldingFraBehandler
 import no.nav.syfo.dialogmelding.domain.DialogmeldingType
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.domain.Virksomhetsnummer
 import java.time.*
 import java.util.UUID
 
@@ -29,18 +28,12 @@ fun KafkaDialogmeldingFromBehandlerDTO.toMeldingFraBehandler() =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
-        msgId = msgId,
         msgType = DialogmeldingType.valueOf(msgType),
-        mottakId = navLogId,
         conversationRef = UUID.fromString(conversationRef),
         parentRef = UUID.fromString(parentRef),
         mottattTidspunkt = mottattTidspunkt.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
         arbeidstakerPersonIdent = PersonIdent(personIdentPasient),
         behandlerPersonIdent = PersonIdent(personIdentBehandler),
-        behandlerHprId = legehpr,
-        legekontorOrgnr = legekontorOrgNr?.let { Virksomhetsnummer(it) },
-        legekontorHerId = legekontorHerId,
-        legekontorNavn = legekontorOrgName,
         tekstNotatInnhold = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold,
         antallVedlegg = antallVedlegg,
     )

@@ -10,19 +10,19 @@ import java.sql.SQLException
 import java.time.OffsetDateTime
 import java.util.UUID
 
-const val queryGetMeldingForArbeidstakerPersonident =
+const val queryGetMeldingForArbeidstakerPersonIdent =
     """
         SELECT *
         FROM MELDING
         WHERE arbeidstaker_personident = ?
     """
 
-fun DatabaseInterface.getMeldingForArbeidstakerPersonident(
-    arbeidstakerPersonident: PersonIdent
+fun DatabaseInterface.getMeldingForArbeidstakerPersonIdent(
+    arbeidstakerPersonIdent: PersonIdent
 ): List<PMelding> {
     return connection.use { connection ->
-        connection.prepareStatement(queryGetMeldingForArbeidstakerPersonident).use {
-            it.setString(1, arbeidstakerPersonident.value)
+        connection.prepareStatement(queryGetMeldingForArbeidstakerPersonIdent).use {
+            it.setString(1, arbeidstakerPersonIdent.value)
             it.executeQuery().toList { toPMelding() }
         }
     }
@@ -36,8 +36,8 @@ const val queryCreateMelding =
             created_at,
             innkommende,
             type,
-            conversation,
-            parent,
+            conversation_ref,
+            parent_ref,
             tidspunkt,
             arbeidstaker_personident,
             behandler_personident,
@@ -56,7 +56,7 @@ const val queryCreateMeldingFellesformat =
         ) VALUES (DEFAULT, ?, ?) RETURNING id
     """
 
-fun Connection.createNewMelding(
+fun Connection.createMelding(
     melding: PMelding,
     fellesformat: String? = null,
     commit: Boolean = true,
@@ -66,11 +66,11 @@ fun Connection.createNewMelding(
         it.setObject(2, OffsetDateTime.now())
         it.setBoolean(3, melding.innkommende)
         it.setString(4, melding.type)
-        it.setString(5, melding.conversation.toString())
-        it.setString(6, melding.parent?.toString())
+        it.setString(5, melding.conversationRef.toString())
+        it.setString(6, melding.parentRef?.toString())
         it.setObject(7, melding.tidspunkt)
-        it.setString(8, melding.arbeidstakerPersonIdent.value)
-        it.setString(9, melding.behandlerPersonIdent?.value)
+        it.setString(8, melding.arbeidstakerPersonIdent)
+        it.setString(9, melding.behandlerPersonIdent)
         it.setString(10, melding.behandlerRef?.toString())
         it.setString(11, melding.tekst)
         it.setInt(12, melding.antallVedlegg)
@@ -99,11 +99,11 @@ fun ResultSet.toPMelding() =
         createdAt = getObject("created_at", OffsetDateTime::class.java),
         innkommende = getBoolean("innkommende"),
         type = getString("type"),
-        conversation = getString("conversation")!!.let { UUID.fromString(it) },
-        parent = getString("parent")?.let { UUID.fromString(it) },
+        conversationRef = getString("conversation_ref")!!.let { UUID.fromString(it) },
+        parentRef = getString("parent_ref")?.let { UUID.fromString(it) },
         tidspunkt = getObject("tidspunkt", OffsetDateTime::class.java),
-        arbeidstakerPersonIdent = PersonIdent(getString("arbeidstaker_personident")),
-        behandlerPersonIdent = getString("behandler_personident")?.let { PersonIdent(it) },
+        arbeidstakerPersonIdent = getString("arbeidstaker_personident"),
+        behandlerPersonIdent = getString("behandler_personident"),
         behandlerRef = getString("behandler_ref")?.let { UUID.fromString(it) },
         tekst = getString("tekst"),
         antallVedlegg = getInt("antall_vedlegg"),
