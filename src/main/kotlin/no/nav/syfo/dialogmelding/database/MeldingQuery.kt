@@ -77,7 +77,7 @@ fun Connection.createNewMelding(
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
-        throw SQLException("Creating DialogmeldingIn failed, no rows affected.")
+        throw SQLException("Creating Melding failed, no rows affected.")
     }
     val id = idList.first()
     if (fellesformat != null) {
