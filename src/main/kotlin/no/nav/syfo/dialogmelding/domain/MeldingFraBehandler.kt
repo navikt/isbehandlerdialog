@@ -6,7 +6,7 @@ import no.nav.syfo.domain.Virksomhetsnummer
 import java.time.OffsetDateTime
 import java.util.UUID
 
-data class DialogmeldingFraBehandler(
+data class MeldingFraBehandler(
     val uuid: UUID,
     val createdAt: OffsetDateTime,
     val msgId: String,
@@ -25,7 +25,7 @@ data class DialogmeldingFraBehandler(
     val antallVedlegg: Int,
 )
 
-fun DialogmeldingFraBehandler.toPMelding() =
+fun MeldingFraBehandler.toPMelding() =
     PMelding(
         uuid = uuid,
         createdAt = createdAt,

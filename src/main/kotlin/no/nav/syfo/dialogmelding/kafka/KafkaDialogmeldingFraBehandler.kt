@@ -6,7 +6,7 @@ import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.dialogmelding.database.createNewMelding
 import no.nav.syfo.dialogmelding.domain.toPMelding
 import no.nav.syfo.dialogmelding.kafka.domain.KafkaDialogmeldingFromBehandlerDTO
-import no.nav.syfo.dialogmelding.kafka.domain.toDialogmeldingFraBehandler
+import no.nav.syfo.dialogmelding.kafka.domain.toMeldingFraBehandler
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.Logger
@@ -17,7 +17,7 @@ const val DIALOGMELDING_FROM_BEHANDLER_TOPIC = "teamsykefravr.dialogmelding"
 
 private val log: Logger = LoggerFactory.getLogger("no.nav.syfo.dialogmelding.kafka")
 
-fun blockingApplicationLogicDialogmeldingFromBehandler(
+fun blockingApplicationLogicDialogmeldingFraBehandler(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
     database: DatabaseInterface,
@@ -28,14 +28,14 @@ fun blockingApplicationLogicDialogmeldingFromBehandler(
         listOf(DIALOGMELDING_FROM_BEHANDLER_TOPIC)
     )
     while (applicationState.ready) {
-        pollAndProcessDialogmeldingFromBehandler(
+        pollAndProcessDialogmeldingFraBehandler(
             database = database,
             kafkaConsumerDialogmeldingFromBehandler = kafkaConsumerDialogmelding,
         )
     }
 }
 
-fun pollAndProcessDialogmeldingFromBehandler(
+fun pollAndProcessDialogmeldingFraBehandler(
     database: DatabaseInterface,
     kafkaConsumerDialogmeldingFromBehandler: KafkaConsumer<String, KafkaDialogmeldingFromBehandlerDTO>,
 ) {
@@ -55,11 +55,12 @@ fun processConsumerRecords(
 ) {
     database.connection.use { connection ->
         consumerRecords.forEach {
-            val dialogmeldingFromBehandler = it.value()
-            log.info("Received a dialogmelding from behandler: navLogId: ${dialogmeldingFromBehandler.navLogId}, kontorOrgnr: ${dialogmeldingFromBehandler.legekontorOrgNr}, msgId: ${dialogmeldingFromBehandler.msgId}")
+            val kafkaDialogmeldingFraBehandler = it.value()
+            log.info("Received a dialogmelding from behandler: navLogId: ${kafkaDialogmeldingFraBehandler.navLogId}, kontorOrgnr: ${kafkaDialogmeldingFraBehandler.legekontorOrgNr}, msgId: ${kafkaDialogmeldingFraBehandler.msgId}")
+            // TODO: Filtrere ut de meldingene vi faktisk skal lagre
             connection.createNewMelding(
-                melding = dialogmeldingFromBehandler.toDialogmeldingFraBehandler().toPMelding(),
-                fellesformat = dialogmeldingFromBehandler.fellesformatXML,
+                melding = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler().toPMelding(),
+                fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
             )
         }
         connection.commit()
