@@ -3,8 +3,7 @@ package no.nav.syfo.dialogmelding.kafka
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaEnvironment
-import no.nav.syfo.dialogmelding.database.createMelding
-import no.nav.syfo.dialogmelding.domain.toPMelding
+import no.nav.syfo.dialogmelding.database.createMeldingFraBehandler
 import no.nav.syfo.dialogmelding.kafka.domain.KafkaDialogmeldingFromBehandlerDTO
 import no.nav.syfo.dialogmelding.kafka.domain.toMeldingFraBehandler
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -58,8 +57,8 @@ fun processConsumerRecords(
             val kafkaDialogmeldingFraBehandler = it.value()
             log.info("Received a dialogmelding from behandler: navLogId: ${kafkaDialogmeldingFraBehandler.navLogId}, kontorOrgnr: ${kafkaDialogmeldingFraBehandler.legekontorOrgNr}, msgId: ${kafkaDialogmeldingFraBehandler.msgId}")
             // TODO: Filtrere ut de meldingene vi faktisk skal lagre
-            connection.createMelding(
-                melding = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler().toPMelding(),
+            connection.createMeldingFraBehandler(
+                meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(),
                 fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
             )
         }

@@ -2,7 +2,11 @@ package no.nav.syfo.dialogmelding.database
 
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
+import no.nav.syfo.behandlerdialog.domain.MeldingTilBehandler
+import no.nav.syfo.behandlerdialog.domain.toPMelding
 import no.nav.syfo.dialogmelding.database.domain.PMelding
+import no.nav.syfo.dialogmelding.domain.MeldingFraBehandler
+import no.nav.syfo.dialogmelding.domain.toPMelding
 import no.nav.syfo.domain.PersonIdent
 import java.sql.Connection
 import java.sql.ResultSet
@@ -56,7 +60,29 @@ const val queryCreateMeldingFellesformat =
         ) VALUES (DEFAULT, ?, ?) RETURNING id
     """
 
-fun Connection.createMelding(
+fun Connection.createMeldingTilBehandler(
+    meldingTilBehandler: MeldingTilBehandler,
+    commit: Boolean = true,
+): Int {
+    return this.createMelding(
+        melding = meldingTilBehandler.toPMelding(),
+        commit = commit,
+    )
+}
+
+fun Connection.createMeldingFraBehandler(
+    meldingFraBehandler: MeldingFraBehandler,
+    fellesformat: String?,
+    commit: Boolean = true,
+): Int {
+    return this.createMelding(
+        melding = meldingFraBehandler.toPMelding(),
+        fellesformat = fellesformat,
+        commit = commit,
+    )
+}
+
+private fun Connection.createMelding(
     melding: PMelding,
     fellesformat: String? = null,
     commit: Boolean = true,

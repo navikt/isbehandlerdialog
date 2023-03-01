@@ -1,11 +1,11 @@
 package no.nav.syfo.behandlerdialog.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import no.nav.syfo.dialogmelding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.testhelper.*
-import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
+import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
@@ -18,6 +18,7 @@ class BehandlerdialogApiSpek : Spek({
         with(TestApplicationEngine()) {
             start()
             val externalMockEnvironment = ExternalMockEnvironment.instance
+            val database = ExternalMockEnvironment.instance.database
             application.testApiModule(
                 externalMockEnvironment = externalMockEnvironment,
             )
@@ -31,16 +32,29 @@ class BehandlerdialogApiSpek : Spek({
                 navIdent = UserConstants.VEILEDER_IDENT,
             )
 
-            describe("Get melding to behandler for person") {
+            afterEachTest {
+                database.dropData()
+            }
+
+            describe("Get meldingerTilBehandler for person") {
                 describe("Happy path") {
-                    it("Returns OK from GET") {
+                    val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
+                    val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
+                    database.createNMeldingTilBehandler(
+                        meldingTilBehandler = meldingTilBehandlerDTO.toMeldingTilBehandler(personIdent),
+                        numberOfMeldinger = 2,
+                    )
+                    it("Returns all meldingerTilBehandler for personident") {
                         with(
                             handleRequest(HttpMethod.Get, urlGet) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, UserConstants.ARBEIDSTAKER_PERSONIDENT.value)
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
+                            val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                            pMeldinger.size shouldBeEqualTo 2
+                            pMeldinger.first().arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
                         }
                     }
                 }
@@ -62,7 +76,7 @@ class BehandlerdialogApiSpek : Spek({
             }
 
             describe("Create new melding to behandler") {
-                val behandlerdialogDTO = generateMeldingTilBehandler()
+                val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
 
                 it("Will create a new melding to behandler") {
                     with(
@@ -70,14 +84,13 @@ class BehandlerdialogApiSpek : Spek({
                             addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                             addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                             addHeader(NAV_PERSONIDENT_HEADER, UserConstants.ARBEIDSTAKER_PERSONIDENT.value)
-                            setBody(objectMapper.writeValueAsString(behandlerdialogDTO))
+                            setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
                         }
                     ) {
-                        val responseDTO = objectMapper.readValue<MeldingTilBehandlerDTO>(response.content!!)
                         response.status() shouldBeEqualTo HttpStatusCode.OK
-                        response.call.getPersonIdent() shouldBeEqualTo UserConstants.ARBEIDSTAKER_PERSONIDENT
-                        responseDTO.behandlerRef shouldBeEqualTo behandlerdialogDTO.behandlerRef
-                        responseDTO.tekst shouldBeEqualTo behandlerdialogDTO.tekst
+                        val pMeldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                        pMeldinger.size shouldBeEqualTo 1
+                        pMeldinger.first().tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
                     }
                 }
             }
