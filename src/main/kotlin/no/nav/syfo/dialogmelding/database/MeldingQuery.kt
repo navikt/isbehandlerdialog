@@ -17,7 +17,7 @@ const val queryGetMeldingForArbeidstakerPersonIdent =
         WHERE arbeidstaker_personident = ?
     """
 
-fun DatabaseInterface.getMeldingForArbeidstakerPersonIdent(
+fun DatabaseInterface.getMeldingerForArbeidstaker(
     arbeidstakerPersonIdent: PersonIdent
 ): List<PMelding> {
     return connection.use { connection ->
