@@ -101,7 +101,6 @@ fun generateDialogmeldingFromBehandlerDTO(uuid: UUID) = KafkaDialogmeldingFromBe
     antallVedlegg = 0,
     dialogmelding = Dialogmelding(
         id = uuid.toString(),
-        innkallingMoterespons = null,
         henvendelseFraLegeHenvendelse = null,
         navnHelsepersonell = "",
         signaturDato = LocalDateTime.now(),

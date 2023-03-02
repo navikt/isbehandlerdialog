@@ -8,13 +8,13 @@ import java.util.UUID
 
 data class KafkaDialogmeldingFromBehandlerDTO(
     val msgId: String,
-    val msgType: String,
+    val msgType: String?,
     val navLogId: String,
     val mottattTidspunkt: LocalDateTime,
     val conversationRef: String?,
     val parentRef: String?,
     val personIdentPasient: String,
-    val personIdentBehandler: String,
+    val personIdentBehandler: String?,
     val legekontorOrgNr: String?,
     val legekontorHerId: String?,
     val legekontorOrgName: String,
@@ -28,19 +28,31 @@ fun KafkaDialogmeldingFromBehandlerDTO.toMeldingFraBehandler() =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
-        type = DialogmeldingType.valueOf(msgType),
-        conversationRef = UUID.fromString(conversationRef),
-        parentRef = UUID.fromString(parentRef),
+        type = DialogmeldingType.valueOf(msgType ?: DialogmeldingType.DIALOG_NOTAT.name),
+        conversationRef = conversationRef?.let {
+            try {
+                UUID.fromString(it)
+            } catch (exc: IllegalArgumentException) {
+                UUID.randomUUID()
+            }
+        } ?: UUID.randomUUID(),
+        parentRef = parentRef?.let {
+            try {
+                UUID.fromString(it)
+            } catch (exc: IllegalArgumentException) {
+                null
+            }
+        },
         mottattTidspunkt = mottattTidspunkt.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
         arbeidstakerPersonIdent = PersonIdent(personIdentPasient),
-        behandlerPersonIdent = PersonIdent(personIdentBehandler),
-        tekst = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold,
+        behandlerPersonIdent = personIdentBehandler?.let { PersonIdent(personIdentBehandler) },
+        tekst = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
+            ?: dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold,
         antallVedlegg = antallVedlegg,
     )
 
 data class Dialogmelding(
     val id: String,
-    val innkallingMoterespons: InnkallingMoterespons?,
     val foresporselFraSaksbehandlerForesporselSvar: ForesporselFraSaksbehandlerForesporselSvar?,
     val henvendelseFraLegeHenvendelse: HenvendelseFraLegeHenvendelse?,
     val navnHelsepersonell: String,
@@ -53,13 +65,6 @@ data class HenvendelseFraLegeHenvendelse(
     val dokIdNotat: String?,
     val foresporsel: Foresporsel?,
     val rollerRelatertNotat: RollerRelatertNotat?
-)
-
-data class InnkallingMoterespons(
-    val temaKode: TemaKode,
-    val tekstNotatInnhold: String?,
-    val dokIdNotat: String?,
-    val foresporsel: Foresporsel?
 )
 
 data class TemaKode(
