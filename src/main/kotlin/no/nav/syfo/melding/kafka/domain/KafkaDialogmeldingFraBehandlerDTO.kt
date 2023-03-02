@@ -1,0 +1,118 @@
+package no.nav.syfo.melding.kafka.domain
+
+import no.nav.syfo.melding.domain.MeldingFraBehandler
+import no.nav.syfo.melding.domain.DialogmeldingType
+import no.nav.syfo.domain.PersonIdent
+import java.time.*
+import java.util.UUID
+
+data class KafkaDialogmeldingFraBehandlerDTO(
+    val msgId: String,
+    val msgType: String?,
+    val navLogId: String,
+    val mottattTidspunkt: LocalDateTime,
+    val conversationRef: String?,
+    val parentRef: String?,
+    val personIdentPasient: String,
+    val personIdentBehandler: String?,
+    val legekontorOrgNr: String?,
+    val legekontorHerId: String?,
+    val legekontorOrgName: String,
+    val legehpr: String?,
+    val dialogmelding: Dialogmelding,
+    val antallVedlegg: Int,
+    val fellesformatXML: String,
+)
+
+fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler() =
+    MeldingFraBehandler(
+        uuid = UUID.randomUUID(),
+        createdAt = OffsetDateTime.now(),
+        type = DialogmeldingType.valueOf(msgType ?: DialogmeldingType.DIALOG_NOTAT.name),
+        conversationRef = conversationRef?.let {
+            try {
+                UUID.fromString(it)
+            } catch (exc: IllegalArgumentException) {
+                UUID.randomUUID()
+            }
+        } ?: UUID.randomUUID(),
+        parentRef = parentRef?.let {
+            try {
+                UUID.fromString(it)
+            } catch (exc: IllegalArgumentException) {
+                null
+            }
+        },
+        mottattTidspunkt = mottattTidspunkt.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
+        arbeidstakerPersonIdent = PersonIdent(personIdentPasient),
+        behandlerPersonIdent = personIdentBehandler?.let { PersonIdent(personIdentBehandler) },
+        tekst = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
+            ?: dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold,
+        antallVedlegg = antallVedlegg,
+    )
+
+data class Dialogmelding(
+    val id: String,
+    val foresporselFraSaksbehandlerForesporselSvar: ForesporselFraSaksbehandlerForesporselSvar?,
+    val henvendelseFraLegeHenvendelse: HenvendelseFraLegeHenvendelse?,
+    val navnHelsepersonell: String,
+    val signaturDato: LocalDateTime
+)
+
+data class HenvendelseFraLegeHenvendelse(
+    val temaKode: TemaKode,
+    val tekstNotatInnhold: String,
+    val dokIdNotat: String?,
+    val foresporsel: Foresporsel?,
+    val rollerRelatertNotat: RollerRelatertNotat?
+)
+
+data class TemaKode(
+    val kodeverkOID: String,
+    val dn: String,
+    val v: String,
+    val arenaNotatKategori: String,
+    val arenaNotatKode: String,
+    val arenaNotatTittel: String
+)
+
+data class ForesporselFraSaksbehandlerForesporselSvar(
+    val temaKode: TemaKode,
+    val tekstNotatInnhold: String,
+    val dokIdNotat: String?,
+    val datoNotat: LocalDateTime?
+)
+
+data class Foresporsel(
+    val typeForesp: TypeForesp,
+    val sporsmal: String,
+    val dokIdForesp: String?,
+    val rollerRelatertNotat: RollerRelatertNotat?
+)
+
+data class RollerRelatertNotat(
+    val rolleNotat: RolleNotat?,
+    val person: Person?,
+    val helsepersonell: Helsepersonell?
+)
+
+data class Helsepersonell(
+    val givenName: String,
+    val familyName: String
+)
+
+data class Person(
+    val givenName: String,
+    val familyName: String
+)
+
+data class RolleNotat(
+    val s: String,
+    val v: String
+)
+
+data class TypeForesp(
+    val dn: String,
+    val s: String,
+    val v: String
+)

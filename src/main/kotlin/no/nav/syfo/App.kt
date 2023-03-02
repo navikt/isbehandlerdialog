@@ -11,11 +11,11 @@ import no.nav.syfo.application.api.apiModule
 import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
-import no.nav.syfo.behandlerdialog.kafka.DialogmeldingBestillingProducer
-import no.nav.syfo.behandlerdialog.kafka.KafkaBehandlerDialogmeldingSerializer
+import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
+import no.nav.syfo.melding.kafka.config.KafkaBehandlerDialogmeldingSerializer
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.wellknown.getWellKnown
-import no.nav.syfo.dialogmelding.kafka.launchKafkaTaskDialogmeldingFraBehandler
+import no.nav.syfo.melding.kafka.launchKafkaTaskDialogmeldingFraBehandler
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit

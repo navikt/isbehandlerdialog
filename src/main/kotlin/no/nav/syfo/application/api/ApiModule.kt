@@ -8,8 +8,8 @@ import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.auth.*
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.metric.registerMetricApi
-import no.nav.syfo.behandlerdialog.MeldingTilBehandlerService
-import no.nav.syfo.behandlerdialog.api.registerBehandlerdialogApi
+import no.nav.syfo.melding.MeldingService
+import no.nav.syfo.melding.api.registerMeldingApi
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.WellKnown
@@ -40,7 +40,7 @@ fun Application.apiModule(
         clientEnvironment = environment.clients.syfotilgangskontroll
     )
 
-    val meldingTilBehandlerService = MeldingTilBehandlerService(
+    val meldingService = MeldingService(
         database = database,
     )
 
@@ -51,9 +51,9 @@ fun Application.apiModule(
         )
         registerMetricApi()
         authenticate(JwtIssuerType.INTERNAL_AZUREAD.name) {
-            registerBehandlerdialogApi(
+            registerMeldingApi(
                 veilederTilgangskontrollClient,
-                meldingTilBehandlerService,
+                meldingService,
             )
         }
     }
