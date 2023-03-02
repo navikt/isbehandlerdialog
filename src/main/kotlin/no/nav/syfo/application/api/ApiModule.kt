@@ -8,6 +8,7 @@ import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.auth.*
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.metric.registerMetricApi
+import no.nav.syfo.behandlerdialog.MeldingTilBehandlerService
 import no.nav.syfo.behandlerdialog.api.registerBehandlerdialogApi
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
@@ -39,6 +40,10 @@ fun Application.apiModule(
         clientEnvironment = environment.clients.syfotilgangskontroll
     )
 
+    val meldingTilBehandlerService = MeldingTilBehandlerService(
+        database = database,
+    )
+
     routing {
         registerPodApi(
             applicationState = applicationState,
@@ -46,7 +51,10 @@ fun Application.apiModule(
         )
         registerMetricApi()
         authenticate(JwtIssuerType.INTERNAL_AZUREAD.name) {
-            registerBehandlerdialogApi(veilederTilgangskontrollClient)
+            registerBehandlerdialogApi(
+                veilederTilgangskontrollClient,
+                meldingTilBehandlerService,
+            )
         }
     }
 }

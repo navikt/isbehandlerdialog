@@ -2,8 +2,11 @@ package no.nav.syfo.testhelper
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.behandlerdialog.domain.MeldingTilBehandler
+import no.nav.syfo.dialogmelding.database.createMeldingTilBehandler
 import org.flywaydb.core.Flyway
 import java.sql.Connection
+import java.util.*
 
 class TestDatabase : DatabaseInterface {
     private val pg: EmbeddedPostgres = try {
@@ -24,6 +27,22 @@ class TestDatabase : DatabaseInterface {
 
     fun stop() {
         pg.close()
+    }
+}
+
+fun DatabaseInterface.createNMeldingTilBehandler(meldingTilBehandler: MeldingTilBehandler, numberOfMeldinger: Int = 1) {
+    this.connection.use { connection ->
+        for (i in 1..numberOfMeldinger) {
+            connection.createMeldingTilBehandler(
+                meldingTilBehandler = meldingTilBehandler
+                    .copy(
+                        uuid = UUID.randomUUID(),
+                        tekst = "${meldingTilBehandler.tekst}$i"
+                    ),
+                commit = false,
+            )
+        }
+        connection.commit()
     }
 }
 
