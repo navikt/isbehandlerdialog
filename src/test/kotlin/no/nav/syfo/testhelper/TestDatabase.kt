@@ -2,8 +2,8 @@ package no.nav.syfo.testhelper
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.behandlerdialog.domain.MeldingTilBehandler
-import no.nav.syfo.dialogmelding.database.createMeldingTilBehandler
+import no.nav.syfo.melding.domain.MeldingTilBehandler
+import no.nav.syfo.melding.database.createMeldingTilBehandler
 import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.util.*
