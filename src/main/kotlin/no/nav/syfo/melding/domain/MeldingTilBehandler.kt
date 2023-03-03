@@ -1,8 +1,8 @@
 package no.nav.syfo.melding.domain
 
-import no.nav.syfo.melding.api.MeldingResponseDTO
 import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.api.Melding
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -19,12 +19,6 @@ data class MeldingTilBehandler(
     val antallVedlegg: Int,
 )
 
-fun MeldingTilBehandler.toMeldingTilBehandlerResponseDTO() = MeldingResponseDTO(
-    behandlerRef = behandlerRef,
-    tekst = tekst,
-    bestiltTidspunkt = bestiltTidspunkt,
-)
-
 fun MeldingTilBehandler.toPMelding() = PMelding(
     uuid = uuid,
     createdAt = createdAt,
@@ -38,4 +32,11 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
     behandlerRef = behandlerRef,
     tekst = tekst,
     antallVedlegg = antallVedlegg,
+)
+
+fun MeldingTilBehandler.toMelding() = Melding(
+    behandlerRef = behandlerRef,
+    tekst = tekst,
+    tidspunkt = bestiltTidspunkt,
+    innkommende = false,
 )

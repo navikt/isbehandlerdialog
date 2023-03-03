@@ -1,5 +1,6 @@
 package no.nav.syfo.testhelper
 
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.domain.DialogmeldingType
 import no.nav.syfo.melding.kafka.domain.Dialogmelding
 import no.nav.syfo.melding.kafka.domain.ForesporselFraSaksbehandlerForesporselSvar
@@ -87,14 +88,17 @@ val fellesformatXML = """<?xml version="1.0" ?>
     <MottakenhetBlokk avsender="12312341" avsenderFnrFraDigSignatur="${UserConstants.FASTLEGE_FNR.value}" avsenderRef="SERIALNUMBER=996871045, CN=LEGEHUSET NOVA DA, O=LEGEHUSET NOVA DA, C=NO" ebAction="Henvendelse" ebRole="Sykmelder" ebService="HenvendelseFraLege" ebXMLSamtaleId="615356d4-f5e6-4138-a868-bbb63bd6195d" ediLoggId="1901162157lege21826.1" herIdentifikator="" meldingsType="xml" mottattDatotid="2019-01-16T21:57:43" partnerReferanse="${UserConstants.PARTNERID}" />
 </EI_fellesformat>"""
 
-fun generateDialogmeldingFraBehandlerDTO(uuid: UUID) = KafkaDialogmeldingFraBehandlerDTO(
+fun generateDialogmeldingFraBehandlerDTO(
+    uuid: UUID,
+    personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+) = KafkaDialogmeldingFraBehandlerDTO(
     msgId = uuid.toString(),
     msgType = DialogmeldingType.DIALOG_FORESPORSEL.name,
     navLogId = "1234asd123",
     mottattTidspunkt = LocalDateTime.now(),
     conversationRef = UUID.randomUUID().toString(),
     parentRef = UUID.randomUUID().toString(),
-    personIdentPasient = UserConstants.ARBEIDSTAKER_PERSONIDENT.value,
+    personIdentPasient = personIdent.value,
     personIdentBehandler = UserConstants.FASTLEGE_FNR.value,
     legekontorOrgNr = "987654321",
     legekontorHerId = "",
