@@ -2,8 +2,10 @@ package no.nav.syfo.testhelper
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.melding.database.createMeldingFraBehandler
 import no.nav.syfo.melding.domain.MeldingTilBehandler
 import no.nav.syfo.melding.database.createMeldingTilBehandler
+import no.nav.syfo.melding.domain.MeldingFraBehandler
 import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.util.*
@@ -30,7 +32,7 @@ class TestDatabase : DatabaseInterface {
     }
 }
 
-fun DatabaseInterface.createNMeldingTilBehandler(meldingTilBehandler: MeldingTilBehandler, numberOfMeldinger: Int = 1) {
+fun DatabaseInterface.createMeldingerTilBehandler(meldingTilBehandler: MeldingTilBehandler, numberOfMeldinger: Int = 1): UUID {
     this.connection.use { connection ->
         for (i in 1..numberOfMeldinger) {
             connection.createMeldingTilBehandler(
@@ -44,6 +46,25 @@ fun DatabaseInterface.createNMeldingTilBehandler(meldingTilBehandler: MeldingTil
         }
         connection.commit()
     }
+    return meldingTilBehandler.conversationRef
+}
+
+fun DatabaseInterface.createMeldingerFraBehandler(meldingFraBehandler: MeldingFraBehandler, numberOfMeldinger: Int = 1): UUID {
+    this.connection.use { connection ->
+        for (i in 1..numberOfMeldinger) {
+            connection.createMeldingFraBehandler(
+                meldingFraBehandler = meldingFraBehandler
+                    .copy(
+                        uuid = UUID.randomUUID(),
+                        tekst = "${meldingFraBehandler.tekst}$i"
+                    ),
+                fellesformat = null,
+                commit = false,
+            )
+        }
+        connection.commit()
+    }
+    return meldingFraBehandler.conversationRef
 }
 
 fun DatabaseInterface.dropData() {
