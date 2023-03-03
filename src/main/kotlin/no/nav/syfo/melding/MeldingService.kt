@@ -6,6 +6,11 @@ import no.nav.syfo.melding.database.createMeldingTilBehandler
 import no.nav.syfo.melding.database.domain.toMeldingTilBehandler
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.api.Melding
+import no.nav.syfo.melding.database.domain.toMeldingFraBehandler
+import no.nav.syfo.melding.database.getMeldingerForConversation
+import no.nav.syfo.melding.domain.toMelding
+import java.util.*
 
 class MeldingService(
     private val database: DatabaseInterface,
@@ -21,10 +26,22 @@ class MeldingService(
         // TODO: legg til i joark-cronjob og send på kafka her
     }
 
-    fun getMeldingerTilBehandler(personIdent: PersonIdent): List<MeldingTilBehandler> {
-        // TODO: Her ville vi vel gruppere det på en eller annen måte for ulike samtaler/dialoger
-        return database.getMeldingerForArbeidstaker(personIdent)
-            .filter { !it.innkommende } // Foreløpig bare ta MeldingTilBehandler-meldingene
-            .map { it.toMeldingTilBehandler() }
+    fun getConversationMeldingerMap(personIdent: PersonIdent): Map<UUID, List<Melding>> {
+        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        return meldinger.groupBy(
+            keySelector = { it.conversationRef },
+            valueTransform = {
+                if (it.innkommende) {
+                    val behandlerRef: UUID = database.getMeldingerForConversation(it.conversationRef)
+                        .sortedBy { melding -> melding.tidspunkt } // TODO: Kan bruke parent her også, men foreløpig er den hardkodet til null for alle
+                        .firstOrNull { melding -> !melding.innkommende }
+                        ?.behandlerRef
+                        ?: throw IllegalStateException("Melding fra behandler mangler behandlerRef")
+                    it.toMeldingFraBehandler().toMelding(behandlerRef)
+                } else {
+                    it.toMeldingTilBehandler().toMelding()
+                }
+            }
+        )
     }
 }

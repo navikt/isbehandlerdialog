@@ -2,6 +2,7 @@ package no.nav.syfo.melding.domain
 
 import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.api.Melding
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -33,3 +34,10 @@ fun MeldingFraBehandler.toPMelding() =
         tekst = tekst,
         antallVedlegg = antallVedlegg,
     )
+
+fun MeldingFraBehandler.toMelding(behandlerRef: UUID) = Melding(
+    behandlerRef = behandlerRef,
+    tekst = tekst ?: "",
+    tidspunkt = mottattTidspunkt,
+    innkommende = true,
+)
