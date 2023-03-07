@@ -3,6 +3,7 @@ package no.nav.syfo.melding.domain
 import no.nav.syfo.melding.api.MeldingResponseDTO
 import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.kafka.domain.DialogmeldingBestillingDTO
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -38,4 +39,16 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
     behandlerRef = behandlerRef,
     tekst = tekst,
     antallVedlegg = antallVedlegg,
+)
+
+fun MeldingTilBehandler.toDialogmeldingBestillingDTO() = DialogmeldingBestillingDTO(
+    behandlerRef = this.behandlerRef.toString(),
+    personIdent = this.arbeidstakerPersonIdent.value,
+    dialogmeldingUuid = this.uuid.toString(),
+    dialogmeldingRefParent = this.parentRef?.toString(),
+    dialogmeldingRefConversation = this.conversationRef.toString(),
+    dialogmeldingType = DialogmeldingType.DIALOG_FORESPORSEL.name,
+    dialogmeldingKodeverk = DialogmeldingKodeverk.FORESPORSEL.name,
+    dialogmeldingKode = DialogmeldingKode.FORESPORSEL.value,
+    dialogmeldingTekst = this.tekst,
 )

@@ -7,6 +7,7 @@ data class DialogmeldingBestillingDTO(
     val dialogmeldingRefParent: String?,
     val dialogmeldingRefConversation: String,
     val dialogmeldingType: String,
+    val dialogmeldingKodeverk: String,
     val dialogmeldingKode: Int,
     val dialogmeldingTekst: String?,
     val dialogmeldingVedlegg: ByteArray? = null,

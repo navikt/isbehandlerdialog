@@ -1,5 +1,7 @@
 package no.nav.syfo.melding.kafka
 
+import no.nav.syfo.melding.domain.MeldingTilBehandler
+import no.nav.syfo.melding.domain.toDialogmeldingBestillingDTO
 import no.nav.syfo.melding.kafka.domain.DialogmeldingBestillingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -9,8 +11,8 @@ class DialogmeldingBestillingProducer(
     private val dialogmeldingBestillingKafkaProducer: KafkaProducer<String, DialogmeldingBestillingDTO>,
     private val produceDialogmeldingBestillingEnabled: Boolean,
 ) {
-    // TODO: Ta inn domene-objekt her og konverter til dto under
-    fun sendDialogmeldingBestilling(dialogmeldingBestillingDTO: DialogmeldingBestillingDTO) {
+    fun sendDialogmeldingBestilling(meldingTilBehandler: MeldingTilBehandler) {
+        val dialogmeldingBestillingDTO = meldingTilBehandler.toDialogmeldingBestillingDTO()
         val key = dialogmeldingBestillingDTO.dialogmeldingRefConversation
         try {
             if (produceDialogmeldingBestillingEnabled) {

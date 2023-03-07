@@ -11,10 +11,10 @@ import no.nav.syfo.application.api.apiModule
 import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
-import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
-import no.nav.syfo.melding.kafka.config.KafkaBehandlerDialogmeldingSerializer
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.wellknown.getWellKnown
+import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
+import no.nav.syfo.melding.kafka.config.KafkaBehandlerDialogmeldingSerializer
 import no.nav.syfo.melding.kafka.launchKafkaTaskDialogmeldingFraBehandler
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
@@ -32,8 +32,6 @@ fun main() {
     val azureAdClient = AzureAdClient(
         azureEnvironment = environment.azure
     )
-
-    // TODO: Send inn til domene-service som oppretter utgående dialogmeldinger (evt også flytt til api-module)
     val dialogmeldingBestillingProducer = DialogmeldingBestillingProducer(
         dialogmeldingBestillingKafkaProducer = KafkaProducer(
             kafkaAivenProducerConfig<KafkaBehandlerDialogmeldingSerializer>(
@@ -59,6 +57,7 @@ fun main() {
                 environment = environment,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
                 azureAdClient = azureAdClient,
+                dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
             )
         }
     }

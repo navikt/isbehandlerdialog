@@ -13,6 +13,7 @@ import no.nav.syfo.melding.api.registerMeldingApi
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.WellKnown
+import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 
 fun Application.apiModule(
     applicationState: ApplicationState,
@@ -20,6 +21,7 @@ fun Application.apiModule(
     environment: Environment,
     wellKnownInternalAzureAD: WellKnown,
     azureAdClient: AzureAdClient,
+    dialogmeldingBestillingProducer: DialogmeldingBestillingProducer,
 ) {
     installMetrics()
     installCallId()
@@ -42,6 +44,7 @@ fun Application.apiModule(
 
     val meldingService = MeldingService(
         database = database,
+        dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
     )
 
     routing {
