@@ -6,9 +6,11 @@ import no.nav.syfo.melding.database.createMeldingTilBehandler
 import no.nav.syfo.melding.database.domain.toMeldingTilBehandler
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 
 class MeldingService(
     private val database: DatabaseInterface,
+    private val dialogmeldingBestillingProducer: DialogmeldingBestillingProducer,
 ) {
     fun createMeldingTilBehandler(
         meldingTilBehandler: MeldingTilBehandler,
@@ -18,7 +20,11 @@ class MeldingService(
                 meldingTilBehandler = meldingTilBehandler,
             )
         }
-        // TODO: legg til i joark-cronjob og send på kafka her
+        dialogmeldingBestillingProducer.sendDialogmeldingBestilling(
+            meldingTilBehandler = meldingTilBehandler,
+        )
+
+        // TODO: legg til i joark-cronjob her
     }
 
     fun getMeldingerTilBehandler(personIdent: PersonIdent): List<MeldingTilBehandler> {
