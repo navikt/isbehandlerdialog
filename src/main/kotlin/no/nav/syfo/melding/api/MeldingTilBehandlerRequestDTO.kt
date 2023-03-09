@@ -1,8 +1,7 @@
 package no.nav.syfo.melding.api
 
-import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.domain.DialogmeldingType
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.domain.*
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -16,7 +15,7 @@ fun MeldingTilBehandlerRequestDTO.toMeldingTilBehandler(personident: PersonIdent
     return MeldingTilBehandler(
         uuid = UUID.randomUUID(),
         createdAt = now,
-        type = DialogmeldingType.DIALOG_FORESPORSEL,
+        type = MeldingType.FORESPORSEL_PASIENT,
         conversationRef = UUID.randomUUID(),
         parentRef = null,
         bestiltTidspunkt = now,

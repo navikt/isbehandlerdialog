@@ -1,8 +1,7 @@
 package no.nav.syfo.melding.kafka.domain
 
-import no.nav.syfo.melding.domain.MeldingFraBehandler
-import no.nav.syfo.melding.domain.DialogmeldingType
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.domain.*
 import java.time.*
 import java.util.UUID
 
@@ -28,7 +27,7 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler() =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
-        type = DialogmeldingType.valueOf(msgType ?: DialogmeldingType.DIALOG_NOTAT.name),
+        type = DialogmeldingType.valueOf(msgType ?: DialogmeldingType.DIALOG_NOTAT.name).getMeldingType(),
         conversationRef = conversationRef?.let {
             try {
                 UUID.fromString(it)
