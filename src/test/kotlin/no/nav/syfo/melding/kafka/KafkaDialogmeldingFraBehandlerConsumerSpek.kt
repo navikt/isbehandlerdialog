@@ -5,6 +5,7 @@ import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.melding.kafka.domain.KafkaDialogmeldingFraBehandlerDTO
 import no.nav.syfo.testhelper.*
+import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerDTO
 import org.apache.kafka.clients.consumer.*
 import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek

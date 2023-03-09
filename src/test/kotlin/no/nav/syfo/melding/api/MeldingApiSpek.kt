@@ -7,7 +7,7 @@ import io.mockk.*
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.melding.domain.*
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
-import no.nav.syfo.melding.kafka.domain.DialogmeldingBestillingDTO
+import no.nav.syfo.melding.kafka.domain.*
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
 import no.nav.syfo.util.*
@@ -109,6 +109,8 @@ class MeldingApiSpek : Spek({
                         pMeldinger.size shouldBeEqualTo 1
                         val pMelding = pMeldinger.first()
                         pMelding.tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
+                        pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT.name
+                        pMelding.innkommende shouldBeEqualTo false
 
                         val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
                         verify(exactly = 1) {

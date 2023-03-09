@@ -1,8 +1,7 @@
 package no.nav.syfo.melding.database.domain
 
-import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.domain.DialogmeldingType
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.domain.*
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -24,7 +23,7 @@ data class PMelding(
 fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
     uuid = uuid,
     createdAt = createdAt,
-    type = DialogmeldingType.valueOf(type),
+    type = MeldingType.valueOf(type),
     conversationRef = conversationRef,
     parentRef = parentRef,
     bestiltTidspunkt = tidspunkt,

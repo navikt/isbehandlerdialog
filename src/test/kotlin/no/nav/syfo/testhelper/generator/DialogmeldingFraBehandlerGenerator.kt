@@ -1,10 +1,7 @@
-package no.nav.syfo.testhelper
+package no.nav.syfo.testhelper.generator
 
-import no.nav.syfo.melding.domain.DialogmeldingType
-import no.nav.syfo.melding.kafka.domain.Dialogmelding
-import no.nav.syfo.melding.kafka.domain.ForesporselFraSaksbehandlerForesporselSvar
-import no.nav.syfo.melding.kafka.domain.KafkaDialogmeldingFraBehandlerDTO
-import no.nav.syfo.melding.kafka.domain.TemaKode
+import no.nav.syfo.melding.kafka.domain.*
+import no.nav.syfo.testhelper.UserConstants
 import java.time.LocalDateTime
 import java.util.*
 
@@ -89,7 +86,7 @@ val fellesformatXML = """<?xml version="1.0" ?>
 
 fun generateDialogmeldingFraBehandlerDTO(uuid: UUID) = KafkaDialogmeldingFraBehandlerDTO(
     msgId = uuid.toString(),
-    msgType = DialogmeldingType.DIALOG_FORESPORSEL.name,
+    msgType = DialogmeldingType.DIALOG_SVAR.name,
     navLogId = "1234asd123",
     mottattTidspunkt = LocalDateTime.now(),
     conversationRef = UUID.randomUUID().toString(),

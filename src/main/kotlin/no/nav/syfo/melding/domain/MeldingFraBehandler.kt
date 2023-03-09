@@ -8,7 +8,7 @@ import java.util.UUID
 data class MeldingFraBehandler(
     val uuid: UUID,
     val createdAt: OffsetDateTime,
-    val type: DialogmeldingType,
+    val type: MeldingType,
     val conversationRef: UUID,
     val parentRef: UUID?,
     val mottattTidspunkt: OffsetDateTime,
