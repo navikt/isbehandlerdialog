@@ -40,7 +40,6 @@ fun testEnvironment(
             clientId = "dev-fss.teamsykefravr.syfotilgangskontroll",
         ),
     ),
-    readIncomingDialogmelding = true,
     produceBehandlerDialogmeldingBestilling = true,
 )
 
