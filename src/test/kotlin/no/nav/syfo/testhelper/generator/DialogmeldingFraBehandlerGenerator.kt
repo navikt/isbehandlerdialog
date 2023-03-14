@@ -84,12 +84,19 @@ val fellesformatXML = """<?xml version="1.0" ?>
     <MottakenhetBlokk avsender="12312341" avsenderFnrFraDigSignatur="${UserConstants.FASTLEGE_FNR.value}" avsenderRef="SERIALNUMBER=996871045, CN=LEGEHUSET NOVA DA, O=LEGEHUSET NOVA DA, C=NO" ebAction="Henvendelse" ebRole="Sykmelder" ebService="HenvendelseFraLege" ebXMLSamtaleId="615356d4-f5e6-4138-a868-bbb63bd6195d" ediLoggId="1901162157lege21826.1" herIdentifikator="" meldingsType="xml" mottattDatotid="2019-01-16T21:57:43" partnerReferanse="${UserConstants.PARTNERID}" />
 </EI_fellesformat>"""
 
-fun generateDialogmeldingFraBehandlerDTO(uuid: UUID) = KafkaDialogmeldingFraBehandlerDTO(
+fun generateDialogmeldingFraBehandlerDTO(
+    uuid: UUID = UUID.randomUUID(),
+    msgType: String = DialogmeldingType.DIALOG_SVAR.name,
+    conversationRef: String = UUID.randomUUID().toString(),
+    kodeverk: String = "2.16.578.1.12.4.1.1.9069",
+    kodeTekst: String = "Svar på forespørsel",
+    kode: String = "5",
+) = KafkaDialogmeldingFraBehandlerDTO(
     msgId = uuid.toString(),
-    msgType = DialogmeldingType.DIALOG_SVAR.name,
+    msgType = msgType,
     navLogId = "1234asd123",
     mottattTidspunkt = LocalDateTime.now(),
-    conversationRef = UUID.randomUUID().toString(),
+    conversationRef = conversationRef,
     parentRef = UUID.randomUUID().toString(),
     personIdentPasient = UserConstants.ARBEIDSTAKER_PERSONIDENT.value,
     personIdentBehandler = UserConstants.FASTLEGE_FNR.value,
@@ -105,7 +112,7 @@ fun generateDialogmeldingFraBehandlerDTO(uuid: UUID) = KafkaDialogmeldingFraBeha
         navnHelsepersonell = "",
         signaturDato = LocalDateTime.now(),
         foresporselFraSaksbehandlerForesporselSvar = ForesporselFraSaksbehandlerForesporselSvar(
-            temaKode = TemaKode("", "", "", "", "", ""),
+            temaKode = TemaKode(kodeverk, kodeTekst, kode, "", "", ""),
             datoNotat = LocalDateTime.now(),
             dokIdNotat = null,
             tekstNotatInnhold = "Dette er innholdet i et notat"

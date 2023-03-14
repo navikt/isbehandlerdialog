@@ -18,6 +18,7 @@ const val queryGetMeldingForArbeidstakerPersonIdent =
         SELECT *
         FROM MELDING
         WHERE arbeidstaker_personident = ?
+        ORDER BY id ASC
     """
 
 fun DatabaseInterface.getMeldingerForArbeidstaker(
@@ -28,6 +29,40 @@ fun DatabaseInterface.getMeldingerForArbeidstaker(
             it.setString(1, arbeidstakerPersonIdent.value)
             it.executeQuery().toList { toPMelding() }
         }
+    }
+}
+
+const val queryGetMeldingForUUID =
+    """
+        SELECT *
+        FROM MELDING
+        WHERE uuid = ?
+    """
+
+fun Connection.getMelding(
+    uuid: UUID,
+): PMelding? {
+    return this.prepareStatement(queryGetMeldingForUUID).use {
+        it.setString(1, uuid.toString())
+        it.executeQuery().toList { toPMelding() }.firstOrNull()
+    }
+}
+
+const val queryGetMeldingForConversationRefAndArbeidstakerident =
+    """
+        SELECT *
+        FROM MELDING
+        WHERE conversation_ref = ? AND arbeidstaker_personident = ? AND NOT innkommende
+    """
+
+fun Connection.hasSendtMeldingForConversationRefAndArbeidstakerIdent(
+    conversationRef: String,
+    arbeidstakerPersonIdent: PersonIdent,
+): Boolean {
+    return this.prepareStatement(queryGetMeldingForConversationRefAndArbeidstakerident).use {
+        it.setString(1, conversationRef)
+        it.setString(2, arbeidstakerPersonIdent.value)
+        it.executeQuery().toList { toPMelding() }.isNotEmpty()
     }
 }
 

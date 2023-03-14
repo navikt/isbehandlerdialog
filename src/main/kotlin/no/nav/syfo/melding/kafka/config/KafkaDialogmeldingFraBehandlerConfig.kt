@@ -9,6 +9,7 @@ fun kafkaDialogmeldingFraBehandlerConsumerConfig(
     applicationEnvironmentKafka: KafkaEnvironment,
 ): Properties {
     return kafkaConsumerConfig(applicationEnvironmentKafka).apply {
+        this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest" // TODO: Set to "none" after initialized
         this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] =
             JacksonKafkaDeserializerDialogmeldingFraBehandler::class.java.canonicalName
     }
