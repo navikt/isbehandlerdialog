@@ -65,13 +65,11 @@ fun main() {
     applicationEngineEnvironment.monitor.subscribe(ApplicationStarted) {
         applicationState.ready = true
         logger.info("Application is ready, running Java VM ${Runtime.version()}")
-        if (environment.readIncomingDialogmelding) {
-            launchKafkaTaskDialogmeldingFraBehandler(
-                applicationState = applicationState,
-                kafkaEnvironment = environment.kafka,
-                database = applicationDatabase,
-            )
-        }
+        launchKafkaTaskDialogmeldingFraBehandler(
+            applicationState = applicationState,
+            kafkaEnvironment = environment.kafka,
+            database = applicationDatabase,
+        )
     }
 
     val server = embeddedServer(
