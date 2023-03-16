@@ -32,3 +32,16 @@ fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
     tekst = tekst ?: "",
     antallVedlegg = antallVedlegg,
 )
+
+fun PMelding.toMeldingFraBehandler() = MeldingFraBehandler(
+    uuid = uuid,
+    createdAt = createdAt,
+    type = MeldingType.valueOf(type),
+    conversationRef = conversationRef,
+    parentRef = parentRef,
+    mottattTidspunkt = tidspunkt,
+    arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
+    behandlerPersonIdent = behandlerPersonIdent?.let { PersonIdent(it) },
+    tekst = tekst ?: "",
+    antallVedlegg = antallVedlegg,
+)

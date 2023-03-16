@@ -2,6 +2,11 @@ package no.nav.syfo.testhelper.generator
 
 import no.nav.syfo.melding.kafka.domain.*
 import no.nav.syfo.testhelper.UserConstants
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.kafka.domain.Dialogmelding
+import no.nav.syfo.melding.kafka.domain.ForesporselFraSaksbehandlerForesporselSvar
+import no.nav.syfo.melding.kafka.domain.KafkaDialogmeldingFraBehandlerDTO
+import no.nav.syfo.melding.kafka.domain.TemaKode
 import java.time.LocalDateTime
 import java.util.*
 
@@ -86,6 +91,7 @@ val fellesformatXML = """<?xml version="1.0" ?>
 
 fun generateDialogmeldingFraBehandlerDTO(
     uuid: UUID = UUID.randomUUID(),
+    personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
     msgType: String = DialogmeldingType.DIALOG_SVAR.name,
     conversationRef: String = UUID.randomUUID().toString(),
     kodeverk: String = "2.16.578.1.12.4.1.1.9069",
@@ -98,7 +104,7 @@ fun generateDialogmeldingFraBehandlerDTO(
     mottattTidspunkt = LocalDateTime.now(),
     conversationRef = conversationRef,
     parentRef = UUID.randomUUID().toString(),
-    personIdentPasient = UserConstants.ARBEIDSTAKER_PERSONIDENT.value,
+    personIdentPasient = personIdent.value,
     personIdentBehandler = UserConstants.FASTLEGE_FNR.value,
     legekontorOrgNr = "987654321",
     legekontorHerId = "",

@@ -7,7 +7,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.api.VeilederTilgangskontrollPlugin
 import no.nav.syfo.melding.MeldingService
-import no.nav.syfo.melding.domain.toMeldingTilBehandlerResponseDTO
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.util.*
@@ -28,10 +27,11 @@ fun Route.registerMeldingApi(
 
         get {
             val personIdent = call.personIdent()
-            val responseDTOList = meldingService
-                .getMeldingerTilBehandler(personIdent)
-                .map { it.toMeldingTilBehandlerResponseDTO() }
-            call.respond(responseDTOList)
+            val conversations = meldingService.getConversations(personIdent)
+
+            call.respond(
+                MeldingResponseDTO(conversations = conversations)
+            )
         }
 
         post {

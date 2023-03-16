@@ -7,6 +7,11 @@ import no.nav.syfo.melding.database.domain.toMeldingTilBehandler
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
+import no.nav.syfo.melding.api.Melding
+import no.nav.syfo.melding.database.domain.toMeldingFraBehandler
+import no.nav.syfo.melding.database.getMeldingerInConversation
+import no.nav.syfo.melding.domain.toMelding
+import java.util.*
 
 class MeldingService(
     private val database: DatabaseInterface,
@@ -27,10 +32,25 @@ class MeldingService(
         // TODO: legg til i joark-cronjob her
     }
 
-    fun getMeldingerTilBehandler(personIdent: PersonIdent): List<MeldingTilBehandler> {
-        // TODO: Her ville vi vel gruppere det på en eller annen måte for ulike samtaler/dialoger
-        return database.getMeldingerForArbeidstaker(personIdent)
-            .filter { !it.innkommende } // Foreløpig bare ta MeldingTilBehandler-meldingene
-            .map { it.toMeldingTilBehandler() }
+    fun getConversations(personIdent: PersonIdent): Map<UUID, List<Melding>> {
+        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        return meldinger.groupBy(
+            keySelector = { it.conversationRef },
+            valueTransform = {
+                if (it.innkommende) {
+                    val behandlerRef = getBehandlerRefForConversation(it.conversationRef)
+                    it.toMeldingFraBehandler().toMelding(behandlerRef)
+                } else {
+                    it.toMeldingTilBehandler().toMelding()
+                }
+            }
+        )
+    }
+
+    private fun getBehandlerRefForConversation(conversationRef: UUID): UUID {
+        return database.getMeldingerInConversation(conversationRef)
+            .firstOrNull { !it.innkommende }
+            ?.behandlerRef
+            ?: throw IllegalStateException("Melding fra behandler mangler behandlerRef")
     }
 }

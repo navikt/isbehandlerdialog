@@ -1,6 +1,7 @@
 package no.nav.syfo.melding.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
@@ -9,12 +10,14 @@ import no.nav.syfo.melding.domain.*
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.kafka.domain.*
 import no.nav.syfo.testhelper.*
+import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.producer.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.util.UUID
 import java.util.concurrent.Future
 
 class MeldingApiSpek : Spek({
@@ -52,15 +55,29 @@ class MeldingApiSpek : Spek({
                 database.dropData()
             }
 
-            describe("Get meldingerTilBehandler for person") {
+            describe("Get meldinger for person") {
                 describe("Happy path") {
                     val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
                     val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
-                    database.createNMeldingTilBehandler(
+                    val firstConversation = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandlerDTO.toMeldingTilBehandler(personIdent),
                         numberOfMeldinger = 2,
                     )
-                    it("Returns all meldingerTilBehandler for personident") {
+                    val meldingFraBehandler = generateMeldingFraBehandler(
+                        conversationRef = firstConversation,
+                        personIdent = personIdent,
+                    )
+                    database.createMeldingerFraBehandler(
+                        meldingFraBehandler = meldingFraBehandler,
+                        numberOfMeldinger = 2,
+                    )
+                    val secondConversation = database.createMeldingerTilBehandler(
+                        meldingTilBehandler = meldingTilBehandlerDTO
+                            .toMeldingTilBehandler(personIdent)
+                            .copy(conversationRef = UUID.randomUUID()),
+                        numberOfMeldinger = 1,
+                    )
+                    it("Returns all meldinger for personident grouped by conversationRef") {
                         with(
                             handleRequest(HttpMethod.Get, apiUrl) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
@@ -68,8 +85,12 @@ class MeldingApiSpek : Spek({
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
+                            val respons = objectMapper.readValue<MeldingResponseDTO>(response.content!!)
+                            respons.conversations[firstConversation]?.size shouldBeEqualTo 4
+                            respons.conversations[secondConversation]?.size shouldBeEqualTo 1
+
                             val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
-                            pMeldinger.size shouldBeEqualTo 2
+                            pMeldinger.size shouldBeEqualTo 5
                             pMeldinger.first().arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
                         }
                     }

@@ -153,6 +153,24 @@ private fun Connection.createMelding(
     return id
 }
 
+const val queryGetMeldingerInConversation =
+    """
+        SELECT *
+        FROM MELDING
+        WHERE conversation_ref = ?
+    """
+
+fun DatabaseInterface.getMeldingerInConversation(
+    conversationRef: UUID,
+): List<PMelding> {
+    return connection.use { connection ->
+        connection.prepareStatement(queryGetMeldingerInConversation).use {
+            it.setString(1, conversationRef.toString())
+            it.executeQuery().toList { toPMelding() }
+        }
+    }
+}
+
 fun ResultSet.toPMelding() =
     PMelding(
         uuid = UUID.fromString(getString("uuid")),
