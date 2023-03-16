@@ -9,7 +9,7 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.api.Melding
 import no.nav.syfo.melding.database.domain.toMeldingFraBehandler
-import no.nav.syfo.melding.database.getMeldingerInConversation
+import no.nav.syfo.melding.database.getUtgaendeMeldingerInConversation
 import no.nav.syfo.melding.domain.toMelding
 import java.util.*
 
@@ -38,7 +38,7 @@ class MeldingService(
             keySelector = { it.conversationRef },
             valueTransform = {
                 if (it.innkommende) {
-                    val behandlerRef = getBehandlerRefForConversation(it.conversationRef)
+                    val behandlerRef = getBehandlerRefForConversation(it.conversationRef, personIdent)
                     it.toMeldingFraBehandler().toMelding(behandlerRef)
                 } else {
                     it.toMeldingTilBehandler().toMelding()
@@ -47,10 +47,12 @@ class MeldingService(
         )
     }
 
-    private fun getBehandlerRefForConversation(conversationRef: UUID): UUID {
-        return database.getMeldingerInConversation(conversationRef)
-            .firstOrNull { !it.innkommende }
+    private fun getBehandlerRefForConversation(conversationRef: UUID, personIdent: PersonIdent): UUID {
+        return database.connection.use {
+            it.getUtgaendeMeldingerInConversation(conversationRef, personIdent)
+        }
+            .firstOrNull()
             ?.behandlerRef
-            ?: throw IllegalStateException("Melding fra behandler mangler behandlerRef")
+            ?: throw IllegalStateException("Fant ikke behandlerRef for samtale $conversationRef, kunne ikke knyttes til melding fra behandler")
     }
 }
