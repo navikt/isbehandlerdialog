@@ -53,16 +53,27 @@ const val queryGetMeldingForConversationRefAndArbeidstakerident =
         SELECT *
         FROM MELDING
         WHERE conversation_ref = ? AND arbeidstaker_personident = ? AND NOT innkommende
+        ORDER BY tidspunkt ASC
     """
 
 fun Connection.hasSendtMeldingForConversationRefAndArbeidstakerIdent(
-    conversationRef: String,
+    conversationRef: UUID,
     arbeidstakerPersonIdent: PersonIdent,
 ): Boolean {
+    return this.getUtgaendeMeldingerInConversation(
+        conversationRef = conversationRef,
+        arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+    ).isNotEmpty()
+}
+
+fun Connection.getUtgaendeMeldingerInConversation(
+    conversationRef: UUID,
+    arbeidstakerPersonIdent: PersonIdent,
+): List<PMelding> {
     return this.prepareStatement(queryGetMeldingForConversationRefAndArbeidstakerident).use {
-        it.setString(1, conversationRef)
+        it.setString(1, conversationRef.toString())
         it.setString(2, arbeidstakerPersonIdent.value)
-        it.executeQuery().toList { toPMelding() }.isNotEmpty()
+        it.executeQuery().toList { toPMelding() }
     }
 }
 
@@ -151,24 +162,6 @@ private fun Connection.createMelding(
         this.commit()
     }
     return id
-}
-
-const val queryGetMeldingerInConversation =
-    """
-        SELECT *
-        FROM MELDING
-        WHERE conversation_ref = ?
-    """
-
-fun DatabaseInterface.getMeldingerInConversation(
-    conversationRef: UUID,
-): List<PMelding> {
-    return connection.use { connection ->
-        connection.prepareStatement(queryGetMeldingerInConversation).use {
-            it.setString(1, conversationRef.toString())
-            it.executeQuery().toList { toPMelding() }
-        }
-    }
 }
 
 fun ResultSet.toPMelding() =

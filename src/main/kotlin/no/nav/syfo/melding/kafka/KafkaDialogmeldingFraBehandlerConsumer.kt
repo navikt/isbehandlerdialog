@@ -88,7 +88,7 @@ internal fun handleForesporselSvar(
     kafkaForesporselSvarFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
     connection: Connection,
 ) {
-    val conversationRef = kafkaForesporselSvarFraBehandler.conversationRef!!
+    val conversationRef = UUID.fromString(kafkaForesporselSvarFraBehandler.conversationRef!!)
     if (
         connection.hasSendtMeldingForConversationRefAndArbeidstakerIdent(
             conversationRef = conversationRef,
