@@ -40,6 +40,7 @@ spec:
       memory: 384Mi
   ingresses:
     - "https://isbehandlerdialog.dev.intern.nav.no"
+    - "https://isbehandlerdialog.intern.dev.nav.no"
   accessPolicy:
     inbound:
       rules:
