@@ -17,6 +17,7 @@ data class PMelding(
     val behandlerPersonIdent: String?,
     val behandlerRef: UUID?,
     val tekst: String?,
+    val document: List<DocumentComponentDTO>,
     val antallVedlegg: Int,
 )
 
@@ -30,6 +31,7 @@ fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
     arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
     behandlerRef = behandlerRef ?: throw IllegalStateException("Mangler behandlerRef for MeldingTilBehandler"),
     tekst = tekst ?: "",
+    document = document,
     antallVedlegg = antallVedlegg,
 )
 

@@ -1,17 +1,19 @@
 package no.nav.syfo.melding.database
 
+import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
-import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.domain.toPMelding
 import no.nav.syfo.melding.database.domain.PMelding
-import no.nav.syfo.melding.domain.MeldingFraBehandler
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.domain.*
+import no.nav.syfo.util.configuredJacksonMapper
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.time.OffsetDateTime
 import java.util.UUID
+
+private val mapper = configuredJacksonMapper()
 
 const val queryGetMeldingForArbeidstakerPersonIdent =
     """
@@ -92,8 +94,9 @@ const val queryCreateMelding =
             behandler_personident,
             behandler_ref,
             tekst,
+            document,
             antall_vedlegg
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?) RETURNING id
     """
 
 const val queryCreateMeldingFellesformat =
@@ -110,7 +113,7 @@ fun Connection.createMeldingTilBehandler(
     commit: Boolean = true,
 ): Int {
     return this.createMelding(
-        melding = meldingTilBehandler.toPMelding(),
+        pMelding = meldingTilBehandler.toPMelding(),
         commit = commit,
     )
 }
@@ -121,30 +124,31 @@ fun Connection.createMeldingFraBehandler(
     commit: Boolean = true,
 ): Int {
     return this.createMelding(
-        melding = meldingFraBehandler.toPMelding(),
+        pMelding = meldingFraBehandler.toPMelding(),
         fellesformat = fellesformat,
         commit = commit,
     )
 }
 
 private fun Connection.createMelding(
-    melding: PMelding,
+    pMelding: PMelding,
     fellesformat: String? = null,
     commit: Boolean = true,
 ): Int {
     val idList = this.prepareStatement(queryCreateMelding).use {
-        it.setString(1, melding.uuid.toString())
+        it.setString(1, pMelding.uuid.toString())
         it.setObject(2, OffsetDateTime.now())
-        it.setBoolean(3, melding.innkommende)
-        it.setString(4, melding.type)
-        it.setString(5, melding.conversationRef.toString())
-        it.setString(6, melding.parentRef?.toString())
-        it.setObject(7, melding.tidspunkt)
-        it.setString(8, melding.arbeidstakerPersonIdent)
-        it.setString(9, melding.behandlerPersonIdent)
-        it.setString(10, melding.behandlerRef?.toString())
-        it.setString(11, melding.tekst)
-        it.setInt(12, melding.antallVedlegg)
+        it.setBoolean(3, pMelding.innkommende)
+        it.setString(4, pMelding.type)
+        it.setString(5, pMelding.conversationRef.toString())
+        it.setString(6, pMelding.parentRef?.toString())
+        it.setObject(7, pMelding.tidspunkt)
+        it.setString(8, pMelding.arbeidstakerPersonIdent)
+        it.setString(9, pMelding.behandlerPersonIdent)
+        it.setString(10, pMelding.behandlerRef?.toString())
+        it.setString(11, pMelding.tekst)
+        it.setObject(12, mapper.writeValueAsString(pMelding.document))
+        it.setInt(13, pMelding.antallVedlegg)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -177,5 +181,6 @@ fun ResultSet.toPMelding() =
         behandlerPersonIdent = getString("behandler_personident"),
         behandlerRef = getString("behandler_ref")?.let { UUID.fromString(it) },
         tekst = getString("tekst"),
+        document = mapper.readValue(getString("document"), object : TypeReference<List<DocumentComponentDTO>>() {}),
         antallVedlegg = getInt("antall_vedlegg"),
     )

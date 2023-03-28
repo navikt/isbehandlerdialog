@@ -1,5 +1,6 @@
 package no.nav.syfo.melding.api
 
+import no.nav.syfo.melding.domain.DocumentComponentDTO
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -10,6 +11,7 @@ data class MeldingResponseDTO(
 data class Melding(
     val behandlerRef: UUID,
     val tekst: String,
+    val document: List<DocumentComponentDTO>,
     val tidspunkt: OffsetDateTime,
     val innkommende: Boolean,
 )

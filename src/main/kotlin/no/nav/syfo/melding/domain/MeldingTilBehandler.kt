@@ -17,6 +17,7 @@ data class MeldingTilBehandler(
     val arbeidstakerPersonIdent: PersonIdent,
     val behandlerRef: UUID,
     val tekst: String,
+    val document: List<DocumentComponentDTO>,
     val antallVedlegg: Int,
 )
 
@@ -32,12 +33,14 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
     behandlerPersonIdent = null,
     behandlerRef = behandlerRef,
     tekst = tekst,
+    document = document,
     antallVedlegg = antallVedlegg,
 )
 
 fun MeldingTilBehandler.toMelding() = Melding(
     behandlerRef = behandlerRef,
     tekst = tekst,
+    document = document,
     tidspunkt = bestiltTidspunkt,
     innkommende = false,
 )
