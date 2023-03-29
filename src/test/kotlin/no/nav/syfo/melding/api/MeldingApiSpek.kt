@@ -86,7 +86,12 @@ class MeldingApiSpek : Spek({
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
                             val respons = objectMapper.readValue<MeldingResponseDTO>(response.content!!)
-                            respons.conversations[firstConversation]?.size shouldBeEqualTo 4
+                            val conversation = respons.conversations[firstConversation]!!
+                            conversation.size shouldBeEqualTo 4
+                            val message = conversation.first()
+                            message.tekst shouldBeEqualTo "${meldingTilBehandlerDTO.tekst}1"
+                            message.document shouldBeEqualTo meldingTilBehandlerDTO.document
+
                             respons.conversations[secondConversation]?.size shouldBeEqualTo 1
 
                             val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
@@ -132,6 +137,8 @@ class MeldingApiSpek : Spek({
                         pMelding.tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
                         pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT.name
                         pMelding.innkommende shouldBeEqualTo false
+                        val brodtekst = pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
+                        brodtekst.texts.first() shouldBeEqualTo meldingTilBehandlerDTO.tekst
 
                         val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
                         verify(exactly = 1) {
