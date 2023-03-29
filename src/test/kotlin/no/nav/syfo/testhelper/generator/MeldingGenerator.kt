@@ -22,7 +22,7 @@ fun generateMeldingTilBehandlerRequestDTO(
         DocumentComponentDTO(
             type = DocumentComponentType.PARAGRAPH,
             title = null,
-            texts = listOf("Brødtekst"),
+            texts = listOf(tekst),
         ),
         DocumentComponentDTO(
             type = DocumentComponentType.PARAGRAPH,
