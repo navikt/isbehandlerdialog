@@ -49,6 +49,8 @@ spec:
     outbound:
       external:
         - host: "syfo-tilgangskontroll.dev-fss-pub.nais.io"
+      rules:
+        - application: dialogmeldingpdfgen
   gcp:
     sqlInstances:
       - type: POSTGRES_14
