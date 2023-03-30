@@ -75,9 +75,9 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     database.connection.use {
                         it.createMeldingTilBehandler(dialogmeldingSendt)
                     }
-
+                    val msgId = UUID.randomUUID()
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
-                        uuid = UUID.randomUUID(),
+                        uuid = msgId,
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
                         conversationRef = dialogmeldingSendt.conversationRef.toString(),
                     )
@@ -98,6 +98,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     pSvar.uuid.toString() shouldBeEqualTo dialogmeldingInnkommet.msgId
                     pSvar.arbeidstakerPersonIdent shouldBeEqualTo dialogmeldingSendt.arbeidstakerPersonIdent.value
                     pSvar.innkommende shouldBe true
+                    pSvar.msgId shouldBeEqualTo msgId.toString()
                 }
                 it("Receive dialogmelding DIALOG_SVAR for dialogmøte") {
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(

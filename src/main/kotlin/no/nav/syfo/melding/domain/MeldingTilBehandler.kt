@@ -28,6 +28,7 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
     type = type.name,
     conversationRef = conversationRef,
     parentRef = parentRef,
+    msgId = null,
     tidspunkt = bestiltTidspunkt,
     arbeidstakerPersonIdent = arbeidstakerPersonIdent.value,
     behandlerPersonIdent = null,

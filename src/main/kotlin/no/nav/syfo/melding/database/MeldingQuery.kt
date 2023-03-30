@@ -89,6 +89,7 @@ const val queryCreateMelding =
             type,
             conversation_ref,
             parent_ref,
+            msg_id,
             tidspunkt,
             arbeidstaker_personident,
             behandler_personident,
@@ -96,7 +97,7 @@ const val queryCreateMelding =
             tekst,
             document,
             antall_vedlegg
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?) RETURNING id
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?) RETURNING id
     """
 
 const val queryCreateMeldingFellesformat =
@@ -142,13 +143,14 @@ private fun Connection.createMelding(
         it.setString(4, pMelding.type)
         it.setString(5, pMelding.conversationRef.toString())
         it.setString(6, pMelding.parentRef?.toString())
-        it.setObject(7, pMelding.tidspunkt)
-        it.setString(8, pMelding.arbeidstakerPersonIdent)
-        it.setString(9, pMelding.behandlerPersonIdent)
-        it.setString(10, pMelding.behandlerRef?.toString())
-        it.setString(11, pMelding.tekst)
-        it.setObject(12, mapper.writeValueAsString(pMelding.document))
-        it.setInt(13, pMelding.antallVedlegg)
+        it.setString(7, pMelding.msgId)
+        it.setObject(8, pMelding.tidspunkt)
+        it.setString(9, pMelding.arbeidstakerPersonIdent)
+        it.setString(10, pMelding.behandlerPersonIdent)
+        it.setString(11, pMelding.behandlerRef?.toString())
+        it.setString(12, pMelding.tekst)
+        it.setObject(13, mapper.writeValueAsString(pMelding.document))
+        it.setInt(14, pMelding.antallVedlegg)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -176,6 +178,7 @@ fun ResultSet.toPMelding() =
         type = getString("type"),
         conversationRef = getString("conversation_ref")!!.let { UUID.fromString(it) },
         parentRef = getString("parent_ref")?.let { UUID.fromString(it) },
+        msgId = getString("msg_id"),
         tidspunkt = getObject("tidspunkt", OffsetDateTime::class.java),
         arbeidstakerPersonIdent = getString("arbeidstaker_personident"),
         behandlerPersonIdent = getString("behandler_personident"),
