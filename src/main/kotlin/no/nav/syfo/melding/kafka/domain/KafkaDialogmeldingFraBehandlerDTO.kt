@@ -35,7 +35,7 @@ fun KafkaDialogmeldingFraBehandlerDTO.isForesporselSvar() =
 
 fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler() =
     MeldingFraBehandler(
-        uuid = UUID.fromString(msgId),
+        uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
         type = DialogmeldingType.valueOf(msgType ?: DialogmeldingType.DIALOG_NOTAT.name).getMeldingType(),
         conversationRef = conversationRef?.let {
@@ -52,6 +52,7 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler() =
                 null
             }
         },
+        msgId = msgId,
         mottattTidspunkt = mottattTidspunkt.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
         arbeidstakerPersonIdent = PersonIdent(personIdentPasient),
         behandlerPersonIdent = personIdentBehandler?.let { PersonIdent(personIdentBehandler) },
