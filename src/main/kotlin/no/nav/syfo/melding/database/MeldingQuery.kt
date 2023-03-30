@@ -41,7 +41,7 @@ const val queryGetMeldingForMsgId =
         WHERE msg_id = ?
     """
 
-fun Connection.getMelding(
+fun Connection.getMeldingForMsgId(
     msgId: String,
 ): PMelding? {
     return this.prepareStatement(queryGetMeldingForMsgId).use {
