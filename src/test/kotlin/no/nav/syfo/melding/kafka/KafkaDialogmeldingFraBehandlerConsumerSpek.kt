@@ -95,7 +95,6 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val pMeldingListAfter = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
                     pMeldingListAfter.size shouldBeEqualTo 2
                     val pSvar = pMeldingListAfter.last()
-                    pSvar.uuid.toString() shouldBeEqualTo dialogmeldingInnkommet.msgId
                     pSvar.arbeidstakerPersonIdent shouldBeEqualTo dialogmeldingSendt.arbeidstakerPersonIdent.value
                     pSvar.innkommende shouldBe true
                     pSvar.msgId shouldBeEqualTo msgId.toString()

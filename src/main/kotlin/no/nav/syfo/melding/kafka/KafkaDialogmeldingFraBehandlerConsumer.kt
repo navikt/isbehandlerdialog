@@ -95,7 +95,7 @@ internal fun handleForesporselSvar(
             arbeidstakerPersonIdent = PersonIdent(kafkaForesporselSvarFraBehandler.personIdentPasient),
         )
     ) {
-        if (connection.getMelding(UUID.fromString(kafkaForesporselSvarFraBehandler.msgId)) == null) {
+        if (connection.getMelding(kafkaForesporselSvarFraBehandler.msgId) == null) {
             log.info("Received a dialogmelding from behandler: $conversationRef")
             connection.createMeldingFraBehandler(
                 meldingFraBehandler = kafkaForesporselSvarFraBehandler.toMeldingFraBehandler(),

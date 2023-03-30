@@ -34,18 +34,18 @@ fun DatabaseInterface.getMeldingerForArbeidstaker(
     }
 }
 
-const val queryGetMeldingForUUID =
+const val queryGetMeldingForMsgId =
     """
         SELECT *
         FROM MELDING
-        WHERE uuid = ?
+        WHERE msg_id = ?
     """
 
 fun Connection.getMelding(
-    uuid: UUID,
+    msgId: String,
 ): PMelding? {
-    return this.prepareStatement(queryGetMeldingForUUID).use {
-        it.setString(1, uuid.toString())
+    return this.prepareStatement(queryGetMeldingForMsgId).use {
+        it.setString(1, msgId)
         it.executeQuery().toList { toPMelding() }.firstOrNull()
     }
 }
