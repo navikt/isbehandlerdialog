@@ -55,7 +55,7 @@ fun MeldingTilBehandler.toDialogmeldingBestillingDTO() = DialogmeldingBestilling
     dialogmeldingType = this.getDialogmeldingType().name,
     dialogmeldingKodeverk = this.getDialogmeldingKodeverk().name,
     dialogmeldingKode = this.getDialogmeldingKode().value,
-    dialogmeldingTekst = this.tekst,
+    dialogmeldingTekst = this.document.serialize(),
 )
 
 private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
