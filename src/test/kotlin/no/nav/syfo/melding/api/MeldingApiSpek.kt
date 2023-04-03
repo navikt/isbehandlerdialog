@@ -17,7 +17,7 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.apache.kafka.clients.producer.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.Future
 
 class MeldingApiSpek : Spek({
@@ -156,6 +156,23 @@ class MeldingApiSpek : Spek({
                         dialogmeldingBestillingDTO.dialogmeldingRefConversation shouldBeEqualTo pMelding.conversationRef.toString()
                         dialogmeldingBestillingDTO.dialogmeldingRefParent shouldBeEqualTo null
                         dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldBeEqualTo null
+                    }
+                }
+
+                it("Store a new dialogmelding as pdf") {
+                    with(
+                        handleRequest(HttpMethod.Post, apiUrl) {
+                            addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                            addHeader(NAV_PERSONIDENT_HEADER, UserConstants.ARBEIDSTAKER_PERSONIDENT.value)
+                            setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
+                        }
+                    ) {
+                        val pMeldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                        val pPDFs = database.connection.getPDFs(pMeldinger.first().uuid)
+
+                        pPDFs.size shouldBeEqualTo 1
+                        pPDFs.first().pdf shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT
                     }
                 }
             }
