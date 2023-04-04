@@ -23,7 +23,7 @@ class PdfGenClient(
 
     private val httpClient = httpClientDefault()
 
-    suspend fun pdfForesporselOmPasient(
+    suspend fun generateForesporselOmPasient(
         callId: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? {

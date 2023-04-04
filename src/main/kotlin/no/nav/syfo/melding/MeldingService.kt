@@ -1,30 +1,44 @@
 package no.nav.syfo.melding
 
 import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.database.createMeldingTilBehandler
-import no.nav.syfo.melding.database.domain.toMeldingTilBehandler
-import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
+import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.api.Melding
+import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.database.domain.toMeldingFraBehandler
-import no.nav.syfo.melding.database.getUtgaendeMeldingerInConversation
-import no.nav.syfo.melding.domain.toMelding
+import no.nav.syfo.melding.database.domain.toMeldingTilBehandler
+import no.nav.syfo.melding.domain.*
+import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 import java.util.*
 
 class MeldingService(
     private val database: DatabaseInterface,
     private val dialogmeldingBestillingProducer: DialogmeldingBestillingProducer,
+    private val pdfgenClient: PdfGenClient,
 ) {
-    fun createMeldingTilBehandler(
+    suspend fun createMeldingTilBehandler(
+        callId: String,
         meldingTilBehandler: MeldingTilBehandler,
     ) {
+        val pdf = pdfgenClient.generateForesporselOmPasient(
+            callId = callId,
+            documentComponentDTOList = meldingTilBehandler.document
+        ) ?: throw RuntimeException("Failed to request PDF - Dialogmelding forespørsel om pasient")
+
         database.connection.use { connection ->
-            connection.createMeldingTilBehandler(
+            val meldingId = connection.createMeldingTilBehandler(
                 meldingTilBehandler = meldingTilBehandler,
+                commit = false,
             )
+            connection.createPdf(
+                pdf = pdf,
+                meldingId = meldingId,
+                commit = false,
+            )
+            connection.commit()
         }
+
+        // TODO: Send med pdf av melding
         dialogmeldingBestillingProducer.sendDialogmeldingBestilling(
             meldingTilBehandler = meldingTilBehandler,
         )

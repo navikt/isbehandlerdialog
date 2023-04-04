@@ -21,16 +21,19 @@ class ExternalMockEnvironment private constructor() {
 
     private val azureAdMock = AzureADMock()
     private val syfoTilgangskontrollMock = SyfoTilgangskontrollMock()
+    private val pdfgenclientMock = PdfGenClientMock()
 
     val externalMocks = hashMapOf(
         azureAdMock.name to azureAdMock.server,
         syfoTilgangskontrollMock.name to syfoTilgangskontrollMock.server,
+        pdfgenclientMock.name to pdfgenclientMock.server,
     )
 
     val environment: Environment by lazy {
         testEnvironment(
             azureOpenIdTokenEndpoint = azureAdMock.url(),
             syfoTilgangskontrollUrl = syfoTilgangskontrollMock.url(),
+            pdfGenClientUrl = pdfgenclientMock.url()
         )
     }
 

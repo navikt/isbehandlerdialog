@@ -2,12 +2,16 @@ package no.nav.syfo.testhelper
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.application.database.toList
 import no.nav.syfo.melding.database.createMeldingFraBehandler
-import no.nav.syfo.melding.domain.MeldingTilBehandler
 import no.nav.syfo.melding.database.createMeldingTilBehandler
+import no.nav.syfo.melding.database.domain.PPdf
 import no.nav.syfo.melding.domain.MeldingFraBehandler
+import no.nav.syfo.melding.domain.MeldingTilBehandler
 import org.flywaydb.core.Flyway
 import java.sql.Connection
+import java.sql.ResultSet
+import java.time.OffsetDateTime
 import java.util.*
 
 class TestDatabase : DatabaseInterface {
@@ -32,7 +36,10 @@ class TestDatabase : DatabaseInterface {
     }
 }
 
-fun DatabaseInterface.createMeldingerTilBehandler(meldingTilBehandler: MeldingTilBehandler, numberOfMeldinger: Int = 1): UUID {
+fun DatabaseInterface.createMeldingerTilBehandler(
+    meldingTilBehandler: MeldingTilBehandler,
+    numberOfMeldinger: Int = 1
+): UUID {
     this.connection.use { connection ->
         for (i in 1..numberOfMeldinger) {
             connection.createMeldingTilBehandler(
@@ -49,7 +56,10 @@ fun DatabaseInterface.createMeldingerTilBehandler(meldingTilBehandler: MeldingTi
     return meldingTilBehandler.conversationRef
 }
 
-fun DatabaseInterface.createMeldingerFraBehandler(meldingFraBehandler: MeldingFraBehandler, numberOfMeldinger: Int = 1): UUID {
+fun DatabaseInterface.createMeldingerFraBehandler(
+    meldingFraBehandler: MeldingFraBehandler,
+    numberOfMeldinger: Int = 1
+): UUID {
     this.connection.use { connection ->
         for (i in 1..numberOfMeldinger) {
             connection.createMeldingFraBehandler(
@@ -66,6 +76,29 @@ fun DatabaseInterface.createMeldingerFraBehandler(meldingFraBehandler: MeldingFr
     }
     return meldingFraBehandler.conversationRef
 }
+
+const val queryGetPDFs = """
+    SELECT p.*
+    FROM pdf AS p INNER JOIN melding m on p.melding_id = m.id
+    WHERE m.uuid = ?
+"""
+
+fun Connection.getPDFs(meldingUuid: UUID): List<PPdf> {
+    return this.prepareStatement(queryGetPDFs).use {
+        it.setString(1, meldingUuid.toString())
+        it.executeQuery().toList { toPPdf() }
+    }
+}
+
+fun ResultSet.toPPdf() =
+    PPdf(
+        id = getInt("id"),
+        melding_id = getInt("melding_id"),
+        uuid = UUID.fromString(getString("uuid")),
+        createdAt = getObject("created_at", OffsetDateTime::class.java),
+        updatedAt = getObject("updated_at", OffsetDateTime::class.java),
+        pdf = getBytes("pdf"),
+    )
 
 fun DatabaseInterface.dropData() {
     val queryList = listOf(

@@ -39,6 +39,7 @@ fun Route.registerMeldingApi(
             val requestDTO = call.receive<MeldingTilBehandlerRequestDTO>()
 
             meldingService.createMeldingTilBehandler(
+                callId = getCallId(),
                 meldingTilBehandler = requestDTO.toMeldingTilBehandler(personIdent),
             )
 

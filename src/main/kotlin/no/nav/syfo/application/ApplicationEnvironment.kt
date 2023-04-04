@@ -3,8 +3,7 @@ package no.nav.syfo.application
 import io.ktor.server.application.*
 import no.nav.syfo.application.database.DatabaseEnvironment
 import no.nav.syfo.application.kafka.KafkaEnvironment
-import no.nav.syfo.client.ClientEnvironment
-import no.nav.syfo.client.ClientsEnvironment
+import no.nav.syfo.client.*
 import no.nav.syfo.client.azuread.AzureEnvironment
 
 const val NAIS_DATABASE_ENV_PREFIX = "NAIS_DATABASE_ISBEHANDLERDIALOG_ISBEHANDLERDIALOG_DB"
@@ -37,6 +36,9 @@ data class Environment(
         syfotilgangskontroll = ClientEnvironment(
             baseUrl = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
             clientId = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
+        ),
+        dialogmeldingpdfgen = OpenClientEnvironment(
+            baseUrl = "http://dialogmeldingpdfgen",
         ),
     ),
     val produceBehandlerDialogmeldingBestilling: Boolean = getEnvVar("TOGGLE_PRODUCE_BEHANDLER_DIALOGMELDING_BESTILLING").toBoolean(),
