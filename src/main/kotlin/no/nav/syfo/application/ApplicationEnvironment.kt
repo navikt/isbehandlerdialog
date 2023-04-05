@@ -32,6 +32,7 @@ data class Environment(
         aivenRegistryUser = getEnvVar("KAFKA_SCHEMA_REGISTRY_USER"),
         aivenRegistryPassword = getEnvVar("KAFKA_SCHEMA_REGISTRY_PASSWORD"),
     ),
+    val electorPath: String = getEnvVar("ELECTOR_PATH"),
     val clients: ClientsEnvironment = ClientsEnvironment(
         syfotilgangskontroll = ClientEnvironment(
             baseUrl = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
