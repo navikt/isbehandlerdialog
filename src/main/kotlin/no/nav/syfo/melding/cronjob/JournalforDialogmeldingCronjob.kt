@@ -1,9 +1,10 @@
-package no.nav.syfo.aktivitetskrav.cronjob
+package no.nav.syfo.melding.cronjob
 
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.cronjob.Cronjob
 import no.nav.syfo.application.cronjob.CronjobResult
 import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.client.dokarkiv.DokarkivClient
 import org.slf4j.LoggerFactory
 
 class JournalforDialogmeldingCronjob(
@@ -16,7 +17,7 @@ class JournalforDialogmeldingCronjob(
     override suspend fun run() {
         val result = runJob()
         log.info(
-            "Completed aktivitetskrav automatisk oppfylt processing job with result: {}, {}",
+            "Completed journalføring of dialogmelding processing job with result: {}, {}",
             StructuredArguments.keyValue("failed", result.failed),
             StructuredArguments.keyValue("updated", result.updated),
         )
@@ -24,12 +25,12 @@ class JournalforDialogmeldingCronjob(
 
     fun runJob(): CronjobResult {
         val result = CronjobResult()
-
-
         try {
             database.connection.use { connection ->
+                // TODO: get dialogmelding to journalføre
+                // TODO: journalfør dialogmeldinger
 
-                    result.updated++
+                result.updated++
 
                 connection.commit()
             }
@@ -37,7 +38,6 @@ class JournalforDialogmeldingCronjob(
             log.error("Caught exception in journalfor dialogmelding job")
             result.failed++
         }
-
         return result
     }
 
