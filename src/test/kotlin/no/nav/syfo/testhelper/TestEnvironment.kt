@@ -44,6 +44,7 @@ fun testEnvironment(
             baseUrl = pdfGenClientUrl
         )
     ),
+    electorPath = "electorPath",
     produceBehandlerDialogmeldingBestilling = true,
 )
 
