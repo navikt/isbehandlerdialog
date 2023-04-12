@@ -41,7 +41,7 @@ val fellesformatXML = """<?xml version="1.0" ?>
                 <Organisation/>
                 <HealthcareProfessional>
                     <Ident>
-                        <Id>${UserConstants.BEHANDER_PERSONIDENT.value}</Id>
+                        <Id>${UserConstants.BEHANDLER_PERSONIDENT.value}</Id>
                         <TypeId V="FNR" S="2.16.578.1.12.4.1.1.8116" DN="Fødselsnummer Norsk fødselsnummer"/>
                     </Ident>
                     <Ident>
@@ -86,7 +86,7 @@ val fellesformatXML = """<?xml version="1.0" ?>
             </Address>
         </Patient>
     </MsgHead>
-    <MottakenhetBlokk avsender="12312341" avsenderFnrFraDigSignatur="${UserConstants.BEHANDER_PERSONIDENT.value}" avsenderRef="SERIALNUMBER=996871045, CN=LEGEHUSET NOVA DA, O=LEGEHUSET NOVA DA, C=NO" ebAction="Henvendelse" ebRole="Sykmelder" ebService="HenvendelseFraLege" ebXMLSamtaleId="615356d4-f5e6-4138-a868-bbb63bd6195d" ediLoggId="1901162157lege21826.1" herIdentifikator="" meldingsType="xml" mottattDatotid="2019-01-16T21:57:43" partnerReferanse="${UserConstants.PARTNERID}" />
+    <MottakenhetBlokk avsender="12312341" avsenderFnrFraDigSignatur="${UserConstants.BEHANDLER_PERSONIDENT.value}" avsenderRef="SERIALNUMBER=996871045, CN=LEGEHUSET NOVA DA, O=LEGEHUSET NOVA DA, C=NO" ebAction="Henvendelse" ebRole="Sykmelder" ebService="HenvendelseFraLege" ebXMLSamtaleId="615356d4-f5e6-4138-a868-bbb63bd6195d" ediLoggId="1901162157lege21826.1" herIdentifikator="" meldingsType="xml" mottattDatotid="2019-01-16T21:57:43" partnerReferanse="${UserConstants.PARTNERID}" />
 </EI_fellesformat>"""
 
 fun generateDialogmeldingFraBehandlerDTO(
@@ -105,7 +105,7 @@ fun generateDialogmeldingFraBehandlerDTO(
     conversationRef = conversationRef,
     parentRef = UUID.randomUUID().toString(),
     personIdentPasient = personIdent.value,
-    personIdentBehandler = UserConstants.BEHANDER_PERSONIDENT.value,
+    personIdentBehandler = UserConstants.BEHANDLER_PERSONIDENT.value,
     legekontorOrgNr = "987654321",
     legekontorHerId = "",
     legekontorOrgName = "",
@@ -115,7 +115,7 @@ fun generateDialogmeldingFraBehandlerDTO(
     dialogmelding = Dialogmelding(
         id = uuid.toString(),
         henvendelseFraLegeHenvendelse = null,
-        navnHelsepersonell = UserConstants.BEHANDER_NAVN,
+        navnHelsepersonell = UserConstants.BEHANDLER_NAVN,
         signaturDato = LocalDateTime.now(),
         foresporselFraSaksbehandlerForesporselSvar = ForesporselFraSaksbehandlerForesporselSvar(
             temaKode = TemaKode(kodeverk, kodeTekst, kode, "", "", ""),

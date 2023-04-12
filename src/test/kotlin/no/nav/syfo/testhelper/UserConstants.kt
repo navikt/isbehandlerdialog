@@ -15,8 +15,8 @@ object UserConstants {
     val VIRKSOMHETSNUMMER_DEFAULT = Virksomhetsnummer(VIRKSOMHETSNUMMER)
     const val VEILEDER_IDENT = "Z999999"
 
-    val BEHANDER_PERSONIDENT = PersonIdent("12125678911")
-    val BEHANDER_NAVN = "Anne Legesen"
+    val BEHANDLER_PERSONIDENT = PersonIdent("12125678911")
+    val BEHANDLER_NAVN = "Anne Legesen"
     val PARTNERID = PartnerId(321)
     const val HERID = 404
     const val HPRID = 1337
