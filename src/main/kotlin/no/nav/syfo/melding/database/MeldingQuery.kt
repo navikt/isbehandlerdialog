@@ -96,8 +96,9 @@ const val queryCreateMelding =
             behandler_ref,
             tekst,
             document,
-            antall_vedlegg
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?) RETURNING id
+            antall_vedlegg,
+            behandler_navn
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?) RETURNING id
     """
 
 const val queryCreateMeldingFellesformat =
@@ -151,6 +152,7 @@ private fun Connection.createMelding(
         it.setString(12, pMelding.tekst)
         it.setObject(13, mapper.writeValueAsString(pMelding.document))
         it.setInt(14, pMelding.antallVedlegg)
+        it.setString(15, pMelding.behandlerNavn)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -182,6 +184,7 @@ fun ResultSet.toPMelding() =
         tidspunkt = getObject("tidspunkt", OffsetDateTime::class.java),
         arbeidstakerPersonIdent = getString("arbeidstaker_personident"),
         behandlerPersonIdent = getString("behandler_personident"),
+        behandlerNavn = getString("behandler_navn"),
         behandlerRef = getString("behandler_ref")?.let { UUID.fromString(it) },
         tekst = getString("tekst"),
         document = mapper.readValue(getString("document"), object : TypeReference<List<DocumentComponentDTO>>() {}),

@@ -32,6 +32,7 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
     tidspunkt = bestiltTidspunkt,
     arbeidstakerPersonIdent = arbeidstakerPersonIdent.value,
     behandlerPersonIdent = null,
+    behandlerNavn = null,
     behandlerRef = behandlerRef,
     tekst = tekst,
     document = document,
@@ -40,6 +41,7 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
 
 fun MeldingTilBehandler.toMelding() = Melding(
     behandlerRef = behandlerRef,
+    behandlerNavn = null,
     tekst = tekst,
     document = document,
     tidspunkt = bestiltTidspunkt,

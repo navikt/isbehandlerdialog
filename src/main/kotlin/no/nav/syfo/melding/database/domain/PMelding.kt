@@ -16,6 +16,7 @@ data class PMelding(
     val tidspunkt: OffsetDateTime,
     val arbeidstakerPersonIdent: String,
     val behandlerPersonIdent: String?,
+    val behandlerNavn: String?,
     val behandlerRef: UUID?,
     val tekst: String?,
     val document: List<DocumentComponentDTO>,
@@ -46,6 +47,7 @@ fun PMelding.toMeldingFraBehandler() = MeldingFraBehandler(
     mottattTidspunkt = tidspunkt,
     arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
     behandlerPersonIdent = behandlerPersonIdent?.let { PersonIdent(it) },
+    behandlerNavn = behandlerNavn,
     tekst = tekst ?: "",
     antallVedlegg = antallVedlegg,
 )

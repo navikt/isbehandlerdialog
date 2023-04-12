@@ -98,6 +98,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     pSvar.arbeidstakerPersonIdent shouldBeEqualTo dialogmeldingSendt.arbeidstakerPersonIdent.value
                     pSvar.innkommende shouldBe true
                     pSvar.msgId shouldBeEqualTo msgId.toString()
+                    pSvar.behandlerPersonIdent shouldBeEqualTo UserConstants.BEHANDLER_PERSONIDENT.value
+                    pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
                 }
                 it("Receive dialogmelding DIALOG_SVAR for dialogmøte") {
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(

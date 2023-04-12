@@ -56,6 +56,7 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler() =
         mottattTidspunkt = mottattTidspunkt.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
         arbeidstakerPersonIdent = PersonIdent(personIdentPasient),
         behandlerPersonIdent = personIdentBehandler?.let { PersonIdent(personIdentBehandler) },
+        behandlerNavn = dialogmelding.navnHelsepersonell,
         tekst = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
             ?: dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold,
         antallVedlegg = antallVedlegg,
