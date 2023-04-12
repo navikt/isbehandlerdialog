@@ -16,6 +16,7 @@ data class MeldingFraBehandler(
     val mottattTidspunkt: OffsetDateTime,
     val arbeidstakerPersonIdent: PersonIdent,
     val behandlerPersonIdent: PersonIdent?,
+    val behandlerNavn: String?,
     val tekst: String?,
     val antallVedlegg: Int,
 )
@@ -32,6 +33,7 @@ fun MeldingFraBehandler.toPMelding() =
         tidspunkt = mottattTidspunkt,
         arbeidstakerPersonIdent = arbeidstakerPersonIdent.value,
         behandlerPersonIdent = behandlerPersonIdent?.value,
+        behandlerNavn = behandlerNavn,
         behandlerRef = null,
         tekst = tekst,
         document = emptyList(),
@@ -40,6 +42,7 @@ fun MeldingFraBehandler.toPMelding() =
 
 fun MeldingFraBehandler.toMelding(behandlerRef: UUID) = Melding(
     behandlerRef = behandlerRef,
+    behandlerNavn = behandlerNavn,
     tekst = tekst ?: "",
     document = emptyList(),
     tidspunkt = mottattTidspunkt,

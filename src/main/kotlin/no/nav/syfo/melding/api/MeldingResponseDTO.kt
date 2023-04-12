@@ -10,6 +10,7 @@ data class MeldingResponseDTO(
 
 data class Melding(
     val behandlerRef: UUID,
+    val behandlerNavn: String?,
     val tekst: String,
     val document: List<DocumentComponentDTO>,
     val tidspunkt: OffsetDateTime,
