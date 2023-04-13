@@ -3,16 +3,13 @@ package no.nav.syfo.melding.database
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
-import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.domain.*
 import no.nav.syfo.util.configuredJacksonMapper
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.SQLException
-import java.sql.Types
+import java.sql.*
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 private val mapper = configuredJacksonMapper()
 
@@ -136,8 +133,9 @@ const val queryCreateMelding =
             document,
             antall_vedlegg,
             behandler_navn,
-            innkommende_published_at
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?) RETURNING id
+            innkommende_published_at,
+            journalpost_id
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?) RETURNING id
     """
 
 const val queryCreateMeldingFellesformat =
@@ -193,6 +191,7 @@ private fun Connection.createMelding(
         it.setInt(14, pMelding.antallVedlegg)
         it.setString(15, pMelding.behandlerNavn)
         it.setNull(16, Types.TIMESTAMP_WITH_TIMEZONE)
+        it.setString(17, pMelding.journalpostId)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -210,6 +209,42 @@ private fun Connection.createMelding(
         this.commit()
     }
     return id
+}
+
+const val queryGetMeldingerTilBehandlerWithoutJournalpostId = """
+    SELECT m.*, p.pdf as pdf
+    FROM melding m
+    INNER JOIN pdf p on m.id = p.melding_id
+    WHERE m.journalpost_id IS NULL 
+    AND m.innkommende = false 
+"""
+
+fun DatabaseInterface.getIkkeJournalforteMeldingerTilBehandler(): List<Pair<PMelding, ByteArray>> {
+    return connection.use { connection ->
+        connection.prepareStatement(queryGetMeldingerTilBehandlerWithoutJournalpostId).use {
+            it.executeQuery().toList { Pair(toPMelding(), getBytes("pdf")) }
+        }
+    }
+}
+
+const val queryUpdateJournalpostId = """
+    UPDATE melding
+    SET journalpost_id = ?
+    WHERE uuid = ?
+"""
+
+fun DatabaseInterface.updateMeldingJournalpostId(melding: PMelding, journalpostId: String) {
+    connection.use { connection ->
+        connection.prepareStatement(queryUpdateJournalpostId).use {
+            it.setString(1, journalpostId)
+            it.setString(2, melding.uuid.toString())
+            val updated = it.executeUpdate()
+            if (updated != 1) {
+                throw SQLException("Expected a single row to be updated, got update count $updated")
+            }
+        }
+        connection.commit()
+    }
 }
 
 fun ResultSet.toPMelding() =
@@ -230,4 +265,5 @@ fun ResultSet.toPMelding() =
         document = mapper.readValue(getString("document"), object : TypeReference<List<DocumentComponentDTO>>() {}),
         antallVedlegg = getInt("antall_vedlegg"),
         innkommendePublishedAt = getObject("innkommende_published_at", OffsetDateTime::class.java),
+        journalpostId = getString("journalpost_id"),
     )

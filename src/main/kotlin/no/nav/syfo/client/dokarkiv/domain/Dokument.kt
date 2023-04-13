@@ -3,7 +3,7 @@ package no.nav.syfo.client.dokarkiv.domain
 enum class BrevkodeType(
     val value: String,
 ) {
-    // TODO: Add brevkodetyper for Forespørsel om pasient
+    FORESPORSEL_OM_PASIENT("OPPF_FORESP_OM_PAS")
 }
 
 data class Dokument private constructor(
@@ -15,12 +15,10 @@ data class Dokument private constructor(
     companion object {
         fun create(
             brevkode: BrevkodeType,
-            dokumentKategori: String? = null,
             dokumentvarianter: List<Dokumentvariant>,
             tittel: String? = null,
         ) = Dokument(
             brevkode = brevkode.value,
-            dokumentKategori = dokumentKategori,
             dokumentvarianter = dokumentvarianter,
             tittel = tittel,
         )

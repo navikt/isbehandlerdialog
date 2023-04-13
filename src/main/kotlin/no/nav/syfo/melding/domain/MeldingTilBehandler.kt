@@ -1,5 +1,6 @@
 package no.nav.syfo.melding.domain
 
+import no.nav.syfo.client.dokarkiv.domain.*
 import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.api.Melding
@@ -38,6 +39,7 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
     document = document,
     antallVedlegg = antallVedlegg,
     innkommendePublishedAt = null,
+    journalpostId = null,
 )
 
 fun MeldingTilBehandler.toMelding() = Melding(
@@ -81,3 +83,29 @@ private fun MeldingTilBehandler.getDialogmeldingType(): DialogmeldingType {
         MeldingType.FORESPORSEL_PASIENT -> DialogmeldingType.DIALOG_FORESPORSEL
     }
 }
+
+fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) = JournalpostRequest(
+    avsenderMottaker = AvsenderMottaker.create( // TODO: Use correct values for behandler
+        id = null,
+        idType = null,
+    ),
+    tittel = "Dialogmelding til behandler",
+    bruker = Bruker.create(
+        id = arbeidstakerPersonIdent.value,
+        idType = BrukerIdType.PERSON_IDENT,
+    ),
+    dokumenter = listOf(
+        Dokument.create(
+            brevkode = BrevkodeType.FORESPORSEL_OM_PASIENT,
+            tittel = "Dialogmelding til behandler", // TODO: Test om denne vises i Gosys, høre hva Lisa & co vil ha
+            dokumentvarianter = listOf(
+                Dokumentvariant.create(
+                    filnavn = "Dialogmelding til behandler",
+                    filtype = FiltypeType.PDFA,
+                    fysiskDokument = pdf,
+                    variantformat = VariantformatType.ARKIV,
+                )
+            ),
+        )
+    ),
+)

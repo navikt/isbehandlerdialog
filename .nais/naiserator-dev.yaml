@@ -49,6 +49,7 @@ spec:
     outbound:
       external:
         - host: "syfo-tilgangskontroll.dev-fss-pub.nais.io"
+        - host: "dokarkiv.dev-fss-pub.nais.io"
       rules:
         - application: dialogmeldingpdfgen
         - application: padm2
@@ -82,3 +83,9 @@ spec:
       value: "true"
     - name: TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER_CRONJOB
       value: "true"
+    - name: TOGGLE_JOURNALFOR_MELDING_TIL_BEHANDLER
+      value: "true"
+    - name: DOKARKIV_CLIENT_ID
+      value: "dev-fss.teamdokumenthandtering.dokarkiv-q1"
+    - name: DOKARKIV_URL
+      value: "https://dokarkiv.dev-fss-pub.nais.io"

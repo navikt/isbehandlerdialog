@@ -4,6 +4,7 @@ data class ClientsEnvironment(
     val padm2: ClientEnvironment,
     val syfotilgangskontroll: ClientEnvironment,
     val dialogmeldingpdfgen: OpenClientEnvironment,
+    val dokarkiv: ClientEnvironment,
 )
 
 data class ClientEnvironment(

@@ -45,9 +45,14 @@ data class Environment(
         dialogmeldingpdfgen = OpenClientEnvironment(
             baseUrl = "http://dialogmeldingpdfgen",
         ),
+        dokarkiv = ClientEnvironment(
+            baseUrl = getEnvVar("DOKARKIV_URL"),
+            clientId = getEnvVar("DOKARKIV_CLIENT_ID"),
+        )
     ),
     val produceBehandlerDialogmeldingBestilling: Boolean = getEnvVar("TOGGLE_PRODUCE_BEHANDLER_DIALOGMELDING_BESTILLING").toBoolean(),
     val produceMeldingFraBehandlerCronjob: Boolean = getEnvVar("TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER_CRONJOB").toBoolean(),
+    val journalforMeldingTilBehandler: Boolean = getEnvVar("TOGGLE_JOURNALFOR_MELDING_TIL_BEHANDLER").toBoolean(),
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =

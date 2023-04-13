@@ -5,8 +5,7 @@ import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.api.*
 import no.nav.syfo.melding.database.*
-import no.nav.syfo.melding.database.domain.toMeldingFraBehandler
-import no.nav.syfo.melding.database.domain.toMeldingTilBehandler
+import no.nav.syfo.melding.database.domain.*
 import no.nav.syfo.melding.domain.*
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 import java.util.*
@@ -42,7 +41,6 @@ class MeldingService(
             meldingTilBehandler = meldingTilBehandler,
             meldingPdf = pdf,
         )
-        // TODO: legg til i joark-cronjob her
     }
 
     fun getConversations(personIdent: PersonIdent): Map<UUID, List<Melding>> {
