@@ -14,6 +14,7 @@ import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
 import no.nav.syfo.util.*
 import org.amshove.kluent.shouldBeEqualTo
+import org.amshove.kluent.shouldNotBeEqualTo
 import org.apache.kafka.clients.producer.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -155,7 +156,7 @@ class MeldingApiSpek : Spek({
                         dialogmeldingBestillingDTO.personIdent shouldBeEqualTo pMelding.arbeidstakerPersonIdent
                         dialogmeldingBestillingDTO.dialogmeldingRefConversation shouldBeEqualTo pMelding.conversationRef.toString()
                         dialogmeldingBestillingDTO.dialogmeldingRefParent shouldBeEqualTo null
-                        dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldBeEqualTo null
+                        dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldNotBeEqualTo null
                     }
                 }
 
