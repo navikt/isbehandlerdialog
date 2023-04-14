@@ -11,8 +11,8 @@ class DialogmeldingBestillingProducer(
     private val dialogmeldingBestillingKafkaProducer: KafkaProducer<String, DialogmeldingBestillingDTO>,
     private val produceDialogmeldingBestillingEnabled: Boolean,
 ) {
-    fun sendDialogmeldingBestilling(meldingTilBehandler: MeldingTilBehandler) {
-        val dialogmeldingBestillingDTO = meldingTilBehandler.toDialogmeldingBestillingDTO()
+    fun sendDialogmeldingBestilling(meldingTilBehandler: MeldingTilBehandler, meldingPdf: ByteArray) {
+        val dialogmeldingBestillingDTO = meldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf)
         val key = dialogmeldingBestillingDTO.dialogmeldingRefConversation
         try {
             if (produceDialogmeldingBestillingEnabled) {

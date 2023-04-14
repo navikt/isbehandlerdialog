@@ -48,7 +48,7 @@ fun MeldingTilBehandler.toMelding() = Melding(
     innkommende = false,
 )
 
-fun MeldingTilBehandler.toDialogmeldingBestillingDTO() = DialogmeldingBestillingDTO(
+fun MeldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf: ByteArray) = DialogmeldingBestillingDTO(
     behandlerRef = this.behandlerRef.toString(),
     personIdent = this.arbeidstakerPersonIdent.value,
     dialogmeldingUuid = this.uuid.toString(),
@@ -58,6 +58,7 @@ fun MeldingTilBehandler.toDialogmeldingBestillingDTO() = DialogmeldingBestilling
     dialogmeldingKodeverk = this.getDialogmeldingKodeverk().name,
     dialogmeldingKode = this.getDialogmeldingKode().value,
     dialogmeldingTekst = this.document.serialize(),
+    dialogmeldingVedlegg = meldingPdf,
 )
 
 private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {

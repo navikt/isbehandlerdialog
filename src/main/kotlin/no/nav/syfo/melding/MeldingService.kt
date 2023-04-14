@@ -38,11 +38,10 @@ class MeldingService(
             connection.commit()
         }
 
-        // TODO: Send med pdf av melding
         dialogmeldingBestillingProducer.sendDialogmeldingBestilling(
             meldingTilBehandler = meldingTilBehandler,
+            meldingPdf = pdf,
         )
-
         // TODO: legg til i joark-cronjob her
     }
 
