@@ -10,6 +10,7 @@ import no.nav.syfo.util.configuredJacksonMapper
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.sql.Types
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -97,8 +98,9 @@ const val queryCreateMelding =
             tekst,
             document,
             antall_vedlegg,
-            behandler_navn
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?) RETURNING id
+            behandler_navn,
+            innkommende_published_at
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?) RETURNING id
     """
 
 const val queryCreateMeldingFellesformat =
@@ -153,6 +155,7 @@ private fun Connection.createMelding(
         it.setObject(13, mapper.writeValueAsString(pMelding.document))
         it.setInt(14, pMelding.antallVedlegg)
         it.setString(15, pMelding.behandlerNavn)
+        it.setNull(16, Types.TIMESTAMP_WITH_TIMEZONE)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -189,4 +192,6 @@ fun ResultSet.toPMelding() =
         tekst = getString("tekst"),
         document = mapper.readValue(getString("document"), object : TypeReference<List<DocumentComponentDTO>>() {}),
         antallVedlegg = getInt("antall_vedlegg"),
+        innkommendePublishedAt = getObject("innkommende_published_at", OffsetDateTime::class.java),
+
     )
