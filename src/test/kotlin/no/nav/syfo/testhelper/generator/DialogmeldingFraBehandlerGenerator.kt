@@ -97,6 +97,7 @@ fun generateDialogmeldingFraBehandlerDTO(
     kodeverk: String = "2.16.578.1.12.4.1.1.9069",
     kodeTekst: String = "Svar på forespørsel",
     kode: String = "5",
+    antallVedlegg: Int = 0,
 ) = KafkaDialogmeldingFraBehandlerDTO(
     msgId = uuid.toString(),
     msgType = msgType,
@@ -111,7 +112,7 @@ fun generateDialogmeldingFraBehandlerDTO(
     legekontorOrgName = "",
     legehpr = UserConstants.HPRID.toString(),
     fellesformatXML = fellesformatXML,
-    antallVedlegg = 0,
+    antallVedlegg = antallVedlegg,
     dialogmelding = Dialogmelding(
         id = uuid.toString(),
         henvendelseFraLegeHenvendelse = null,

@@ -34,6 +34,10 @@ data class Environment(
     ),
     val electorPath: String = getEnvVar("ELECTOR_PATH"),
     val clients: ClientsEnvironment = ClientsEnvironment(
+        padm2 = ClientEnvironment(
+            baseUrl = getEnvVar("PADM2_URL"),
+            clientId = getEnvVar("PADM2_CLIENT_ID"),
+        ),
         syfotilgangskontroll = ClientEnvironment(
             baseUrl = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
             clientId = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
