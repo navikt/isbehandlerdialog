@@ -21,6 +21,7 @@ data class PMelding(
     val tekst: String?,
     val document: List<DocumentComponentDTO>,
     val antallVedlegg: Int,
+    val innkommendePublishedAt: OffsetDateTime?,
 )
 
 fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(

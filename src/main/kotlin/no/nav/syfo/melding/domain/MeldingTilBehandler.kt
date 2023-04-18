@@ -37,6 +37,7 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
     tekst = tekst,
     document = document,
     antallVedlegg = antallVedlegg,
+    innkommendePublishedAt = null,
 )
 
 fun MeldingTilBehandler.toMelding() = Melding(
