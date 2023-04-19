@@ -80,6 +80,43 @@ fun Connection.getUtgaendeMeldingerInConversation(
     }
 }
 
+const val queryGetUnpublishedMeldingerFraBehandler =
+    """
+        SELECT *
+        FROM MELDING
+        WHERE innkommende AND innkommende_published_at IS NULL
+        ORDER BY created_at ASC
+    """
+
+fun DatabaseInterface.getUnpublishedMeldingerFraBehandler(): List<PMelding> {
+    return connection.use { connection ->
+        connection.prepareStatement(queryGetUnpublishedMeldingerFraBehandler).use {
+            it.executeQuery().toList { toPMelding() }
+        }
+    }
+}
+
+const val queryUpdateInnkommendePublishedAt =
+    """
+        UPDATE MELDING
+        SET innkommende_published_at = ?
+        WHERE uuid = ?
+    """
+
+fun DatabaseInterface.updateInnkommendePublishedAt(uuid: UUID) {
+    connection.use { connection ->
+        val rowCount = connection.prepareStatement(queryUpdateInnkommendePublishedAt).use {
+            it.setObject(1, OffsetDateTime.now())
+            it.setString(2, uuid.toString())
+            it.executeUpdate()
+        }
+        if (rowCount != 1) {
+            throw SQLException("Failed to save published at for meldingFraBehandler with uuid: $uuid ")
+        }
+        connection.commit()
+    }
+}
+
 const val queryCreateMelding =
     """
         INSERT INTO MELDING ( 
