@@ -140,18 +140,20 @@ private fun storeForesporselSvar(
         meldingFraBehandler = kafkaForesporselSvarFraBehandler.toMeldingFraBehandler(),
         fellesformat = kafkaForesporselSvarFraBehandler.fellesformatXML,
     )
-    val vedlegg = mutableListOf<VedleggDTO>()
-    runBlocking {
-        vedlegg.addAll(
-            padm2Client.hentVedlegg(kafkaForesporselSvarFraBehandler.msgId)
-        )
-    }
-    vedlegg.forEachIndexed { index, vedleggDTO ->
-        connection.createVedlegg(
-            pdf = vedleggDTO.bytes,
-            meldingId = meldingId,
-            number = index,
-            commit = false,
-        )
+    if (kafkaForesporselSvarFraBehandler.antallVedlegg > 0) {
+        val vedlegg = mutableListOf<VedleggDTO>()
+        runBlocking {
+            vedlegg.addAll(
+                padm2Client.hentVedlegg(kafkaForesporselSvarFraBehandler.msgId)
+            )
+        }
+        vedlegg.forEachIndexed { index, vedleggDTO ->
+            connection.createVedlegg(
+                pdf = vedleggDTO.bytes,
+                meldingId = meldingId,
+                number = index,
+                commit = false,
+            )
+        }
     }
 }
