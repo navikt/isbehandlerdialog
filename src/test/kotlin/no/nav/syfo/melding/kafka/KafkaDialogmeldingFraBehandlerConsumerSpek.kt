@@ -3,9 +3,10 @@ package no.nav.syfo.melding.kafka
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
+import no.nav.syfo.client.azuread.AzureAdClient
+import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.melding.api.toMeldingTilBehandler
-import no.nav.syfo.melding.database.createMeldingTilBehandler
-import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
+import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.kafka.domain.DialogmeldingType
 import no.nav.syfo.melding.kafka.domain.KafkaDialogmeldingFraBehandlerDTO
 import no.nav.syfo.testhelper.*
@@ -24,7 +25,15 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
 
     with(TestApplicationEngine()) {
         start()
-        val database = ExternalMockEnvironment.instance.database
+        val externalMockEnvironment = ExternalMockEnvironment.instance
+        val database = externalMockEnvironment.database
+        val azureAdClient = AzureAdClient(
+            azureEnvironment = externalMockEnvironment.environment.azure,
+        )
+        val padm2Client = Padm2Client(
+            azureAdClient = azureAdClient,
+            clientEnvironment = externalMockEnvironment.environment.clients.padm2,
+        )
 
         afterEachTest {
             database.dropData()
@@ -43,6 +52,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         pollAndProcessDialogmeldingFraBehandler(
                             kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
                             database = database,
+                            padm2Client = padm2Client,
                         )
                     }
 
@@ -61,6 +71,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         pollAndProcessDialogmeldingFraBehandler(
                             kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
                             database = database,
+                            padm2Client = padm2Client,
                         )
                     }
 
@@ -69,17 +80,16 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT).size shouldBeEqualTo 0
                 }
                 it("Receive dialogmelding DIALOG_SVAR and known conversationRef") {
-                    val dialogmeldingSendt = generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
-                        personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+                    val conversationRef = database.createMeldingerTilBehandler(
+                        generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
+                            personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+                        )
                     )
-                    database.connection.use {
-                        it.createMeldingTilBehandler(dialogmeldingSendt)
-                    }
                     val msgId = UUID.randomUUID()
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
                         uuid = msgId,
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
-                        conversationRef = dialogmeldingSendt.conversationRef.toString(),
+                        conversationRef = conversationRef.toString(),
                     )
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
 
@@ -87,6 +97,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         pollAndProcessDialogmeldingFraBehandler(
                             kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
                             database = database,
+                            padm2Client = padm2Client,
                         )
                     }
 
@@ -95,11 +106,49 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val pMeldingListAfter = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
                     pMeldingListAfter.size shouldBeEqualTo 2
                     val pSvar = pMeldingListAfter.last()
-                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo dialogmeldingSendt.arbeidstakerPersonIdent.value
+                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_PERSONIDENT.value
                     pSvar.innkommende shouldBe true
                     pSvar.msgId shouldBeEqualTo msgId.toString()
                     pSvar.behandlerPersonIdent shouldBeEqualTo UserConstants.BEHANDLER_PERSONIDENT.value
                     pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
+                    val vedleggListe = database.getVedlegg(msgId)
+                    vedleggListe.size shouldBeEqualTo 0
+                }
+                it("Receive dialogmelding DIALOG_SVAR and known conversationRef and with vedlegg") {
+                    val conversationRef = database.createMeldingerTilBehandler(
+                        generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
+                            personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+                        )
+                    )
+                    val msgId = UserConstants.MSG_ID_WITH_VEDLEGG
+                    val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
+                        uuid = msgId,
+                        msgType = DialogmeldingType.DIALOG_SVAR.name,
+                        conversationRef = conversationRef.toString(),
+                        antallVedlegg = 1,
+                    )
+                    val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
+
+                    runBlocking {
+                        pollAndProcessDialogmeldingFraBehandler(
+                            kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
+                            database = database,
+                            padm2Client = padm2Client,
+                        )
+                    }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
+
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    pMeldingListAfter.size shouldBeEqualTo 2
+                    val pSvar = pMeldingListAfter.last()
+                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_PERSONIDENT.value
+                    pSvar.innkommende shouldBe true
+                    pSvar.msgId shouldBeEqualTo UserConstants.MSG_ID_WITH_VEDLEGG.toString()
+                    pSvar.antallVedlegg shouldBeEqualTo 1
+                    val vedleggListe = database.getVedlegg(msgId)
+                    vedleggListe.size shouldBeEqualTo 1
+                    vedleggListe[0].pdf shouldBeEqualTo UserConstants.VEDLEGG_BYTEARRAY
                 }
                 it("Receive dialogmelding DIALOG_SVAR for dialogmøte") {
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
@@ -116,6 +165,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         pollAndProcessDialogmeldingFraBehandler(
                             kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
                             database = database,
+                            padm2Client = padm2Client,
                         )
                     }
 
@@ -123,17 +173,16 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT).size shouldBeEqualTo 0
                 }
                 it("Receive duplicate dialogmelding DIALOG_SVAR and known conversationRef") {
-                    val dialogmeldingSendt = generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
-                        personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+                    val conversationRef = database.createMeldingerTilBehandler(
+                        generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
+                            personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+                        )
                     )
-                    database.connection.use {
-                        it.createMeldingTilBehandler(dialogmeldingSendt)
-                    }
 
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
                         uuid = UUID.randomUUID(),
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
-                        conversationRef = dialogmeldingSendt.conversationRef.toString(),
+                        conversationRef = conversationRef.toString(),
                     )
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
 
@@ -141,6 +190,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         pollAndProcessDialogmeldingFraBehandler(
                             kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
                             database = database,
+                            padm2Client = padm2Client,
                         )
                     }
                     verify(exactly = 1) { mockConsumer.commitSync() }
@@ -148,6 +198,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         pollAndProcessDialogmeldingFraBehandler(
                             kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
                             database = database,
+                            padm2Client = padm2Client,
                         )
                     }
                     verify(exactly = 2) { mockConsumer.commitSync() }
@@ -156,17 +207,16 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     pMeldingListAfter.size shouldBeEqualTo 2
                 }
                 it("Receive two dialogmelding DIALOG_SVAR and known conversationRef") {
-                    val dialogmeldingSendt = generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
-                        personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+                    val conversationRef = database.createMeldingerTilBehandler(
+                        generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
+                            personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+                        )
                     )
-                    database.connection.use {
-                        it.createMeldingTilBehandler(dialogmeldingSendt)
-                    }
 
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
                         uuid = UUID.randomUUID(),
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
-                        conversationRef = dialogmeldingSendt.conversationRef.toString(),
+                        conversationRef = conversationRef.toString(),
                     )
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
 
@@ -174,6 +224,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         pollAndProcessDialogmeldingFraBehandler(
                             kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
                             database = database,
+                            padm2Client = padm2Client,
                         )
                     }
                     verify(exactly = 1) { mockConsumer.commitSync() }
@@ -181,13 +232,14 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val dialogmeldingInnkommetAgain = generateDialogmeldingFraBehandlerDTO(
                         uuid = UUID.randomUUID(),
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
-                        conversationRef = dialogmeldingSendt.conversationRef.toString(),
+                        conversationRef = conversationRef.toString(),
                     )
                     val mockConsumerAgain = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommetAgain)
                     runBlocking {
                         pollAndProcessDialogmeldingFraBehandler(
                             kafkaConsumerDialogmeldingFraBehandler = mockConsumerAgain,
                             database = database,
+                            padm2Client = padm2Client,
                         )
                     }
                     verify(exactly = 1) { mockConsumerAgain.commitSync() }

@@ -51,6 +51,7 @@ spec:
         - host: "syfo-tilgangskontroll.dev-fss-pub.nais.io"
       rules:
         - application: dialogmeldingpdfgen
+        - application: padm2
   gcp:
     sqlInstances:
       - type: POSTGRES_14
@@ -69,6 +70,10 @@ spec:
   env:
     - name: KTOR_ENV
       value: "production"
+    - name: PADM2_CLIENT_ID
+      value: "dev-gcp.teamsykefravr.padm2"
+    - name: PADM2_URL
+      value: "http://padm2"
     - name: SYFOTILGANGSKONTROLL_CLIENT_ID
       value: "dev-fss.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL

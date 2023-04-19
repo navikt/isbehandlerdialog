@@ -11,6 +11,7 @@ fun testEnvironment(
     azureOpenIdTokenEndpoint: String,
     syfoTilgangskontrollUrl: String,
     pdfGenClientUrl: String,
+    padm2Url: String,
 ) = Environment(
     database = DatabaseEnvironment(
         host = "localhost",
@@ -42,7 +43,11 @@ fun testEnvironment(
         ),
         dialogmeldingpdfgen = OpenClientEnvironment(
             baseUrl = pdfGenClientUrl
-        )
+        ),
+        padm2 = ClientEnvironment(
+            baseUrl = padm2Url,
+            clientId = "dev-gcp.teamsykefravr.padm2",
+        ),
     ),
     electorPath = "electorPath",
     produceBehandlerDialogmeldingBestilling = true,

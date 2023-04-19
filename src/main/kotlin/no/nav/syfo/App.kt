@@ -12,6 +12,7 @@ import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
 import no.nav.syfo.client.azuread.AzureAdClient
+import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.wellknown.getWellKnown
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.kafka.config.KafkaBehandlerDialogmeldingSerializer
@@ -31,6 +32,10 @@ fun main() {
     )
     val azureAdClient = AzureAdClient(
         azureEnvironment = environment.azure
+    )
+    val padm2Client = Padm2Client(
+        azureAdClient = azureAdClient,
+        clientEnvironment = environment.clients.padm2,
     )
     val dialogmeldingBestillingProducer = DialogmeldingBestillingProducer(
         dialogmeldingBestillingKafkaProducer = KafkaProducer(
@@ -69,6 +74,7 @@ fun main() {
             applicationState = applicationState,
             kafkaEnvironment = environment.kafka,
             database = applicationDatabase,
+            padm2Client = padm2Client,
         )
     }
 
