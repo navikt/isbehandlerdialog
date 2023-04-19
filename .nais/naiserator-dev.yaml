@@ -81,4 +81,4 @@ spec:
     - name: TOGGLE_PRODUCE_BEHANDLER_DIALOGMELDING_BESTILLING
       value: "true"
     - name: TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER
-      value: "false"
+      value: "true"
