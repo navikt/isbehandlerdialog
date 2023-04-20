@@ -12,6 +12,8 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.util.*
 
 const val meldingApiBasePath = "/api/internad/v1/melding"
+const val msgId = "msgId"
+const val vedleggNumber = "vedleggNumber"
 
 private const val API_ACTION = "access behandlerdialog for person"
 
@@ -32,6 +34,22 @@ fun Route.registerMeldingApi(
             call.respond(
                 MeldingResponseDTO(conversations = conversations)
             )
+        }
+
+        get("/{$msgId}/{$vedleggNumber}/pdf") {
+            val msgId = call.parameters[msgId]
+                ?: throw IllegalArgumentException("Missing value for msgId")
+            val vedleggNumberString = call.parameters[vedleggNumber]
+                ?: throw IllegalArgumentException("Missing value for vedleggNumber")
+            val pdfContent = meldingService.getVedlegg(
+                msgId = msgId,
+                vedleggNumber = vedleggNumberString.toInt(),
+            )
+            if (pdfContent == null) {
+                call.respond(HttpStatusCode.NoContent)
+            } else {
+                call.respond(pdfContent)
+            }
         }
 
         post {

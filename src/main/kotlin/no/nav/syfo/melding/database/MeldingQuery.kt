@@ -230,5 +230,4 @@ fun ResultSet.toPMelding() =
         document = mapper.readValue(getString("document"), object : TypeReference<List<DocumentComponentDTO>>() {}),
         antallVedlegg = getInt("antall_vedlegg"),
         innkommendePublishedAt = getObject("innkommende_published_at", OffsetDateTime::class.java),
-
     )

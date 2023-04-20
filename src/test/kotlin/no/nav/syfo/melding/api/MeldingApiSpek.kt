@@ -5,7 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
-import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
+import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.domain.*
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.kafka.domain.*
@@ -45,6 +45,7 @@ class MeldingApiSpek : Spek({
                 issuer = externalMockEnvironment.wellKnownInternalAzureAD.issuer,
                 navIdent = UserConstants.VEILEDER_IDENT,
             )
+            val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
 
             beforeEachTest {
                 clearMocks(kafkaProducer)
@@ -58,27 +59,25 @@ class MeldingApiSpek : Spek({
 
             describe("Get meldinger for person") {
                 describe("Happy path") {
-                    val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
-                    val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
-                    val firstConversation = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandlerDTO.toMeldingTilBehandler(personIdent),
-                        numberOfMeldinger = 2,
-                    )
-                    val meldingFraBehandler = generateMeldingFraBehandler(
-                        conversationRef = firstConversation,
-                        personIdent = personIdent,
-                    )
-                    database.createMeldingerFraBehandler(
-                        meldingFraBehandler = meldingFraBehandler,
-                        numberOfMeldinger = 2,
-                    )
-                    val secondConversation = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandlerDTO
-                            .toMeldingTilBehandler(personIdent)
-                            .copy(conversationRef = UUID.randomUUID()),
-                        numberOfMeldinger = 1,
-                    )
                     it("Returns all meldinger for personident grouped by conversationRef") {
+                        val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
+                        val firstConversation = database.createMeldingerTilBehandler(
+                            meldingTilBehandler = meldingTilBehandlerDTO.toMeldingTilBehandler(personIdent),
+                            numberOfMeldinger = 2,
+                        )
+                        val meldingFraBehandler = generateMeldingFraBehandler(
+                            conversationRef = firstConversation,
+                            personIdent = personIdent,
+                        )
+                        database.createMeldingerFraBehandler(
+                            meldingFraBehandler = meldingFraBehandler,
+                            numberOfMeldinger = 2,
+                        )
+                        val secondConversation = database.createMeldingerTilBehandler(
+                            meldingTilBehandler = meldingTilBehandlerDTO
+                                .toMeldingTilBehandler(personIdent)
+                                .copy(conversationRef = UUID.randomUUID()),
+                        )
                         with(
                             handleRequest(HttpMethod.Get, apiUrl) {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
@@ -98,6 +97,63 @@ class MeldingApiSpek : Spek({
                             val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
                             pMeldinger.size shouldBeEqualTo 5
                             pMeldinger.first().arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                        }
+                    }
+                    it("Returns vedlegg for melding") {
+                        val conversation = database.createMeldingerTilBehandler(
+                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent),
+                        )
+                        val meldingFraBehandler = generateMeldingFraBehandler(
+                            conversationRef = conversation,
+                            personIdent = personIdent,
+                        )
+                        val vedleggNumber = 0
+                        database.connection.use {
+                            val meldingId = it.createMeldingFraBehandler(
+                                meldingFraBehandler = meldingFraBehandler,
+                                fellesformat = null,
+                            )
+                            it.createVedlegg(UserConstants.PDF_FORESPORSEL_OM_PASIENT, meldingId, vedleggNumber)
+                            it.commit()
+                        }
+                        with(
+                            handleRequest(HttpMethod.Get, "$apiUrl/${meldingFraBehandler.msgId}/$vedleggNumber/pdf") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+                            val pdfContent = response.byteContent!!
+                            pdfContent shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT
+                        }
+                    }
+                    it("Returns 204 when no vedlegg for melding") {
+                        val conversation = database.createMeldingerTilBehandler(
+                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent),
+                        )
+                        val meldingFraBehandler = generateMeldingFraBehandler(
+                            conversationRef = conversation,
+                            personIdent = personIdent,
+                        )
+                        database.createMeldingerFraBehandler(meldingFraBehandler)
+                        with(
+                            handleRequest(HttpMethod.Get, "$apiUrl/${meldingFraBehandler.msgId}/0/pdf") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.NoContent
+                        }
+                    }
+                    it("Returns 204 when getting vedlegg for unknown melding") {
+                        val msgId = UUID.randomUUID().toString()
+                        with(
+                            handleRequest(HttpMethod.Get, "$apiUrl/$msgId/0/pdf") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.NoContent
                         }
                     }
                 }

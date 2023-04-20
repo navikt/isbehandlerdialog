@@ -3,7 +3,7 @@ package no.nav.syfo.melding
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.melding.api.Melding
+import no.nav.syfo.melding.api.*
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.database.domain.toMeldingFraBehandler
 import no.nav.syfo.melding.database.domain.toMeldingTilBehandler
@@ -59,6 +59,17 @@ class MeldingService(
             }
         )
     }
+
+    fun getVedlegg(
+        msgId: String,
+        vedleggNumber: Int,
+    ): PdfContent? =
+        database.getVedlegg(
+            msgId = msgId,
+            number = vedleggNumber,
+        )?.let {
+            PdfContent(it.pdf)
+        }
 
     private fun getBehandlerRefForConversation(conversationRef: UUID, personIdent: PersonIdent): UUID {
         return database.connection.use {

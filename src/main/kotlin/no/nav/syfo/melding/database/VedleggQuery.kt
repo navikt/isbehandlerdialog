@@ -47,16 +47,21 @@ fun Connection.createVedlegg(
 
 const val queryGetVedlegg =
     """
-    SELECT vedlegg.* FROM vedlegg INNER JOIN melding ON (vedlegg.melding_id = melding.id) 
-        WHERE melding.msg_id = ?
-        ORDER BY vedlegg.number ASC
+    SELECT vedlegg.* 
+        FROM vedlegg INNER JOIN melding ON (vedlegg.melding_id = melding.id) 
+        WHERE melding.msg_id = ? 
+        AND vedlegg.number=?
     """
 
-fun DatabaseInterface.getVedlegg(msgId: UUID): List<PVedlegg> =
+fun DatabaseInterface.getVedlegg(
+    msgId: String,
+    number: Int,
+): PVedlegg? =
     this.connection.use { connection ->
         connection.prepareStatement(queryGetVedlegg).use {
-            it.setString(1, msgId.toString())
-            it.executeQuery().toList { toPVedlegg() }
+            it.setString(1, msgId)
+            it.setInt(2, number)
+            it.executeQuery().toList { toPVedlegg() }.firstOrNull()
         }
     }
 
