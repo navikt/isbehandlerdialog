@@ -41,12 +41,14 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
 )
 
 fun MeldingTilBehandler.toMelding() = Melding(
+    uuid = uuid,
     behandlerRef = behandlerRef,
     behandlerNavn = null,
     tekst = tekst,
     document = document,
     tidspunkt = bestiltTidspunkt,
     innkommende = false,
+    antallVedlegg = antallVedlegg,
 )
 
 fun MeldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf: ByteArray) = DialogmeldingBestillingDTO(
