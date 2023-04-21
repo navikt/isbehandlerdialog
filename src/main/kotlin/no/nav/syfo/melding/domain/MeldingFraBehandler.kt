@@ -42,10 +42,12 @@ fun MeldingFraBehandler.toPMelding() =
     )
 
 fun MeldingFraBehandler.toMelding(behandlerRef: UUID) = Melding(
+    uuid = uuid,
     behandlerRef = behandlerRef,
     behandlerNavn = behandlerNavn,
     tekst = tekst ?: "",
     document = emptyList(),
     tidspunkt = mottattTidspunkt,
     innkommende = true,
+    antallVedlegg = antallVedlegg,
 )
