@@ -50,7 +50,7 @@ fun launchCronjobModule(
         cronjobRunner.start(cronjob = journalforDialogmeldingCronjob)
     }
 
-    if (environment.produceMeldingFraBehandler) {
+    if (environment.produceMeldingFraBehandlerCronjob) {
         launchBackgroundTask(applicationState = applicationState) {
             cronjobRunner.start(cronjob = meldingFraBehandlerCronjob)
         }
