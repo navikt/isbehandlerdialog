@@ -10,9 +10,10 @@ import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.util.*
+import java.util.UUID
 
 const val meldingApiBasePath = "/api/internad/v1/melding"
-const val msgId = "msgId"
+const val uuid = "uuid"
 const val vedleggNumber = "vedleggNumber"
 
 private const val API_ACTION = "access behandlerdialog for person"
@@ -36,13 +37,13 @@ fun Route.registerMeldingApi(
             )
         }
 
-        get("/{$msgId}/{$vedleggNumber}/pdf") {
-            val msgId = call.parameters[msgId]
-                ?: throw IllegalArgumentException("Missing value for msgId")
+        get("/{$uuid}/{$vedleggNumber}/pdf") {
+            val melding_uuid = UUID.fromString(call.parameters[uuid])
+                ?: throw IllegalArgumentException("Missing value for uuid")
             val vedleggNumberString = call.parameters[vedleggNumber]
                 ?: throw IllegalArgumentException("Missing value for vedleggNumber")
             val pdfContent = meldingService.getVedlegg(
-                msgId = msgId,
+                uuid = melding_uuid,
                 vedleggNumber = vedleggNumberString.toInt(),
             )
             if (pdfContent == null) {

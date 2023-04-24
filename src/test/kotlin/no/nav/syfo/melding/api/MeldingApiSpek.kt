@@ -117,7 +117,7 @@ class MeldingApiSpek : Spek({
                             it.commit()
                         }
                         with(
-                            handleRequest(HttpMethod.Get, "$apiUrl/${meldingFraBehandler.msgId}/$vedleggNumber/pdf") {
+                            handleRequest(HttpMethod.Get, "$apiUrl/${meldingFraBehandler.uuid}/$vedleggNumber/pdf") {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                                 addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
                             }
@@ -137,7 +137,7 @@ class MeldingApiSpek : Spek({
                         )
                         database.createMeldingerFraBehandler(meldingFraBehandler)
                         with(
-                            handleRequest(HttpMethod.Get, "$apiUrl/${meldingFraBehandler.msgId}/0/pdf") {
+                            handleRequest(HttpMethod.Get, "$apiUrl/${meldingFraBehandler.uuid}/0/pdf") {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                                 addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
                             }
@@ -146,9 +146,9 @@ class MeldingApiSpek : Spek({
                         }
                     }
                     it("Returns 204 when getting vedlegg for unknown melding") {
-                        val msgId = UUID.randomUUID().toString()
+                        val uuid = UUID.randomUUID().toString()
                         with(
-                            handleRequest(HttpMethod.Get, "$apiUrl/$msgId/0/pdf") {
+                            handleRequest(HttpMethod.Get, "$apiUrl/$uuid/0/pdf") {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                                 addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
                             }

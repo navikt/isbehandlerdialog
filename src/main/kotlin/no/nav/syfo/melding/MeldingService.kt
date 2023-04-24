@@ -61,11 +61,11 @@ class MeldingService(
     }
 
     fun getVedlegg(
-        msgId: String,
+        uuid: UUID,
         vedleggNumber: Int,
     ): PdfContent? =
         database.getVedlegg(
-            msgId = msgId,
+            uuid = uuid,
             number = vedleggNumber,
         )?.let {
             PdfContent(it.pdf)

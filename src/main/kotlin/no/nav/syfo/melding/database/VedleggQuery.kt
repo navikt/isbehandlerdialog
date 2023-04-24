@@ -49,17 +49,17 @@ const val queryGetVedlegg =
     """
     SELECT vedlegg.* 
         FROM vedlegg INNER JOIN melding ON (vedlegg.melding_id = melding.id) 
-        WHERE melding.msg_id = ? 
+        WHERE melding.uuid = ? 
         AND vedlegg.number=?
     """
 
 fun DatabaseInterface.getVedlegg(
-    msgId: String,
+    uuid: UUID,
     number: Int,
 ): PVedlegg? =
     this.connection.use { connection ->
         connection.prepareStatement(queryGetVedlegg).use {
-            it.setString(1, msgId)
+            it.setString(1, uuid.toString())
             it.setInt(2, number)
             it.executeQuery().toList { toPVedlegg() }.firstOrNull()
         }

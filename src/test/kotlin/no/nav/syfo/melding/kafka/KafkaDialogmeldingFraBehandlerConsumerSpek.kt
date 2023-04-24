@@ -112,7 +112,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     pSvar.behandlerPersonIdent shouldBeEqualTo UserConstants.BEHANDLER_PERSONIDENT.value
                     pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
                     pSvar.antallVedlegg shouldBeEqualTo 0
-                    val vedlegg = database.getVedlegg(msgId.toString(), 0)
+                    val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }
                 it("Receive dialogmelding DIALOG_SVAR and known conversationRef and with vedlegg") {
@@ -147,7 +147,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     pSvar.innkommende shouldBe true
                     pSvar.msgId shouldBeEqualTo UserConstants.MSG_ID_WITH_VEDLEGG.toString()
                     pSvar.antallVedlegg shouldBeEqualTo 1
-                    val vedlegg = database.getVedlegg(msgId.toString(), 0)
+                    val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg!!.pdf shouldBeEqualTo UserConstants.VEDLEGG_BYTEARRAY
                 }
                 it("Receive dialogmelding DIALOG_SVAR for dialogmøte") {
