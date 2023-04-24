@@ -20,5 +20,8 @@ spec:
     retentionHours: -1  # -1 means unlimited
   acl:
     - team: teamsykefravr
+      application: isbehandlerdialog
+      access: readwrite
+    - team: teamsykefravr
       application: ispersonoppgave
       access: read
