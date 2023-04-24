@@ -38,12 +38,12 @@ fun Route.registerMeldingApi(
         }
 
         get("/{$uuid}/{$vedleggNumber}/pdf") {
-            val melding_uuid = UUID.fromString(call.parameters[uuid])
+            val meldingUuid = UUID.fromString(call.parameters[uuid])
                 ?: throw IllegalArgumentException("Missing value for uuid")
             val vedleggNumberString = call.parameters[vedleggNumber]
                 ?: throw IllegalArgumentException("Missing value for vedleggNumber")
             val pdfContent = meldingService.getVedlegg(
-                uuid = melding_uuid,
+                uuid = meldingUuid,
                 vedleggNumber = vedleggNumberString.toInt(),
             )
             if (pdfContent == null) {
