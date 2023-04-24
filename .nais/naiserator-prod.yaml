@@ -79,6 +79,6 @@ spec:
     - name: SYFOTILGANGSKONTROLL_URL
       value: "https://syfo-tilgangskontroll.prod-fss-pub.nais.io"
     - name: TOGGLE_PRODUCE_BEHANDLER_DIALOGMELDING_BESTILLING
-      value: "false"
+      value: "true"
     - name: TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER
-      value: "false"
+      value: "true"
