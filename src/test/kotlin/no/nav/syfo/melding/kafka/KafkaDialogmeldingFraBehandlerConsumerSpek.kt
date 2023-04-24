@@ -111,8 +111,9 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     pSvar.msgId shouldBeEqualTo msgId.toString()
                     pSvar.behandlerPersonIdent shouldBeEqualTo UserConstants.BEHANDLER_PERSONIDENT.value
                     pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
-                    val vedleggListe = database.getVedlegg(msgId)
-                    vedleggListe.size shouldBeEqualTo 0
+                    pSvar.antallVedlegg shouldBeEqualTo 0
+                    val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                    vedlegg shouldBe null
                 }
                 it("Receive dialogmelding DIALOG_SVAR and known conversationRef and with vedlegg") {
                     val conversationRef = database.createMeldingerTilBehandler(
@@ -146,9 +147,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     pSvar.innkommende shouldBe true
                     pSvar.msgId shouldBeEqualTo UserConstants.MSG_ID_WITH_VEDLEGG.toString()
                     pSvar.antallVedlegg shouldBeEqualTo 1
-                    val vedleggListe = database.getVedlegg(msgId)
-                    vedleggListe.size shouldBeEqualTo 1
-                    vedleggListe[0].pdf shouldBeEqualTo UserConstants.VEDLEGG_BYTEARRAY
+                    val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                    vedlegg!!.pdf shouldBeEqualTo UserConstants.VEDLEGG_BYTEARRAY
                 }
                 it("Receive dialogmelding DIALOG_SVAR for dialogmøte") {
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
