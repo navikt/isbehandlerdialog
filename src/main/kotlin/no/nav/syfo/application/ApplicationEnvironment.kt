@@ -47,7 +47,7 @@ data class Environment(
         ),
     ),
     val produceBehandlerDialogmeldingBestilling: Boolean = getEnvVar("TOGGLE_PRODUCE_BEHANDLER_DIALOGMELDING_BESTILLING").toBoolean(),
-    val produceMeldingFraBehandler: Boolean = getEnvVar("TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER").toBoolean(),
+    val produceMeldingFraBehandlerCronjob: Boolean = getEnvVar("TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER_CRONJOB").toBoolean(),
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =

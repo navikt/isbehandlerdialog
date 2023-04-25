@@ -80,5 +80,5 @@ spec:
       value: "https://syfo-tilgangskontroll.prod-fss-pub.nais.io"
     - name: TOGGLE_PRODUCE_BEHANDLER_DIALOGMELDING_BESTILLING
       value: "true"
-    - name: TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER
+    - name: TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER_CRONJOB
       value: "true"
