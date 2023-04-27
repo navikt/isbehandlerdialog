@@ -1,6 +1,5 @@
 package no.nav.syfo.melding.database.domain
 
-import no.nav.syfo.client.dokarkiv.domain.*
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.domain.*
 import no.nav.syfo.melding.kafka.domain.KafkaMeldingFraBehandlerDTO
@@ -35,6 +34,8 @@ fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
     parentRef = parentRef,
     bestiltTidspunkt = tidspunkt,
     arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
+    behandlerPersonIdent = behandlerPersonIdent?.let { PersonIdent(it) },
+    behandlerNavn = behandlerNavn,
     behandlerRef = behandlerRef ?: throw IllegalStateException("Mangler behandlerRef for MeldingTilBehandler"),
     tekst = tekst ?: "",
     document = document,

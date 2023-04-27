@@ -16,6 +16,8 @@ data class MeldingTilBehandler(
     val parentRef: UUID?,
     val bestiltTidspunkt: OffsetDateTime,
     val arbeidstakerPersonIdent: PersonIdent,
+    val behandlerPersonIdent: PersonIdent?,
+    val behandlerNavn: String?,
     val behandlerRef: UUID,
     val tekst: String,
     val document: List<DocumentComponentDTO>,
@@ -32,8 +34,8 @@ fun MeldingTilBehandler.toPMelding() = PMelding(
     msgId = null,
     tidspunkt = bestiltTidspunkt,
     arbeidstakerPersonIdent = arbeidstakerPersonIdent.value,
-    behandlerPersonIdent = null,
-    behandlerNavn = null,
+    behandlerPersonIdent = behandlerPersonIdent?.value,
+    behandlerNavn = behandlerNavn,
     behandlerRef = behandlerRef,
     tekst = tekst,
     document = document,
@@ -85,10 +87,7 @@ private fun MeldingTilBehandler.getDialogmeldingType(): DialogmeldingType {
 }
 
 fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) = JournalpostRequest(
-    avsenderMottaker = AvsenderMottaker.create( // TODO: Use correct values for behandler
-        id = null,
-        idType = null,
-    ),
+    avsenderMottaker = createAvsenderMottaker(behandlerPersonIdent, behandlerNavn),
     tittel = "Dialogmelding til behandler",
     bruker = Bruker.create(
         id = arbeidstakerPersonIdent.value,
@@ -97,7 +96,7 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) = JournalpostReques
     dokumenter = listOf(
         Dokument.create(
             brevkode = BrevkodeType.FORESPORSEL_OM_PASIENT,
-            tittel = "Dialogmelding til behandler", // TODO: Test om denne vises i Gosys, høre hva Lisa & co vil ha
+            tittel = "Dialogmelding til behandler",
             dokumentvarianter = listOf(
                 Dokumentvariant.create(
                     filnavn = "Dialogmelding til behandler",
@@ -109,3 +108,22 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) = JournalpostReques
         )
     ),
 )
+
+fun createAvsenderMottaker(
+    behandlerPersonIdent: PersonIdent?,
+    behandlerNavn: String?,
+): AvsenderMottaker {
+    return if (behandlerPersonIdent == null) {
+        AvsenderMottaker.create(
+            id = null,
+            idType = null,
+            navn = behandlerNavn,
+        )
+    } else {
+        AvsenderMottaker.create(
+            id = behandlerPersonIdent.value,
+            idType = BrukerIdType.PERSON_IDENT,
+            navn = behandlerNavn,
+        )
+    }
+}
