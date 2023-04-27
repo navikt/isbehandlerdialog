@@ -8,6 +8,7 @@ import io.ktor.server.netty.*
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
 import no.nav.syfo.application.api.apiModule
+import no.nav.syfo.application.cronjob.cronjobModule
 import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
@@ -63,6 +64,12 @@ fun main() {
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
                 azureAdClient = azureAdClient,
                 dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
+            )
+            cronjobModule(
+                applicationState = applicationState,
+                database = applicationDatabase,
+                environment = environment,
+                azureAdClient = azureAdClient,
             )
         }
     }

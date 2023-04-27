@@ -1,8 +1,8 @@
 package no.nav.syfo.melding.database
 
 import no.nav.syfo.application.database.toList
-import java.sql.Connection
-import java.sql.SQLException
+import no.nav.syfo.melding.database.domain.PPdf
+import java.sql.*
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -40,3 +40,12 @@ fun Connection.createPdf(
     }
     return idList.first()
 }
+
+fun ResultSet.toPPdf() =
+    PPdf(
+        meldingId = getInt("melding_id"),
+        uuid = UUID.fromString(getString("uuid")),
+        createdAt = getObject("created_at", OffsetDateTime::class.java),
+        updatedAt = getObject("updated_at", OffsetDateTime::class.java),
+        pdf = getBytes("pdf"),
+    )

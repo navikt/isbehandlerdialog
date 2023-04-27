@@ -39,6 +39,7 @@ fun MeldingFraBehandler.toPMelding() =
         document = emptyList(),
         antallVedlegg = antallVedlegg,
         innkommendePublishedAt = null,
+        journalpostId = null,
     )
 
 fun MeldingFraBehandler.toMelding(behandlerRef: UUID) = Melding(

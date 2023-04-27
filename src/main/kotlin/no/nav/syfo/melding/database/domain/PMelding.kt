@@ -1,5 +1,6 @@
 package no.nav.syfo.melding.database.domain
 
+import no.nav.syfo.client.dokarkiv.domain.*
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.domain.*
 import no.nav.syfo.melding.kafka.domain.KafkaMeldingFraBehandlerDTO
@@ -23,6 +24,7 @@ data class PMelding(
     val document: List<DocumentComponentDTO>,
     val antallVedlegg: Int,
     val innkommendePublishedAt: OffsetDateTime?,
+    val journalpostId: String?,
 )
 
 fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(

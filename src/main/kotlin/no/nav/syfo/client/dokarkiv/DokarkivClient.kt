@@ -6,6 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
+import no.nav.syfo.client.ClientEnvironment
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.dokarkiv.domain.JournalpostRequest
 import no.nav.syfo.client.dokarkiv.domain.JournalpostResponse
@@ -15,17 +16,16 @@ import org.slf4j.LoggerFactory
 
 class DokarkivClient(
     private val azureAdClient: AzureAdClient,
-    private val dokarkivClientId: String,
-    dokarkivBaseUrl: String,
+    private val clientEnvironment: ClientEnvironment,
 ) {
-    private val journalpostUrl: String = "$dokarkivBaseUrl$JOURNALPOST_PATH"
+    private val journalpostUrl: String = "${clientEnvironment.baseUrl}$JOURNALPOST_PATH"
 
     private val httpClient = httpClientDefault()
 
     suspend fun journalfor(
         journalpostRequest: JournalpostRequest,
     ): JournalpostResponse? {
-        val accessToken = azureAdClient.getSystemToken(dokarkivClientId)?.accessToken
+        val accessToken = azureAdClient.getSystemToken(clientEnvironment.clientId)?.accessToken
         accessToken?.let { token ->
             return try {
                 val response: HttpResponse = httpClient.post(journalpostUrl) {

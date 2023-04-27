@@ -6,14 +6,6 @@ enum class SaksType(
     GENERELL("GENERELL_SAK"),
 }
 
-data class Sak private constructor(
-    val sakstype: String,
-) {
-    companion object {
-        operator fun invoke(
-            sakstype: SaksType,
-        ) = Sak(
-            sakstype = sakstype.value,
-        )
-    }
-}
+data class Sak(
+    val sakstype: String = SaksType.GENERELL.value,
+)

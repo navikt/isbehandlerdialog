@@ -48,10 +48,15 @@ fun testEnvironment(
             baseUrl = padm2Url,
             clientId = "dev-gcp.teamsykefravr.padm2",
         ),
+        dokarkiv = ClientEnvironment(
+            baseUrl = "dokarkivUrl",
+            clientId = "dev-fss.teamdokumenthandtering.dokarkiv-q1"
+        )
     ),
     electorPath = "electorPath",
     produceBehandlerDialogmeldingBestilling = true,
     produceMeldingFraBehandlerCronjob = true,
+    journalforMeldingTilBehandler = true,
 )
 
 fun testAppState() = ApplicationState(

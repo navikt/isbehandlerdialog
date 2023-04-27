@@ -1,20 +1,23 @@
 package no.nav.syfo.application.cronjob
 
+import io.ktor.server.application.*
 import no.nav.syfo.application.*
 import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.leaderelection.LeaderPodClient
-import no.nav.syfo.melding.cronjob.JournalforDialogmeldingCronjob
+import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
+import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
 import no.nav.syfo.melding.kafka.KafkaMeldingFraBehandlerProducer
 import no.nav.syfo.melding.kafka.PublishMeldingFraBehandlerService
 import no.nav.syfo.melding.kafka.config.kafkaMeldingFraBehandlerProducerConfig
 
-fun launchCronjobModule(
+fun Application.cronjobModule(
     applicationState: ApplicationState,
-    environment: Environment,
     database: DatabaseInterface,
-    dokarkivClient: DokarkivClient,
+    environment: Environment,
+    azureAdClient: AzureAdClient,
 ) {
     val leaderPodClient = LeaderPodClient(
         electorPath = environment.electorPath
@@ -24,9 +27,18 @@ fun launchCronjobModule(
         leaderPodClient = leaderPodClient
     )
 
-    val journalforDialogmeldingCronjob = JournalforDialogmeldingCronjob(
+    val dokarkivClient = DokarkivClient(
+        azureAdClient = azureAdClient,
+        clientEnvironment = environment.clients.dokarkiv,
+    )
+
+    val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
         database = database,
-        dokarkivCLient = dokarkivClient,
+    )
+
+    val journalforMeldingTilBehandlerCronjob = JournalforMeldingTilBehandlerCronjob(
+        dokarkivClient = dokarkivClient,
+        journalforMeldingTilBehandlerService = journalforMeldingTilBehandlerService,
     )
 
     val kafkaMeldingFraBehandlerProducer = KafkaMeldingFraBehandlerProducer(
@@ -44,10 +56,12 @@ fun launchCronjobModule(
         publishMeldingFraBehandlerService = publishMeldingFraBehandlerService,
     )
 
-    launchBackgroundTask(
-        applicationState = applicationState,
-    ) {
-        cronjobRunner.start(cronjob = journalforDialogmeldingCronjob)
+    if (environment.journalforMeldingTilBehandler) {
+        launchBackgroundTask(
+            applicationState = applicationState,
+        ) {
+            cronjobRunner.start(cronjob = journalforMeldingTilBehandlerCronjob)
+        }
     }
 
     if (environment.produceMeldingFraBehandlerCronjob) {
