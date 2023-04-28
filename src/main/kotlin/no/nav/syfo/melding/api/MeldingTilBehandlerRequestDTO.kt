@@ -6,6 +6,8 @@ import java.time.OffsetDateTime
 import java.util.*
 
 data class MeldingTilBehandlerRequestDTO(
+    val behandlerIdent: String?,
+    val behandlerNavn: String?,
     val behandlerRef: UUID,
     val tekst: String,
     val document: List<DocumentComponentDTO> = emptyList(),
@@ -21,6 +23,8 @@ fun MeldingTilBehandlerRequestDTO.toMeldingTilBehandler(personident: PersonIdent
         parentRef = null,
         bestiltTidspunkt = now,
         arbeidstakerPersonIdent = personident,
+        behandlerPersonIdent = behandlerIdent?.let { PersonIdent(behandlerIdent) },
+        behandlerNavn = behandlerNavn,
         behandlerRef = behandlerRef,
         tekst = tekst,
         document = document,

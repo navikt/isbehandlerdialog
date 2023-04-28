@@ -5,6 +5,7 @@ import no.nav.syfo.melding.api.MeldingTilBehandlerRequestDTO
 import no.nav.syfo.melding.domain.DocumentComponentDTO
 import no.nav.syfo.melding.domain.DocumentComponentType
 import no.nav.syfo.melding.kafka.domain.toMeldingFraBehandler
+import no.nav.syfo.testhelper.UserConstants
 import java.util.UUID
 
 fun generateMeldingTilBehandlerRequestDTO(
@@ -12,6 +13,8 @@ fun generateMeldingTilBehandlerRequestDTO(
     tekst: String = "Melding til behandler",
 ) = MeldingTilBehandlerRequestDTO(
     behandlerRef = behandlerRef,
+    behandlerIdent = UserConstants.BEHANDLER_PERSONIDENT.value,
+    behandlerNavn = UserConstants.BEHANDLER_NAVN,
     tekst = tekst,
     document = listOf(
         DocumentComponentDTO(

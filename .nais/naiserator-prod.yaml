@@ -84,7 +84,7 @@ spec:
     - name: TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER_CRONJOB
       value: "true"
     - name: TOGGLE_JOURNALFOR_MELDING_TIL_BEHANDLER
-      value: "false"
+      value: "true"
     - name: DOKARKIV_CLIENT_ID
       value: "prod-fss.teamdokumenthandtering.dokarkiv"
     - name: DOKARKIV_URL

@@ -6,7 +6,11 @@ import no.nav.syfo.testhelper.UserConstants
 fun journalpostRequestGenerator(
     pdf: ByteArray
 ) = JournalpostRequest(
-    avsenderMottaker = AvsenderMottaker.create(null, null),
+    avsenderMottaker = AvsenderMottaker.create(
+        id = UserConstants.BEHANDLER_PERSONIDENT.value,
+        idType = BrukerIdType.PERSON_IDENT,
+        navn = UserConstants.BEHANDLER_NAVN,
+    ),
     bruker = Bruker.create(UserConstants.ARBEIDSTAKER_PERSONIDENT.value, BrukerIdType.PERSON_IDENT),
     tittel = "Dialogmelding til behandler",
     dokumenter = listOf(
