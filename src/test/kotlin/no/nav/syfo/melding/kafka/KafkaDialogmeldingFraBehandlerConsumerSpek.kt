@@ -39,6 +39,11 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
             database.dropData()
         }
 
+        val kafkaDialogmeldingFraBehandlerConsumer = KafkaDialogmeldingFraBehandlerConsumer(
+            database = database,
+            padm2Client = padm2Client,
+        )
+
         describe("Read dialogmelding sent from behandler to NAV from Kafka Topic") {
             describe("Happy path") {
                 it("Receive dialogmeldinger") {
@@ -49,10 +54,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmelding)
 
                     runBlocking {
-                        pollAndProcessDialogmeldingFraBehandler(
-                            kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
-                            database = database,
-                            padm2Client = padm2Client,
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
                         )
                     }
 
@@ -68,10 +71,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmelding)
 
                     runBlocking {
-                        pollAndProcessDialogmeldingFraBehandler(
-                            kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
-                            database = database,
-                            padm2Client = padm2Client,
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
                         )
                     }
 
@@ -94,10 +95,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
 
                     runBlocking {
-                        pollAndProcessDialogmeldingFraBehandler(
-                            kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
-                            database = database,
-                            padm2Client = padm2Client,
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
                         )
                     }
 
@@ -131,10 +130,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
 
                     runBlocking {
-                        pollAndProcessDialogmeldingFraBehandler(
-                            kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
-                            database = database,
-                            padm2Client = padm2Client,
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
                         )
                     }
 
@@ -162,10 +159,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
 
                     runBlocking {
-                        pollAndProcessDialogmeldingFraBehandler(
-                            kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
-                            database = database,
-                            padm2Client = padm2Client,
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
                         )
                     }
 
@@ -187,18 +182,14 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
 
                     runBlocking {
-                        pollAndProcessDialogmeldingFraBehandler(
-                            kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
-                            database = database,
-                            padm2Client = padm2Client,
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
                         )
                     }
                     verify(exactly = 1) { mockConsumer.commitSync() }
                     runBlocking {
-                        pollAndProcessDialogmeldingFraBehandler(
-                            kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
-                            database = database,
-                            padm2Client = padm2Client,
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
                         )
                     }
                     verify(exactly = 2) { mockConsumer.commitSync() }
@@ -221,10 +212,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
 
                     runBlocking {
-                        pollAndProcessDialogmeldingFraBehandler(
-                            kafkaConsumerDialogmeldingFraBehandler = mockConsumer,
-                            database = database,
-                            padm2Client = padm2Client,
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
                         )
                     }
                     verify(exactly = 1) { mockConsumer.commitSync() }
@@ -236,10 +225,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                     )
                     val mockConsumerAgain = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommetAgain)
                     runBlocking {
-                        pollAndProcessDialogmeldingFraBehandler(
-                            kafkaConsumerDialogmeldingFraBehandler = mockConsumerAgain,
-                            database = database,
-                            padm2Client = padm2Client,
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumerAgain,
                         )
                     }
                     verify(exactly = 1) { mockConsumerAgain.commitSync() }

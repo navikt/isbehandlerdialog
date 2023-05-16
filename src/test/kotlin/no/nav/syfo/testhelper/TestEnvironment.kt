@@ -54,9 +54,7 @@ fun testEnvironment(
         )
     ),
     electorPath = "electorPath",
-    produceBehandlerDialogmeldingBestilling = true,
-    produceMeldingFraBehandlerCronjob = true,
-    journalforMeldingTilBehandler = true,
+    consumeDialogmeldingStatus = true,
 )
 
 fun testAppState() = ApplicationState(

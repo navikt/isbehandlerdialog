@@ -24,7 +24,7 @@ inline fun <reified Serializer> kafkaAivenProducerConfig(
     }
 }
 
-fun kafkaConsumerConfig(
+inline fun <reified Deserializer> kafkaConsumerConfig(
     kafkaEnvironment: KafkaEnvironment,
 ): Properties {
     return Properties().apply {
@@ -36,6 +36,7 @@ fun kafkaConsumerConfig(
         this[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = "false"
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = "10"
         this[ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG] = "" + (10 * 1024 * 1024)
+        this[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = Deserializer::class.java.canonicalName
     }
 }
 
