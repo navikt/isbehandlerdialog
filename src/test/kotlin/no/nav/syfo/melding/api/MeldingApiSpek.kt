@@ -98,6 +98,26 @@ class MeldingApiSpek : Spek({
                             pMeldinger.first().arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
                         }
                     }
+                }
+
+                describe("Unhappy path") {
+                    it("Returns status Unauthorized if no token is supplied") {
+                        testMissingToken(apiUrl, HttpMethod.Get)
+                    }
+                    it("returns status Forbidden if denied access to person") {
+                        testDeniedPersonAccess(apiUrl, validToken, HttpMethod.Get)
+                    }
+                    it("returns status BadRequest if no $NAV_PERSONIDENT_HEADER is supplied") {
+                        testMissingPersonIdent(apiUrl, validToken, HttpMethod.Get)
+                    }
+                    it("returns status BadRequest if $NAV_PERSONIDENT_HEADER with invalid PersonIdent is supplied") {
+                        testInvalidPersonIdent(apiUrl, validToken, HttpMethod.Get)
+                    }
+                }
+            }
+
+            describe("Get vedlegg for melding") {
+                describe("Happy path") {
                     it("Returns vedlegg for melding") {
                         val conversation = database.createMeldingerTilBehandler(
                             generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent),
@@ -134,41 +154,66 @@ class MeldingApiSpek : Spek({
                             conversationRef = conversation,
                             personIdent = personIdent,
                         )
-                        database.createMeldingerFraBehandler(meldingFraBehandler)
+                        database.connection.use {
+                            it.createMeldingFraBehandler(
+                                meldingFraBehandler = meldingFraBehandler,
+                                fellesformat = null
+                            )
+                            it.commit()
+                        }
                         with(
                             handleRequest(HttpMethod.Get, "$apiUrl/${meldingFraBehandler.uuid}/0/pdf") {
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
-                            }
-                        ) {
-                            response.status() shouldBeEqualTo HttpStatusCode.NoContent
-                        }
-                    }
-                    it("Returns 204 when getting vedlegg for unknown melding") {
-                        val uuid = UUID.randomUUID().toString()
-                        with(
-                            handleRequest(HttpMethod.Get, "$apiUrl/$uuid/0/pdf") {
-                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                                addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.NoContent
                         }
                     }
                 }
-
                 describe("Unhappy path") {
+                    it("Returns BadRequest when getting vedlegg for unknown melding") {
+                        val uuid = UUID.randomUUID().toString()
+                        with(
+                            handleRequest(HttpMethod.Get, "$apiUrl/$uuid/0/pdf") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.BadRequest
+                        }
+                    }
                     it("Returns status Unauthorized if no token is supplied") {
-                        testMissingToken(apiUrl, HttpMethod.Get)
+                        val uuid = UUID.randomUUID().toString()
+                        with(
+                            handleRequest(HttpMethod.Get, "$apiUrl/$uuid/0/pdf") {
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.Unauthorized
+                        }
                     }
-                    it("returns status Forbidden if denied access to person") {
-                        testDeniedPersonAccess(apiUrl, validToken, HttpMethod.Get)
-                    }
-                    it("returns status BadRequest if no $NAV_PERSONIDENT_HEADER is supplied") {
-                        testMissingPersonIdent(apiUrl, validToken, HttpMethod.Get)
-                    }
-                    it("returns status BadRequest if $NAV_PERSONIDENT_HEADER with invalid PersonIdent is supplied") {
-                        testInvalidPersonIdent(apiUrl, validToken, HttpMethod.Get)
+                    it("Returns status Forbidden if denied access to person") {
+                        val conversation = database.createMeldingerTilBehandler(
+                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS),
+                        )
+                        val meldingFraBehandler = generateMeldingFraBehandler(
+                            conversationRef = conversation,
+                            personIdent = UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS,
+                        )
+                        val vedleggNumber = 0
+                        database.connection.use {
+                            val meldingId = it.createMeldingFraBehandler(
+                                meldingFraBehandler = meldingFraBehandler,
+                                fellesformat = null,
+                            )
+                            it.createVedlegg(UserConstants.PDF_FORESPORSEL_OM_PASIENT, meldingId, vedleggNumber)
+                            it.commit()
+                        }
+                        with(
+                            handleRequest(HttpMethod.Get, "$apiUrl/${meldingFraBehandler.uuid}/$vedleggNumber/pdf") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.Forbidden
+                        }
                     }
                 }
             }
@@ -193,7 +238,8 @@ class MeldingApiSpek : Spek({
                         pMelding.tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
                         pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT.name
                         pMelding.innkommende shouldBeEqualTo false
-                        val brodtekst = pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
+                        val brodtekst =
+                            pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
                         brodtekst.texts.first() shouldBeEqualTo meldingTilBehandlerDTO.tekst
 
                         val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()

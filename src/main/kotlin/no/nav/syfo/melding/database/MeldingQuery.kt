@@ -22,12 +22,28 @@ const val queryGetMeldingForArbeidstakerPersonIdent =
     """
 
 fun DatabaseInterface.getMeldingerForArbeidstaker(
-    arbeidstakerPersonIdent: PersonIdent
+    arbeidstakerPersonIdent: PersonIdent,
 ): List<PMelding> {
     return connection.use { connection ->
         connection.prepareStatement(queryGetMeldingForArbeidstakerPersonIdent).use {
             it.setString(1, arbeidstakerPersonIdent.value)
             it.executeQuery().toList { toPMelding() }
+        }
+    }
+}
+
+const val queryGetMeldingForUuid =
+    """
+        SELECT *
+        FROM MELDING
+        WHERE uuid = ?
+    """
+
+fun DatabaseInterface.getMelding(uuid: UUID): PMelding? {
+    return this.connection.use { connection ->
+        connection.prepareStatement(queryGetMeldingForUuid).use {
+            it.setString(1, uuid.toString())
+            it.executeQuery().toList { toPMelding() }.firstOrNull()
         }
     }
 }

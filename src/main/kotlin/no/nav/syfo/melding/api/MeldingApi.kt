@@ -5,7 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import no.nav.syfo.application.api.VeilederTilgangskontrollPlugin
+import no.nav.syfo.application.api.checkVeilederTilgang
 import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdent
@@ -23,13 +23,13 @@ fun Route.registerMeldingApi(
     meldingService: MeldingService,
 ) {
     route(meldingApiBasePath) {
-        install(VeilederTilgangskontrollPlugin) {
-            this.action = API_ACTION
-            this.veilederTilgangskontrollClient = veilederTilgangskontrollClient
-        }
-
         get {
             val personIdent = call.personIdent()
+            call.checkVeilederTilgang(
+                action = API_ACTION,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+                personIdent = personIdent
+            )
             val conversations = meldingService.getConversations(personIdent)
 
             call.respond(
@@ -42,6 +42,14 @@ fun Route.registerMeldingApi(
                 ?: throw IllegalArgumentException("Missing value for uuid")
             val vedleggNumberString = call.parameters[vedleggNumber]
                 ?: throw IllegalArgumentException("Missing value for vedleggNumber")
+
+            val personIdent = meldingService.getArbeidstakerPersonIdentForMelding(meldingUuid)
+            call.checkVeilederTilgang(
+                action = API_ACTION,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+                personIdent = personIdent
+            )
+
             val pdfContent = meldingService.getVedlegg(
                 uuid = meldingUuid,
                 vedleggNumber = vedleggNumberString.toInt(),
@@ -55,6 +63,11 @@ fun Route.registerMeldingApi(
 
         post {
             val personIdent = call.personIdent()
+            call.checkVeilederTilgang(
+                action = API_ACTION,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+                personIdent = personIdent
+            )
             val requestDTO = call.receive<MeldingTilBehandlerRequestDTO>()
 
             meldingService.createMeldingTilBehandler(
