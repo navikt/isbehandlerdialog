@@ -168,7 +168,7 @@ fun Connection.createMeldingTilBehandler(
     commit: Boolean = true,
 ): Int {
     return this.createMelding(
-        pMelding = meldingTilBehandler.toPMelding(),
+        melding = meldingTilBehandler,
         commit = commit,
     )
 }
@@ -179,35 +179,35 @@ fun Connection.createMeldingFraBehandler(
     commit: Boolean = true,
 ): Int {
     return this.createMelding(
-        pMelding = meldingFraBehandler.toPMelding(),
+        melding = meldingFraBehandler,
         fellesformat = fellesformat,
         commit = commit,
     )
 }
 
 private fun Connection.createMelding(
-    pMelding: PMelding,
+    melding: Melding,
     fellesformat: String? = null,
     commit: Boolean = true,
 ): Int {
     val idList = this.prepareStatement(queryCreateMelding).use {
-        it.setString(1, pMelding.uuid.toString())
+        it.setString(1, melding.uuid.toString())
         it.setObject(2, OffsetDateTime.now())
-        it.setBoolean(3, pMelding.innkommende)
-        it.setString(4, pMelding.type)
-        it.setString(5, pMelding.conversationRef.toString())
-        it.setString(6, pMelding.parentRef?.toString())
-        it.setString(7, pMelding.msgId)
-        it.setObject(8, pMelding.tidspunkt)
-        it.setString(9, pMelding.arbeidstakerPersonIdent)
-        it.setString(10, pMelding.behandlerPersonIdent)
-        it.setString(11, pMelding.behandlerRef?.toString())
-        it.setString(12, pMelding.tekst)
-        it.setObject(13, mapper.writeValueAsString(pMelding.document))
-        it.setInt(14, pMelding.antallVedlegg)
-        it.setString(15, pMelding.behandlerNavn)
+        it.setBoolean(3, melding.innkommende)
+        it.setString(4, melding.type.name)
+        it.setString(5, melding.conversationRef.toString())
+        it.setString(6, melding.parentRef?.toString())
+        it.setString(7, melding.msgId)
+        it.setObject(8, melding.tidspunkt)
+        it.setString(9, melding.arbeidstakerPersonIdent.value)
+        it.setString(10, melding.behandlerPersonIdent?.value)
+        it.setString(11, melding.behandlerRef?.toString())
+        it.setString(12, melding.tekst)
+        it.setObject(13, mapper.writeValueAsString(melding.document))
+        it.setInt(14, melding.antallVedlegg)
+        it.setString(15, melding.behandlerNavn)
         it.setNull(16, Types.TIMESTAMP_WITH_TIMEZONE)
-        it.setString(17, pMelding.journalpostId)
+        it.setString(17, melding.journalpostId)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -249,7 +249,7 @@ const val queryUpdateJournalpostId = """
     WHERE uuid = ?
 """
 
-fun DatabaseInterface.updateMeldingJournalpostId(melding: PMelding, journalpostId: String) {
+fun DatabaseInterface.updateMeldingJournalpostId(melding: MeldingTilBehandler, journalpostId: String) {
     connection.use { connection ->
         connection.prepareStatement(queryUpdateJournalpostId).use {
             it.setString(1, journalpostId)
@@ -265,6 +265,7 @@ fun DatabaseInterface.updateMeldingJournalpostId(melding: PMelding, journalpostI
 
 fun ResultSet.toPMelding() =
     PMelding(
+        id = getInt("id"),
         uuid = UUID.fromString(getString("uuid")),
         createdAt = getObject("created_at", OffsetDateTime::class.java),
         innkommende = getBoolean("innkommende"),

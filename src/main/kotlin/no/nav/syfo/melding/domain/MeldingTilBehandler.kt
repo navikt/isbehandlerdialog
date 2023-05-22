@@ -1,56 +1,39 @@
 package no.nav.syfo.melding.domain
 
 import no.nav.syfo.client.dokarkiv.domain.*
-import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.melding.api.Melding
+import no.nav.syfo.melding.api.MeldingDTO
 import no.nav.syfo.melding.kafka.domain.*
 import java.time.OffsetDateTime
 import java.util.*
 
 data class MeldingTilBehandler(
-    val uuid: UUID,
+    override val uuid: UUID,
     val createdAt: OffsetDateTime,
-    val type: MeldingType,
-    val conversationRef: UUID,
-    val parentRef: UUID?,
-    val bestiltTidspunkt: OffsetDateTime,
-    val arbeidstakerPersonIdent: PersonIdent,
-    val behandlerPersonIdent: PersonIdent?,
-    val behandlerNavn: String?,
-    val behandlerRef: UUID,
-    val tekst: String,
-    val document: List<DocumentComponentDTO>,
-    val antallVedlegg: Int,
-)
+    override val type: MeldingType,
+    override val conversationRef: UUID,
+    override val parentRef: UUID?,
+    override val tidspunkt: OffsetDateTime,
+    override val arbeidstakerPersonIdent: PersonIdent,
+    override val behandlerPersonIdent: PersonIdent?,
+    override val behandlerNavn: String?,
+    override val behandlerRef: UUID,
+    override val tekst: String,
+    override val document: List<DocumentComponentDTO>,
+    override val antallVedlegg: Int,
+) : Melding {
+    override val msgId: String? = null
+    override val innkommende: Boolean = false
+    override val journalpostId: String? = null
+}
 
-fun MeldingTilBehandler.toPMelding() = PMelding(
-    uuid = uuid,
-    createdAt = createdAt,
-    innkommende = false,
-    type = type.name,
-    conversationRef = conversationRef,
-    parentRef = parentRef,
-    msgId = null,
-    tidspunkt = bestiltTidspunkt,
-    arbeidstakerPersonIdent = arbeidstakerPersonIdent.value,
-    behandlerPersonIdent = behandlerPersonIdent?.value,
-    behandlerNavn = behandlerNavn,
-    behandlerRef = behandlerRef,
-    tekst = tekst,
-    document = document,
-    antallVedlegg = antallVedlegg,
-    innkommendePublishedAt = null,
-    journalpostId = null,
-)
-
-fun MeldingTilBehandler.toMelding() = Melding(
+fun MeldingTilBehandler.toMelding() = MeldingDTO(
     uuid = uuid,
     behandlerRef = behandlerRef,
     behandlerNavn = null,
     tekst = tekst,
     document = document,
-    tidspunkt = bestiltTidspunkt,
+    tidspunkt = tidspunkt,
     innkommende = false,
     antallVedlegg = antallVedlegg,
 )

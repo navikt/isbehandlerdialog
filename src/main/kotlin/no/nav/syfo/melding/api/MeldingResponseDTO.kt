@@ -5,10 +5,10 @@ import java.time.OffsetDateTime
 import java.util.*
 
 data class MeldingResponseDTO(
-    val conversations: Map<UUID, List<Melding>>
+    val conversations: Map<UUID, List<MeldingDTO>>
 )
 
-data class Melding(
+data class MeldingDTO(
     val uuid: UUID,
     val behandlerRef: UUID,
     val behandlerNavn: String?,

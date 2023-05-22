@@ -53,7 +53,7 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler() =
             }
         },
         msgId = msgId,
-        mottattTidspunkt = mottattTidspunkt.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
+        tidspunkt = mottattTidspunkt.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
         arbeidstakerPersonIdent = PersonIdent(personIdentPasient),
         behandlerPersonIdent = personIdentBehandler?.let { PersonIdent(personIdentBehandler) },
         behandlerNavn = dialogmelding.navnHelsepersonell,

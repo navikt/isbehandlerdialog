@@ -21,7 +21,7 @@ fun MeldingTilBehandlerRequestDTO.toMeldingTilBehandler(personident: PersonIdent
         type = MeldingType.FORESPORSEL_PASIENT,
         conversationRef = UUID.randomUUID(),
         parentRef = null,
-        bestiltTidspunkt = now,
+        tidspunkt = now,
         arbeidstakerPersonIdent = personident,
         behandlerPersonIdent = behandlerIdent?.let { PersonIdent(behandlerIdent) },
         behandlerNavn = behandlerNavn,
