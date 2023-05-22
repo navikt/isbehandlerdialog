@@ -79,11 +79,7 @@ spec:
       value: "dev-gcp.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
       value: "http://syfo-tilgangskontroll"
-    - name: TOGGLE_PRODUCE_BEHANDLER_DIALOGMELDING_BESTILLING
-      value: "true"
-    - name: TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER_CRONJOB
-      value: "true"
-    - name: TOGGLE_JOURNALFOR_MELDING_TIL_BEHANDLER
+    - name: TOGGLE_CONSUME_DIALOGMELDING_STATUS
       value: "true"
     - name: DOKARKIV_CLIENT_ID
       value: "dev-fss.teamdokumenthandtering.dokarkiv-q1"

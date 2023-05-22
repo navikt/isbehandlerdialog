@@ -50,9 +50,7 @@ data class Environment(
             clientId = getEnvVar("DOKARKIV_CLIENT_ID"),
         )
     ),
-    val produceBehandlerDialogmeldingBestilling: Boolean = getEnvVar("TOGGLE_PRODUCE_BEHANDLER_DIALOGMELDING_BESTILLING").toBoolean(),
-    val produceMeldingFraBehandlerCronjob: Boolean = getEnvVar("TOGGLE_PRODUCE_MELDING_FRA_BEHANDLER_CRONJOB").toBoolean(),
-    val journalforMeldingTilBehandler: Boolean = getEnvVar("TOGGLE_JOURNALFOR_MELDING_TIL_BEHANDLER").toBoolean(),
+    val consumeDialogmeldingStatus: Boolean = getEnvVar("TOGGLE_CONSUME_DIALOGMELDING_STATUS").toBoolean(),
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =

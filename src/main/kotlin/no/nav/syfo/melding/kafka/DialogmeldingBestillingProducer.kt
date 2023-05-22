@@ -9,23 +9,18 @@ import org.slf4j.LoggerFactory
 
 class DialogmeldingBestillingProducer(
     private val dialogmeldingBestillingKafkaProducer: KafkaProducer<String, DialogmeldingBestillingDTO>,
-    private val produceDialogmeldingBestillingEnabled: Boolean,
 ) {
     fun sendDialogmeldingBestilling(meldingTilBehandler: MeldingTilBehandler, meldingPdf: ByteArray) {
         val dialogmeldingBestillingDTO = meldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf)
         val key = dialogmeldingBestillingDTO.dialogmeldingRefConversation
         try {
-            if (produceDialogmeldingBestillingEnabled) {
-                dialogmeldingBestillingKafkaProducer.send(
-                    ProducerRecord(
-                        BEHANDLER_DIALOGMELDING_BESTILLING_TOPIC,
-                        key,
-                        dialogmeldingBestillingDTO
-                    )
-                ).get()
-            } else {
-                log.info("Would have sent behandler-dialogmelding-bestilling if enabled: $key")
-            }
+            dialogmeldingBestillingKafkaProducer.send(
+                ProducerRecord(
+                    BEHANDLER_DIALOGMELDING_BESTILLING_TOPIC,
+                    key,
+                    dialogmeldingBestillingDTO
+                )
+            ).get()
         } catch (e: Exception) {
             log.error(
                 "Exception was thrown when attempting to send behandler-dialogmelding-bestilling with key {}: ${e.message}",

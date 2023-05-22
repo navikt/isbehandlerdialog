@@ -34,7 +34,6 @@ class MeldingApiSpek : Spek({
                 externalMockEnvironment = externalMockEnvironment,
                 dialogmeldingBestillingProducer = DialogmeldingBestillingProducer(
                     dialogmeldingBestillingKafkaProducer = kafkaProducer,
-                    produceDialogmeldingBestillingEnabled = externalMockEnvironment.environment.produceBehandlerDialogmeldingBestilling
                 ),
             )
 

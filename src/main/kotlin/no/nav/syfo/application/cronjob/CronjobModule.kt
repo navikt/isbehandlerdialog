@@ -55,18 +55,11 @@ fun Application.cronjobModule(
     val meldingFraBehandlerCronjob = MeldingFraBehandlerCronjob(
         publishMeldingFraBehandlerService = publishMeldingFraBehandlerService,
     )
-
-    if (environment.journalforMeldingTilBehandler) {
+    listOf(journalforMeldingTilBehandlerCronjob, meldingFraBehandlerCronjob).forEach {
         launchBackgroundTask(
             applicationState = applicationState,
         ) {
-            cronjobRunner.start(cronjob = journalforMeldingTilBehandlerCronjob)
-        }
-    }
-
-    if (environment.produceMeldingFraBehandlerCronjob) {
-        launchBackgroundTask(applicationState = applicationState) {
-            cronjobRunner.start(cronjob = meldingFraBehandlerCronjob)
+            cronjobRunner.start(cronjob = it)
         }
     }
 }

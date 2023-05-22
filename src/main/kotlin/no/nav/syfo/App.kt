@@ -15,9 +15,8 @@ import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.wellknown.getWellKnown
-import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
+import no.nav.syfo.melding.kafka.*
 import no.nav.syfo.melding.kafka.config.KafkaBehandlerDialogmeldingSerializer
-import no.nav.syfo.melding.kafka.launchKafkaTaskDialogmeldingFraBehandler
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
@@ -44,7 +43,6 @@ fun main() {
                 kafkaEnvironment = environment.kafka,
             ),
         ),
-        produceDialogmeldingBestillingEnabled = environment.produceBehandlerDialogmeldingBestilling
     )
 
     val applicationEngineEnvironment = applicationEngineEnvironment {
@@ -83,6 +81,13 @@ fun main() {
             database = applicationDatabase,
             padm2Client = padm2Client,
         )
+        if (environment.consumeDialogmeldingStatus) {
+            launchKafkaTaskDialogmeldingStatus(
+                applicationState = applicationState,
+                kafkaEnvironment = environment.kafka,
+                database = applicationDatabase,
+            )
+        }
     }
 
     val server = embeddedServer(
