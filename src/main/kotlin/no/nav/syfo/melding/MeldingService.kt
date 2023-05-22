@@ -77,4 +77,9 @@ class MeldingService(
             ?.behandlerRef
             ?: throw IllegalStateException("Fant ikke behandlerRef for samtale $conversationRef, kunne ikke knyttes til melding fra behandler")
     }
+
+    fun getArbeidstakerPersonIdentForMelding(meldingUuid: UUID): PersonIdent {
+        val pMelding = database.getMelding(meldingUuid) ?: throw IllegalArgumentException("Melding not found")
+        return PersonIdent(pMelding.arbeidstakerPersonIdent)
+    }
 }
