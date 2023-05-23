@@ -62,7 +62,6 @@ class KafkaDialogmeldingStatusConsumer(
             )
         } else {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_STATUS_SKIPPED.increment()
-            log.info("Received KafkaDialogmeldingStatusDTO but no melding found: meldingUuid $meldingUuid")
         }
     }
 
