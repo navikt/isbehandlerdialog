@@ -7,6 +7,8 @@ import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.database.domain.PPdf
 import no.nav.syfo.melding.domain.MeldingFraBehandler
 import no.nav.syfo.melding.domain.MeldingTilBehandler
+import no.nav.syfo.melding.status.database.PMeldingStatus
+import no.nav.syfo.melding.status.database.toPMeldingStatus
 import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.util.*
@@ -35,7 +37,7 @@ class TestDatabase : DatabaseInterface {
 
 fun DatabaseInterface.createMeldingerTilBehandler(
     meldingTilBehandler: MeldingTilBehandler,
-    numberOfMeldinger: Int = 1
+    numberOfMeldinger: Int = 1,
 ): UUID {
     this.connection.use { connection ->
         for (i in 1..numberOfMeldinger) {
@@ -55,7 +57,7 @@ fun DatabaseInterface.createMeldingerTilBehandler(
 
 fun DatabaseInterface.createMeldingerFraBehandler(
     meldingFraBehandler: MeldingFraBehandler,
-    numberOfMeldinger: Int = 1
+    numberOfMeldinger: Int = 1,
 ): UUID {
     this.connection.use { connection ->
         for (i in 1..numberOfMeldinger) {
@@ -87,9 +89,18 @@ fun Connection.getPDFs(meldingUuid: UUID): List<PPdf> {
     }
 }
 
+fun DatabaseInterface.getMeldingStatus(): List<PMeldingStatus> = this.connection.use { connection ->
+    connection.prepareStatement("SELECT * FROM MELDING_STATUS").use {
+        it.executeQuery().toList { toPMeldingStatus() }
+    }
+}
+
 fun DatabaseInterface.dropData() {
     val queryList = listOf(
-        "DELETE FROM MELDING"
+        "DELETE FROM MELDING",
+        "DELETE FROM PDF",
+        "DELETE FROM VEDLEGG",
+        "DELETE FROM MELDING_STATUS",
     )
     this.connection.use { connection ->
         queryList.forEach { query ->

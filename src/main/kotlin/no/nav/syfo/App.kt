@@ -17,6 +17,7 @@ import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.wellknown.getWellKnown
 import no.nav.syfo.melding.kafka.*
 import no.nav.syfo.melding.kafka.config.KafkaBehandlerDialogmeldingSerializer
+import no.nav.syfo.melding.status.kafka.launchKafkaTaskDialogmeldingStatus
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
