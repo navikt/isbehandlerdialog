@@ -79,8 +79,6 @@ spec:
       value: "prod-gcp.teamsykefravr.syfo-tilgangskontroll"
     - name: SYFOTILGANGSKONTROLL_URL
       value: "http://syfo-tilgangskontroll"
-    - name: TOGGLE_CONSUME_DIALOGMELDING_STATUS
-      value: "false"
     - name: DOKARKIV_CLIENT_ID
       value: "prod-fss.teamdokumenthandtering.dokarkiv"
     - name: DOKARKIV_URL

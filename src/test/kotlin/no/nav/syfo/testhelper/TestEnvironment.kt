@@ -54,7 +54,6 @@ fun testEnvironment(
         )
     ),
     electorPath = "electorPath",
-    consumeDialogmeldingStatus = true,
 )
 
 fun testAppState() = ApplicationState(
