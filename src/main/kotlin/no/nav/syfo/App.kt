@@ -82,13 +82,11 @@ fun main() {
             database = applicationDatabase,
             padm2Client = padm2Client,
         )
-        if (environment.consumeDialogmeldingStatus) {
-            launchKafkaTaskDialogmeldingStatus(
-                applicationState = applicationState,
-                kafkaEnvironment = environment.kafka,
-                database = applicationDatabase,
-            )
-        }
+        launchKafkaTaskDialogmeldingStatus(
+            applicationState = applicationState,
+            kafkaEnvironment = environment.kafka,
+            database = applicationDatabase,
+        )
     }
 
     val server = embeddedServer(

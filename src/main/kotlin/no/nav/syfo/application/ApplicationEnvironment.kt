@@ -50,7 +50,6 @@ data class Environment(
             clientId = getEnvVar("DOKARKIV_CLIENT_ID"),
         )
     ),
-    val consumeDialogmeldingStatus: Boolean = getEnvVar("TOGGLE_CONSUME_DIALOGMELDING_STATUS").toBoolean(),
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =
