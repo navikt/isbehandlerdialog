@@ -7,6 +7,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 data class PMelding(
+    val id: Int,
     val uuid: UUID,
     val createdAt: OffsetDateTime,
     val innkommende: Boolean,
@@ -32,7 +33,7 @@ fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
     type = MeldingType.valueOf(type),
     conversationRef = conversationRef,
     parentRef = parentRef,
-    bestiltTidspunkt = tidspunkt,
+    tidspunkt = tidspunkt,
     arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
     behandlerPersonIdent = behandlerPersonIdent?.let { PersonIdent(it) },
     behandlerNavn = behandlerNavn,
@@ -49,7 +50,7 @@ fun PMelding.toMeldingFraBehandler() = MeldingFraBehandler(
     conversationRef = conversationRef,
     parentRef = parentRef,
     msgId = msgId ?: "",
-    mottattTidspunkt = tidspunkt,
+    tidspunkt = tidspunkt,
     arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
     behandlerPersonIdent = behandlerPersonIdent?.let { PersonIdent(it) },
     behandlerNavn = behandlerNavn,

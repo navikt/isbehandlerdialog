@@ -5,7 +5,6 @@ import no.nav.syfo.melding.database.domain.toMeldingTilBehandler
 import no.nav.syfo.melding.database.getIkkeJournalforteMeldingerTilBehandler
 import no.nav.syfo.melding.database.updateMeldingJournalpostId
 import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.domain.toPMelding
 
 class JournalforMeldingTilBehandlerService(
     private val database: DatabaseInterface
@@ -18,6 +17,6 @@ class JournalforMeldingTilBehandlerService(
     }
 
     fun updateJournalpostId(melding: MeldingTilBehandler, journalpostId: String) {
-        database.updateMeldingJournalpostId(melding.toPMelding(), journalpostId)
+        database.updateMeldingJournalpostId(melding, journalpostId)
     }
 }
