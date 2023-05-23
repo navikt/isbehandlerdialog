@@ -8,20 +8,17 @@ import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.melding.api.toMeldingTilBehandler
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.kafka.domain.DialogmeldingType
-import no.nav.syfo.melding.kafka.domain.KafkaDialogmeldingFraBehandlerDTO
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerDTO
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
+import no.nav.syfo.testhelper.mock.mockKafkaConsumer
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
-import org.apache.kafka.clients.consumer.*
-import org.apache.kafka.common.TopicPartition
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.Duration
 import java.util.*
 
-class KafkaDialogmeldingFraBehandlerSpek : Spek({
+class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
     with(TestApplicationEngine()) {
         start()
@@ -51,7 +48,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         uuid = UUID.randomUUID(),
                         msgType = DialogmeldingType.DIALOG_FORESPORSEL.name,
                     )
-                    val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmelding)
+                    val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
                     runBlocking {
                         kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
@@ -68,7 +65,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         uuid = UUID.randomUUID(),
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
                     )
-                    val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmelding)
+                    val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
                     runBlocking {
                         kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
@@ -92,7 +89,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
                         conversationRef = conversationRef.toString(),
                     )
-                    val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
+                    val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
                     runBlocking {
                         kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
@@ -127,7 +124,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         conversationRef = conversationRef.toString(),
                         antallVedlegg = 1,
                     )
-                    val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
+                    val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
                     runBlocking {
                         kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
@@ -156,7 +153,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         kodeTekst = "Ja, jeg kommer",
                         kode = "1",
                     )
-                    val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
+                    val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
                     runBlocking {
                         kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
@@ -179,7 +176,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
                         conversationRef = conversationRef.toString(),
                     )
-                    val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
+                    val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
                     runBlocking {
                         kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
@@ -209,7 +206,7 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
                         conversationRef = conversationRef.toString(),
                     )
-                    val mockConsumer = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommet)
+                    val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
                     runBlocking {
                         kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
@@ -223,7 +220,8 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
                         msgType = DialogmeldingType.DIALOG_SVAR.name,
                         conversationRef = conversationRef.toString(),
                     )
-                    val mockConsumerAgain = mockKafkaConsumerWithDialogmelding(dialogmeldingInnkommetAgain)
+                    val mockConsumerAgain =
+                        mockKafkaConsumer(dialogmeldingInnkommetAgain, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
                     runBlocking {
                         kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
                             kafkaConsumer = mockConsumerAgain,
@@ -238,31 +236,3 @@ class KafkaDialogmeldingFraBehandlerSpek : Spek({
         }
     }
 })
-
-fun mockKafkaConsumerWithDialogmelding(dialogmelding: KafkaDialogmeldingFraBehandlerDTO): KafkaConsumer<String, KafkaDialogmeldingFraBehandlerDTO> {
-    val partition = 0
-    val dialogmeldingTopicPartition = TopicPartition(
-        DIALOGMELDING_FROM_BEHANDLER_TOPIC,
-        partition,
-    )
-
-    val dialogmeldingRecord = ConsumerRecord(
-        DIALOGMELDING_FROM_BEHANDLER_TOPIC,
-        partition,
-        1,
-        dialogmelding.msgId,
-        dialogmelding,
-    )
-
-    val mockConsumer = mockk<KafkaConsumer<String, KafkaDialogmeldingFraBehandlerDTO>>()
-    every { mockConsumer.poll(any<Duration>()) } returns ConsumerRecords(
-        mapOf(
-            dialogmeldingTopicPartition to listOf(
-                dialogmeldingRecord,
-            )
-        )
-    )
-    every { mockConsumer.commitSync() } returns Unit
-
-    return mockConsumer
-}
