@@ -2,9 +2,9 @@ package no.nav.syfo.melding.status.kafka
 
 import io.ktor.server.testing.*
 import io.mockk.*
+import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.melding.api.toMeldingTilBehandler
 import no.nav.syfo.melding.database.createMeldingTilBehandler
-import no.nav.syfo.melding.status.MeldingStatusService
 import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatusType
@@ -12,8 +12,7 @@ import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateKafkaDialogmeldingStatusDTO
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
 import no.nav.syfo.testhelper.mock.mockKafkaConsumer
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldBeGreaterThan
+import org.amshove.kluent.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.util.*
@@ -27,10 +26,13 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
         start()
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val database = externalMockEnvironment.database
-
         val kafkaDialogmeldingStatusConsumer = KafkaDialogmeldingStatusConsumer(
             database = database,
-            meldingStatusService = MeldingStatusService(),
+            meldingService = MeldingService(
+                database = externalMockEnvironment.database,
+                dialogmeldingBestillingProducer = mockk(),
+                pdfgenClient = mockk(),
+            )
         )
 
         afterEachTest {

@@ -9,12 +9,14 @@ import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.domain.*
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.kafka.domain.*
+import no.nav.syfo.melding.status.database.createMeldingStatus
+import no.nav.syfo.melding.status.domain.MeldingStatus
+import no.nav.syfo.melding.status.domain.MeldingStatusType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
 import no.nav.syfo.util.*
-import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldNotBeEqualTo
+import org.amshove.kluent.*
 import org.apache.kafka.clients.producer.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -90,12 +92,44 @@ class MeldingApiSpek : Spek({
                             val message = conversation.first()
                             message.tekst shouldBeEqualTo "${meldingTilBehandlerDTO.tekst}1"
                             message.document shouldBeEqualTo meldingTilBehandlerDTO.document
+                            conversation.all { it.status == null } shouldBeEqualTo true
 
                             respons.conversations[secondConversation]?.size shouldBeEqualTo 1
 
                             val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
                             pMeldinger.size shouldBeEqualTo 5
                             pMeldinger.first().arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                        }
+                    }
+                    it("Returns meldinger for personident with status for melding til behander") {
+                        val meldingTilBehandler =
+                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent)
+                        database.connection.use {
+                            val meldingId =
+                                it.createMeldingTilBehandler(meldingTilBehandler = meldingTilBehandler, commit = false)
+                            it.createMeldingStatus(
+                                meldingStatus = MeldingStatus(
+                                    uuid = UUID.randomUUID(),
+                                    status = MeldingStatusType.AVVIST,
+                                    tekst = "Melding avvist",
+                                ),
+                                meldingId = meldingId,
+                            )
+                            it.commit()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Get, apiUrl) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+                            val respons = objectMapper.readValue<MeldingResponseDTO>(response.content!!)
+                            val message = respons.conversations.values.first().first()
+                            message.status.shouldNotBeNull()
+                            message.status?.type shouldBeEqualTo MeldingStatusType.AVVIST
+                            message.status?.tekst shouldBeEqualTo "Melding avvist"
                         }
                     }
                 }

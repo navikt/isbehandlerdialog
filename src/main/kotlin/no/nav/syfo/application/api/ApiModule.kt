@@ -9,12 +9,10 @@ import no.nav.syfo.application.api.auth.*
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.metric.registerMetricApi
 import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.WellKnown
 import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.melding.api.registerMeldingApi
-import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 
 fun Application.apiModule(
     applicationState: ApplicationState,
@@ -22,7 +20,7 @@ fun Application.apiModule(
     environment: Environment,
     wellKnownInternalAzureAD: WellKnown,
     azureAdClient: AzureAdClient,
-    dialogmeldingBestillingProducer: DialogmeldingBestillingProducer,
+    meldingService: MeldingService,
 ) {
     installMetrics()
     installCallId()
@@ -38,19 +36,9 @@ fun Application.apiModule(
         )
     )
 
-    val pdfgenClient = PdfGenClient(
-        pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl
-    )
-
     val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.syfotilgangskontroll
-    )
-
-    val meldingService = MeldingService(
-        database = database,
-        dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
-        pdfgenClient = pdfgenClient,
     )
 
     routing {

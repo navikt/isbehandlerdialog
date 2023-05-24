@@ -1,6 +1,7 @@
 package no.nav.syfo.melding.api
 
 import no.nav.syfo.melding.domain.DocumentComponentDTO
+import no.nav.syfo.melding.status.domain.MeldingStatusType
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -17,4 +18,10 @@ data class MeldingDTO(
     val tidspunkt: OffsetDateTime,
     val innkommende: Boolean,
     val antallVedlegg: Int,
+    val status: MeldingStatusDTO?
+)
+
+data class MeldingStatusDTO(
+    val type: MeldingStatusType,
+    val tekst: String?,
 )
