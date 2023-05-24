@@ -1,5 +1,6 @@
 package no.nav.syfo.melding.status.database
 
+import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import java.sql.*
@@ -60,6 +61,17 @@ const val queryGetMeldingStatusForMeldingId =
         FROM MELDING_STATUS
         WHERE melding_id = ?
     """
+
+fun DatabaseInterface.getMeldingStatus(meldingId: Int, connection: Connection? = null): PMeldingStatus? {
+    return connection?.getMeldingStatus(
+        meldingId = meldingId,
+    )
+        ?: this.connection.use {
+            it.getMeldingStatus(
+                meldingId = meldingId,
+            )
+        }
+}
 
 fun Connection.getMeldingStatus(meldingId: Int): PMeldingStatus? {
     return this.prepareStatement(queryGetMeldingStatusForMeldingId).use {

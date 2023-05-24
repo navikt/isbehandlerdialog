@@ -2,8 +2,8 @@ package no.nav.syfo.melding.status.kafka
 
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaConsumerService
+import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.melding.database.getMelding
-import no.nav.syfo.melding.status.MeldingStatusService
 import no.nav.syfo.melding.status.database.*
 import no.nav.syfo.melding.status.domain.MeldingStatusType
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -15,7 +15,7 @@ import java.util.UUID
 
 class KafkaDialogmeldingStatusConsumer(
     private val database: DatabaseInterface,
-    private val meldingStatusService: MeldingStatusService,
+    private val meldingService: MeldingService,
 ) : KafkaConsumerService<KafkaDialogmeldingStatusDTO> {
     override val pollDurationInMillis: Long = 1000
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KafkaDialogmeldingStatusDTO>) {
@@ -70,8 +70,7 @@ class KafkaDialogmeldingStatusConsumer(
         meldingId: Int,
         kafkaDialogmeldingStatus: KafkaDialogmeldingStatusDTO,
     ) {
-        val existingMeldingStatus =
-            meldingStatusService.getMeldingStatus(meldingId = meldingId, connection = connection)
+        val existingMeldingStatus = meldingService.getMeldingStatus(meldingId = meldingId, connection = connection)
         if (existingMeldingStatus != null) {
             val updatedMeldingStatus = existingMeldingStatus.copy(
                 status = MeldingStatusType.valueOf(kafkaDialogmeldingStatus.status),

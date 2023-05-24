@@ -4,6 +4,8 @@ import no.nav.syfo.client.dokarkiv.domain.*
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.api.MeldingDTO
 import no.nav.syfo.melding.kafka.domain.*
+import no.nav.syfo.melding.status.domain.MeldingStatus
+import no.nav.syfo.melding.status.domain.toMeldingStatusDTO
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -27,7 +29,7 @@ data class MeldingTilBehandler(
     override val journalpostId: String? = null
 }
 
-fun MeldingTilBehandler.toMelding() = MeldingDTO(
+fun MeldingTilBehandler.toMeldingDTO(status: MeldingStatus?) = MeldingDTO(
     uuid = uuid,
     behandlerRef = behandlerRef,
     behandlerNavn = null,
@@ -36,6 +38,7 @@ fun MeldingTilBehandler.toMelding() = MeldingDTO(
     tidspunkt = tidspunkt,
     innkommende = false,
     antallVedlegg = antallVedlegg,
+    status = status?.toMeldingStatusDTO(),
 )
 
 fun MeldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf: ByteArray) = DialogmeldingBestillingDTO(

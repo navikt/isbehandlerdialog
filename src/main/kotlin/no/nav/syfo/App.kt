@@ -14,7 +14,9 @@ import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.padm2.Padm2Client
+import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.client.wellknown.getWellKnown
+import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.melding.kafka.*
 import no.nav.syfo.melding.kafka.config.KafkaBehandlerDialogmeldingSerializer
 import no.nav.syfo.melding.status.kafka.launchKafkaTaskDialogmeldingStatus
@@ -45,6 +47,10 @@ fun main() {
             ),
         ),
     )
+    val pdfgenClient = PdfGenClient(
+        pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl
+    )
+    lateinit var meldingService: MeldingService
 
     val applicationEngineEnvironment = applicationEngineEnvironment {
         log = logger
@@ -56,13 +62,18 @@ fun main() {
             databaseModule(
                 databaseEnvironment = environment.database,
             )
+            meldingService = MeldingService(
+                database = applicationDatabase,
+                pdfgenClient = pdfgenClient,
+                dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
+            )
             apiModule(
                 applicationState = applicationState,
                 database = applicationDatabase,
                 environment = environment,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
                 azureAdClient = azureAdClient,
-                dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
+                meldingService = meldingService,
             )
             cronjobModule(
                 applicationState = applicationState,
@@ -82,10 +93,12 @@ fun main() {
             database = applicationDatabase,
             padm2Client = padm2Client,
         )
+
         launchKafkaTaskDialogmeldingStatus(
             applicationState = applicationState,
             kafkaEnvironment = environment.kafka,
             database = applicationDatabase,
+            meldingService = meldingService,
         )
     }
 

@@ -25,7 +25,7 @@ data class MeldingFraBehandler(
     override val journalpostId: String? = null
 }
 
-fun MeldingFraBehandler.toMelding(behandlerRef: UUID) = MeldingDTO(
+fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID) = MeldingDTO(
     uuid = uuid,
     behandlerRef = behandlerRef,
     behandlerNavn = behandlerNavn,
@@ -34,4 +34,5 @@ fun MeldingFraBehandler.toMelding(behandlerRef: UUID) = MeldingDTO(
     tidspunkt = tidspunkt,
     innkommende = true,
     antallVedlegg = antallVedlegg,
+    status = null,
 )

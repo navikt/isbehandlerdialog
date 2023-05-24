@@ -8,6 +8,10 @@ import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.database.domain.*
 import no.nav.syfo.melding.domain.*
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
+import no.nav.syfo.melding.status.database.getMeldingStatus
+import no.nav.syfo.melding.status.database.toMeldingStatus
+import no.nav.syfo.melding.status.domain.MeldingStatus
+import java.sql.Connection
 import java.util.*
 
 class MeldingService(
@@ -50,9 +54,10 @@ class MeldingService(
             valueTransform = {
                 if (it.innkommende) {
                     val behandlerRef = getBehandlerRefForConversation(it.conversationRef, personIdent)
-                    it.toMeldingFraBehandler().toMelding(behandlerRef)
+                    it.toMeldingFraBehandler().toMeldingDTO(behandlerRef)
                 } else {
-                    it.toMeldingTilBehandler().toMelding()
+                    val meldingStatus = getMeldingStatus(meldingId = it.id)
+                    it.toMeldingTilBehandler().toMeldingDTO(meldingStatus)
                 }
             }
         )
@@ -82,4 +87,9 @@ class MeldingService(
         val pMelding = database.getMelding(meldingUuid) ?: throw IllegalArgumentException("Melding not found")
         return PersonIdent(pMelding.arbeidstakerPersonIdent)
     }
+
+    internal fun getMeldingStatus(
+        meldingId: Int,
+        connection: Connection? = null,
+    ): MeldingStatus? = database.getMeldingStatus(meldingId = meldingId, connection = connection)?.toMeldingStatus()
 }
