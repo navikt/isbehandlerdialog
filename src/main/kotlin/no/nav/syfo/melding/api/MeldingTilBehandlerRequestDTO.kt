@@ -28,6 +28,7 @@ fun MeldingTilBehandlerRequestDTO.toMeldingTilBehandler(personident: PersonIdent
         behandlerRef = behandlerRef,
         tekst = tekst,
         document = document,
-        antallVedlegg = 0 // TODO: Denne må vel komme fra frontend / regnes ut på en eller annen måte?
+        antallVedlegg = 0, // TODO: Denne må vel komme fra frontend / regnes ut på en eller annen måte?
+        ubesvartPublishedAt = null,
     )
 }

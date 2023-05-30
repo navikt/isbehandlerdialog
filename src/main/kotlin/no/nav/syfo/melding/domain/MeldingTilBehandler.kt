@@ -23,6 +23,7 @@ data class MeldingTilBehandler(
     override val tekst: String,
     override val document: List<DocumentComponentDTO>,
     override val antallVedlegg: Int,
+    val ubesvartPublishedAt: OffsetDateTime?,
 ) : Melding {
     override val msgId: String? = null
     override val innkommende: Boolean = false

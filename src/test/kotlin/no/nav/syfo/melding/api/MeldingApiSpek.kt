@@ -62,7 +62,7 @@ class MeldingApiSpek : Spek({
                 describe("Happy path") {
                     it("Returns all meldinger for personident grouped by conversationRef") {
                         val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
-                        val firstConversation = database.createMeldingerTilBehandler(
+                        val (firstConversation, _) = database.createMeldingerTilBehandler(
                             meldingTilBehandler = meldingTilBehandlerDTO.toMeldingTilBehandler(personIdent),
                             numberOfMeldinger = 2,
                         )
@@ -74,7 +74,7 @@ class MeldingApiSpek : Spek({
                             meldingFraBehandler = meldingFraBehandler,
                             numberOfMeldinger = 2,
                         )
-                        val secondConversation = database.createMeldingerTilBehandler(
+                        val (secondConversation, _) = database.createMeldingerTilBehandler(
                             meldingTilBehandler = meldingTilBehandlerDTO
                                 .toMeldingTilBehandler(personIdent)
                                 .copy(conversationRef = UUID.randomUUID()),
@@ -153,7 +153,7 @@ class MeldingApiSpek : Spek({
             describe("Get vedlegg for melding") {
                 describe("Happy path") {
                     it("Returns vedlegg for melding") {
-                        val conversation = database.createMeldingerTilBehandler(
+                        val (conversation, _) = database.createMeldingerTilBehandler(
                             generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent),
                         )
                         val meldingFraBehandler = generateMeldingFraBehandler(
@@ -181,7 +181,7 @@ class MeldingApiSpek : Spek({
                         }
                     }
                     it("Returns 204 when no vedlegg for melding") {
-                        val conversation = database.createMeldingerTilBehandler(
+                        val (conversation, _) = database.createMeldingerTilBehandler(
                             generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent),
                         )
                         val meldingFraBehandler = generateMeldingFraBehandler(
@@ -225,7 +225,7 @@ class MeldingApiSpek : Spek({
                         }
                     }
                     it("Returns status Forbidden if denied access to person") {
-                        val conversation = database.createMeldingerTilBehandler(
+                        val (conversation, _) = database.createMeldingerTilBehandler(
                             generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS),
                         )
                         val meldingFraBehandler = generateMeldingFraBehandler(

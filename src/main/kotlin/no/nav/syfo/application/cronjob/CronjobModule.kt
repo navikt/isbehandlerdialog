@@ -9,8 +9,10 @@ import no.nav.syfo.client.leaderelection.LeaderPodClient
 import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
 import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
+import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
 import no.nav.syfo.melding.kafka.KafkaMeldingFraBehandlerProducer
 import no.nav.syfo.melding.kafka.PublishMeldingFraBehandlerService
+import no.nav.syfo.melding.kafka.PublishUbesvartMeldingService
 import no.nav.syfo.melding.kafka.config.kafkaMeldingFraBehandlerProducerConfig
 
 fun Application.cronjobModule(
@@ -55,7 +57,22 @@ fun Application.cronjobModule(
     val meldingFraBehandlerCronjob = MeldingFraBehandlerCronjob(
         publishMeldingFraBehandlerService = publishMeldingFraBehandlerService,
     )
-    listOf(journalforMeldingTilBehandlerCronjob, meldingFraBehandlerCronjob).forEach {
+
+    val allCronjobs = mutableListOf(journalforMeldingTilBehandlerCronjob, meldingFraBehandlerCronjob)
+
+    if (environment.ubesvartMeldingCronjobEnabled) {
+        val publishUbesvartMeldingService = PublishUbesvartMeldingService(
+            database = database,
+            fristHours = environment.cronjobUbesvartMeldingFristHours,
+        )
+        val ubesvartMeldingCronjob = UbesvartMeldingCronjob(
+            publishUbesvartMeldingService = publishUbesvartMeldingService,
+            intervalDelayMinutes = environment.cronjobUbesvartMeldingIntervalDelayMinutes,
+        )
+        allCronjobs.add(ubesvartMeldingCronjob)
+    }
+
+    allCronjobs.forEach {
         launchBackgroundTask(
             applicationState = applicationState,
         ) {

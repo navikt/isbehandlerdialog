@@ -88,6 +88,7 @@ fun createMeldingTilBehandler() = MeldingTilBehandler(
     tekst = "",
     document = emptyList(),
     antallVedlegg = 0,
+    ubesvartPublishedAt = null,
 )
 
 fun createJournalpostResponse() = JournalpostResponse(

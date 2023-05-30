@@ -130,6 +130,53 @@ fun DatabaseInterface.updateInnkommendePublishedAt(uuid: UUID) {
     }
 }
 
+// TODO: Etterhvert må også denne utelukke de meldingene med meldingstype=påminnelse, siden vi ikke skal sende en påminnelse på en påminnelse
+const val queryGetUbesvarteMeldinger =
+    """
+        SELECT DISTINCT m_utgaende.*
+        FROM MELDING m_utgaende
+        WHERE NOT m_utgaende.innkommende
+            AND m_utgaende.ubesvart_published_at IS NULL
+            AND m_utgaende.created_at <= ?
+            AND NOT EXISTS (
+                SELECT id
+                FROM MELDING m_innkommende
+                WHERE m_innkommende.conversation_ref = m_utgaende.conversation_ref
+                    AND m_innkommende.innkommende
+                    AND m_innkommende.created_at > m_utgaende.created_at
+            )
+    """
+
+fun DatabaseInterface.getUbesvarteMeldinger(fristDato: OffsetDateTime): List<PMelding> {
+    return connection.use { connection ->
+        connection.prepareStatement(queryGetUbesvarteMeldinger).use {
+            it.setObject(1, fristDato)
+            it.executeQuery().toList { toPMelding() }
+        }
+    }
+}
+
+const val queryUpdateUbesvartPublishedAt =
+    """
+        UPDATE MELDING
+        SET ubesvart_published_at = ?
+        WHERE uuid = ?
+    """
+
+fun DatabaseInterface.updateUbesvartPublishedAt(uuid: UUID) {
+    connection.use { connection ->
+        val rowCount = connection.prepareStatement(queryUpdateUbesvartPublishedAt).use {
+            it.setObject(1, OffsetDateTime.now())
+            it.setString(2, uuid.toString())
+            it.executeUpdate()
+        }
+        if (rowCount != 1) {
+            throw SQLException("Failed to update published_at for ubesvart melding with uuid: $uuid ")
+        }
+        connection.commit()
+    }
+}
+
 const val queryCreateMelding =
     """
         INSERT INTO MELDING ( 
@@ -150,8 +197,9 @@ const val queryCreateMelding =
             antall_vedlegg,
             behandler_navn,
             innkommende_published_at,
-            journalpost_id
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?) RETURNING id
+            journalpost_id,
+            ubesvart_published_at
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?) RETURNING id
     """
 
 const val queryCreateMeldingFellesformat =
@@ -208,6 +256,7 @@ private fun Connection.createMelding(
         it.setString(15, melding.behandlerNavn)
         it.setNull(16, Types.TIMESTAMP_WITH_TIMEZONE)
         it.setString(17, melding.journalpostId)
+        it.setNull(18, Types.TIMESTAMP_WITH_TIMEZONE)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -283,4 +332,5 @@ fun ResultSet.toPMelding() =
         antallVedlegg = getInt("antall_vedlegg"),
         innkommendePublishedAt = getObject("innkommende_published_at", OffsetDateTime::class.java),
         journalpostId = getString("journalpost_id"),
+        ubesvartPublishedAt = getObject("ubesvart_published_at", OffsetDateTime::class.java),
     )
