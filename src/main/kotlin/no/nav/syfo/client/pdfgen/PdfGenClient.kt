@@ -16,9 +16,11 @@ class PdfGenClient(
     pdfGenBaseUrl: String
 ) {
     private val foresporselOmPasientUrl: String
+    private val foresporselOmPasientPaminnelseUrl: String
 
     init {
         this.foresporselOmPasientUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_PATH"
+        this.foresporselOmPasientPaminnelseUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH"
     }
 
     private val httpClient = httpClientDefault()
@@ -38,8 +40,11 @@ class PdfGenClient(
         callId: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? {
-        // TODO: Implement
-        return byteArrayOf(0x2E, 0x28)
+        return getPdf(
+            callId = callId,
+            documentComponentDTOList = documentComponentDTOList,
+            pdfUrl = foresporselOmPasientPaminnelseUrl,
+        )
     }
 
     private suspend fun getPdf(
@@ -80,7 +85,8 @@ class PdfGenClient(
 
     companion object {
         private const val API_BASE_PATH = "/api/v1/genpdf/isbehandlerdialog"
-        const val FORESPORSEL_OM_PASIENT_PATH = "$API_BASE_PATH/foresporselompasient" // TODO: Noe annet for påminnelse?
+        const val FORESPORSEL_OM_PASIENT_PATH = "$API_BASE_PATH/foresporselompasient"
+        const val FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH = "$API_BASE_PATH/foresporselompasient_paminnelse"
 
         private val log = LoggerFactory.getLogger(PdfGenClient::class.java)
     }
