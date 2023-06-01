@@ -11,6 +11,8 @@ import no.nav.syfo.melding.status.database.PMeldingStatus
 import no.nav.syfo.melding.status.database.toPMeldingStatus
 import org.flywaydb.core.Flyway
 import java.sql.Connection
+import java.sql.SQLException
+import java.time.OffsetDateTime
 import java.util.*
 
 class TestDatabase : DatabaseInterface {
@@ -38,10 +40,11 @@ class TestDatabase : DatabaseInterface {
 fun DatabaseInterface.createMeldingerTilBehandler(
     meldingTilBehandler: MeldingTilBehandler,
     numberOfMeldinger: Int = 1,
-): UUID {
+): Pair<UUID, List<Int>> {
+    val idList = mutableListOf<Int>()
     this.connection.use { connection ->
         for (i in 1..numberOfMeldinger) {
-            connection.createMeldingTilBehandler(
+            val id = connection.createMeldingTilBehandler(
                 meldingTilBehandler = meldingTilBehandler
                     .copy(
                         uuid = UUID.randomUUID(),
@@ -49,19 +52,21 @@ fun DatabaseInterface.createMeldingerTilBehandler(
                     ),
                 commit = false,
             )
+            idList.add(id)
         }
         connection.commit()
     }
-    return meldingTilBehandler.conversationRef
+    return Pair(meldingTilBehandler.conversationRef, idList)
 }
 
 fun DatabaseInterface.createMeldingerFraBehandler(
     meldingFraBehandler: MeldingFraBehandler,
     numberOfMeldinger: Int = 1,
-): UUID {
+): Pair<UUID, List<Int>> {
+    val idList = mutableListOf<Int>()
     this.connection.use { connection ->
         for (i in 1..numberOfMeldinger) {
-            connection.createMeldingFraBehandler(
+            val id = connection.createMeldingFraBehandler(
                 meldingFraBehandler = meldingFraBehandler
                     .copy(
                         uuid = UUID.randomUUID(),
@@ -70,10 +75,35 @@ fun DatabaseInterface.createMeldingerFraBehandler(
                 fellesformat = null,
                 commit = false,
             )
+            idList.add(id)
         }
         connection.commit()
     }
-    return meldingFraBehandler.conversationRef
+    return Pair(meldingFraBehandler.conversationRef, idList)
+}
+
+const val queryUpdateCreatedAt =
+    """
+        UPDATE MELDING
+        SET created_at = ?
+        WHERE id = ?
+    """
+
+fun DatabaseInterface.updateMeldingCreatedAt(
+    id: Int,
+    createdAt: OffsetDateTime,
+) {
+    this.connection.use { connection ->
+        val rowCount = connection.prepareStatement(queryUpdateCreatedAt).use {
+            it.setObject(1, createdAt)
+            it.setInt(2, id)
+            it.executeUpdate()
+        }
+        if (rowCount != 1) {
+            throw SQLException("Failed to update createdAt with id: $id ")
+        }
+        connection.commit()
+    }
 }
 
 const val queryGetPDFs = """

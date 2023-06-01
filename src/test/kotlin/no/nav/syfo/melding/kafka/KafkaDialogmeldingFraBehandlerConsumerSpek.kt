@@ -78,7 +78,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT).size shouldBeEqualTo 0
                 }
                 it("Receive dialogmelding DIALOG_SVAR and known conversationRef") {
-                    val conversationRef = database.createMeldingerTilBehandler(
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(
                         generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
                             personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
                         )
@@ -112,7 +112,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     vedlegg shouldBe null
                 }
                 it("Receive dialogmelding DIALOG_SVAR and known conversationRef and with vedlegg") {
-                    val conversationRef = database.createMeldingerTilBehandler(
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(
                         generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
                             personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
                         )
@@ -165,7 +165,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT).size shouldBeEqualTo 0
                 }
                 it("Receive duplicate dialogmelding DIALOG_SVAR and known conversationRef") {
-                    val conversationRef = database.createMeldingerTilBehandler(
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(
                         generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
                             personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
                         )
@@ -195,7 +195,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     pMeldingListAfter.size shouldBeEqualTo 2
                 }
                 it("Receive two dialogmelding DIALOG_SVAR and known conversationRef") {
-                    val conversationRef = database.createMeldingerTilBehandler(
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(
                         generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
                             personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
                         )

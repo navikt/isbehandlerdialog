@@ -83,3 +83,9 @@ spec:
       value: "dev-fss.teamdokumenthandtering.dokarkiv-q1"
     - name: DOKARKIV_URL
       value: "https://dokarkiv.dev-fss-pub.nais.io"
+    - name: TOGGLE_CRONJOB_UBESVART_MELDING
+      value: "true"
+    - name: CRONJOB_UBESVART_MELDING_INTERVAL_DELAY_MINUTES
+      value: "10"
+    - name: CRONJOB_UBESVART_MELDING_FRIST_HOURS
+      value: "1"

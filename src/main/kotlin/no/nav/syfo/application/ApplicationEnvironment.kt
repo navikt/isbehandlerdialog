@@ -50,6 +50,9 @@ data class Environment(
             clientId = getEnvVar("DOKARKIV_CLIENT_ID"),
         )
     ),
+    val ubesvartMeldingCronjobEnabled: Boolean = getEnvVar("TOGGLE_CRONJOB_UBESVART_MELDING").toBoolean(),
+    val cronjobUbesvartMeldingIntervalDelayMinutes: Long = getEnvVar("CRONJOB_UBESVART_MELDING_INTERVAL_DELAY_MINUTES").toLong(),
+    val cronjobUbesvartMeldingFristHours: Long = getEnvVar("CRONJOB_UBESVART_MELDING_FRIST_HOURS").toLong(),
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =

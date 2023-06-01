@@ -2,6 +2,7 @@ package no.nav.syfo.testhelper.generator
 
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.api.MeldingTilBehandlerRequestDTO
+import no.nav.syfo.melding.api.toMeldingTilBehandler
 import no.nav.syfo.melding.domain.DocumentComponentDTO
 import no.nav.syfo.melding.domain.DocumentComponentType
 import no.nav.syfo.melding.kafka.domain.toMeldingFraBehandler
@@ -48,3 +49,12 @@ fun generateMeldingFraBehandler(
     conversationRef = conversationRef,
     tekst = tekst,
 )
+
+fun generateMeldingTilBehandler(
+    personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+    behandlerRef: UUID = UUID.randomUUID(),
+    tekst: String = "Melding til behandler",
+) = generateMeldingTilBehandlerRequestDTO(
+    behandlerRef = behandlerRef,
+    tekst = tekst,
+).toMeldingTilBehandler(personIdent)
