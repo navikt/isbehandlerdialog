@@ -7,16 +7,13 @@ import no.nav.syfo.application.cronjob.CronjobResult
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.dokarkiv.domain.*
 import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
+import no.nav.syfo.melding.api.toMeldingTilBehandler
 import no.nav.syfo.melding.database.*
-import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.testhelper.*
-import no.nav.syfo.testhelper.generator.journalpostRequestGenerator
+import no.nav.syfo.testhelper.generator.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.OffsetDateTime
-import java.util.*
 
 class JournalforDialogmeldingCronjobSpek : Spek({
     with(TestApplicationEngine()) {
@@ -42,54 +39,58 @@ class JournalforDialogmeldingCronjobSpek : Spek({
             }
 
             it("Journalfør and update melding in database for each melding that's not journalført") {
+                val meldingTilBehandler =
+                    generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(UserConstants.ARBEIDSTAKER_PERSONIDENT)
                 val journalpostId = 1
                 val journalpostResponse = createJournalpostResponse().copy(
                     journalpostId = journalpostId,
                 )
                 val pdf = byteArrayOf(0x6b, 0X61, 0x6b, 0x65)
-                val journalpostRequest = journalpostRequestGenerator(pdf)
+                val expectedJournalpostRequestMeldingTilBehandler = journalpostRequestGenerator(pdf, BrevkodeType.FORESPORSEL_OM_PASIENT)
+                val expectedJournalpostRequestPaminnelse = journalpostRequestGenerator(pdf, BrevkodeType.FORESPORSEL_OM_PASIENT_PAMINNELSE)
                 coEvery { dokarkivClient.journalfor(any()) } returns journalpostResponse
-                val meldingId = database.connection.createMeldingTilBehandler(
-                    createMeldingTilBehandler(),
-                )
-                database.connection.createPdf(
-                    pdf = pdf,
-                    meldingId = meldingId,
-                )
+
+                database.connection.use { connection ->
+                    val meldingId = connection.createMeldingTilBehandler(
+                        meldingTilBehandler,
+                        commit = false,
+                    )
+                    connection.createPdf(
+                        pdf = pdf,
+                        meldingId = meldingId,
+                        commit = false,
+                    )
+                    val paminnelseId = connection.createMeldingTilBehandler(
+                        generatePaminnelseRequestDTO().toMeldingTilBehandler(opprinneligMelding = meldingTilBehandler),
+                        commit = false,
+                    )
+                    connection.createPdf(
+                        pdf = pdf,
+                        meldingId = paminnelseId,
+                    )
+                }
 
                 var result: CronjobResult
                 runBlocking {
                     result = journalforDialogmeldingCronjob.runJournalforDialogmeldingJob()
                 }
 
-                val melding = database.getMeldingerForArbeidstaker(
+                val meldinger = database.getMeldingerForArbeidstaker(
                     arbeidstakerPersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
-                )[0]
-                result.updated shouldBeEqualTo 1
+                )
+                result.updated shouldBeEqualTo 2
                 result.failed shouldBeEqualTo 0
-                melding.journalpostId shouldBeEqualTo journalpostId.toString()
-                coVerify(exactly = 1) { dokarkivClient.journalfor(journalpostRequest) }
+                meldinger.first().journalpostId shouldBeEqualTo journalpostId.toString()
+                meldinger.last().journalpostId shouldBeEqualTo journalpostId.toString()
+
+                coVerifyOrder {
+                    dokarkivClient.journalfor(expectedJournalpostRequestMeldingTilBehandler)
+                    dokarkivClient.journalfor(expectedJournalpostRequestPaminnelse)
+                }
             }
         }
     }
 })
-
-fun createMeldingTilBehandler() = MeldingTilBehandler(
-    uuid = UUID.randomUUID(),
-    createdAt = OffsetDateTime.now(),
-    type = MeldingType.FORESPORSEL_PASIENT,
-    conversationRef = UUID.randomUUID(),
-    parentRef = null,
-    tidspunkt = OffsetDateTime.now(),
-    arbeidstakerPersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
-    behandlerPersonIdent = UserConstants.BEHANDLER_PERSONIDENT,
-    behandlerNavn = UserConstants.BEHANDLER_NAVN,
-    behandlerRef = UUID.randomUUID(),
-    tekst = "",
-    document = emptyList(),
-    antallVedlegg = 0,
-    ubesvartPublishedAt = null,
-)
 
 fun createJournalpostResponse() = JournalpostResponse(
     dokumenter = null,

@@ -38,8 +38,7 @@ fun Route.registerMeldingApi(
         }
 
         get("/{$uuid}/{$vedleggNumber}/pdf") {
-            val meldingUuid = UUID.fromString(call.parameters[uuid])
-                ?: throw IllegalArgumentException("Missing value for uuid")
+            val meldingUuid = call.meldingUuid()
             val vedleggNumberString = call.parameters[vedleggNumber]
                 ?: throw IllegalArgumentException("Missing value for vedleggNumber")
 
@@ -77,8 +76,31 @@ fun Route.registerMeldingApi(
 
             call.respond(HttpStatusCode.OK)
         }
+        post("/{$uuid}/paminnelse") {
+            val personIdent = call.personIdent()
+            call.checkVeilederTilgang(
+                action = API_ACTION,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+                personIdent = personIdent
+            )
+
+            val meldingUuid = call.meldingUuid()
+            val opprinneligMelding = meldingService.getMeldingTilBehandler(meldingUuid = meldingUuid)
+                ?: throw IllegalArgumentException("Failed to create påminnelse: Melding with uuid $meldingUuid does not exist")
+
+            val requestDTO = call.receive<PaminnelseRequestDTO>()
+            meldingService.createPaminnelse(
+                callId = getCallId(),
+                paminnelse = requestDTO.toMeldingTilBehandler(opprinneligMelding = opprinneligMelding),
+            )
+
+            call.respond(HttpStatusCode.OK)
+        }
     }
 }
+
+private fun ApplicationCall.meldingUuid(): UUID = UUID.fromString(this.parameters[uuid])
+    ?: throw IllegalArgumentException("Missing value for melding uuid")
 
 private fun ApplicationCall.personIdent(): PersonIdent = this.getPersonIdent()
     ?: throw IllegalArgumentException("Failed to $API_ACTION: No $NAV_PERSONIDENT_HEADER supplied in request header")
