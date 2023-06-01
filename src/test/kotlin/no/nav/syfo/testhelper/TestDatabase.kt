@@ -112,8 +112,8 @@ const val queryGetPDFs = """
     WHERE m.uuid = ?
 """
 
-fun Connection.getPDFs(meldingUuid: UUID): List<PPdf> {
-    return this.prepareStatement(queryGetPDFs).use {
+fun DatabaseInterface.getPDFs(meldingUuid: UUID): List<PPdf> = this.connection.use { connection ->
+    connection.prepareStatement(queryGetPDFs).use {
         it.setString(1, meldingUuid.toString())
         it.executeQuery().toList { toPPdf() }
     }

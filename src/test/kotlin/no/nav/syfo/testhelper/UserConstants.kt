@@ -11,6 +11,7 @@ object UserConstants {
     val PERSONIDENT_VEILEDER_NO_ACCESS = PersonIdent(ARBEIDSTAKER_PERSONIDENT.value.replace("3", "1"))
 
     var PDF_FORESPORSEL_OM_PASIENT = byteArrayOf(0x2E, 0x28)
+    var PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE = byteArrayOf(0x2E, 100)
 
     const val VEILEDER_IDENT = "Z999999"
 

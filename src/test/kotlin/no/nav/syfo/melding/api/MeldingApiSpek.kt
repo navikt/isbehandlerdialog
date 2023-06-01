@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.melding.database.*
+import no.nav.syfo.melding.database.domain.PPdf
 import no.nav.syfo.melding.domain.*
 import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.kafka.domain.*
@@ -284,6 +285,9 @@ class MeldingApiSpek : Spek({
                                 pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
                             brodtekst.texts.first() shouldBeEqualTo "Vi viser til tidligere forespørsel angående din pasient"
 
+                            val pPdf = assertPdf(database = database, meldingUuid = pMelding.uuid)
+                            pPdf.pdf shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE
+
                             val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
                             verify(exactly = 1) {
                                 kafkaProducer.send(capture(producerRecordSlot))
@@ -411,10 +415,8 @@ class MeldingApiSpek : Spek({
                         }
                     ) {
                         val pMeldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
-                        val pPDFs = database.connection.getPDFs(pMeldinger.first().uuid)
-
-                        pPDFs.size shouldBeEqualTo 1
-                        pPDFs.first().pdf shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT
+                        val pPdf = assertPdf(database = database, meldingUuid = pMeldinger.first().uuid)
+                        pPdf.pdf shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT
                     }
                 }
             }
@@ -478,4 +480,10 @@ private fun TestApplicationEngine.testDeniedPersonAccess(
     ) {
         response.status() shouldBeEqualTo HttpStatusCode.Forbidden
     }
+}
+
+private fun assertPdf(database: TestDatabase, meldingUuid: UUID): PPdf {
+    val pPDFs = database.getPDFs(meldingUuid)
+    pPDFs.size shouldBeEqualTo 1
+    return pPDFs.first()
 }

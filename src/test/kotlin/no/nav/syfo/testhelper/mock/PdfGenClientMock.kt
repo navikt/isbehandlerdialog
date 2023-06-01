@@ -13,5 +13,8 @@ class PdfGenClientMock : MockServer() {
         post(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_PATH) {
             call.respond(UserConstants.PDF_FORESPORSEL_OM_PASIENT)
         }
+        post(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH) {
+            call.respond(UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE)
+        }
     }
 }
