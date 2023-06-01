@@ -58,18 +58,26 @@ fun MeldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf: ByteArray) = Di
 private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT -> DialogmeldingKode.FORESPORSEL
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingKode.PAMINNELSE_FORESPORSEL
     }
 }
 
 private fun MeldingTilBehandler.getDialogmeldingKodeverk(): DialogmeldingKodeverk {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT -> DialogmeldingKodeverk.FORESPORSEL
+        MeldingType.FORESPORSEL_PASIENT, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingKodeverk.FORESPORSEL
     }
 }
 
 private fun MeldingTilBehandler.getDialogmeldingType(): DialogmeldingType {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT -> DialogmeldingType.DIALOG_FORESPORSEL
+        MeldingType.FORESPORSEL_PASIENT, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingType.DIALOG_FORESPORSEL
+    }
+}
+
+private fun MeldingTilBehandler.getBrevKode(): BrevkodeType {
+    return when (this.type) {
+        MeldingType.FORESPORSEL_PASIENT -> BrevkodeType.FORESPORSEL_OM_PASIENT
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> BrevkodeType.FORESPORSEL_OM_PASIENT_PAMINNELSE
     }
 }
 
@@ -82,7 +90,7 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) = JournalpostReques
     ),
     dokumenter = listOf(
         Dokument.create(
-            brevkode = BrevkodeType.FORESPORSEL_OM_PASIENT,
+            brevkode = this.getBrevKode(),
             tittel = "Dialogmelding til behandler",
             dokumentvarianter = listOf(
                 Dokumentvariant.create(

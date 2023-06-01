@@ -28,23 +28,7 @@ class MeldingService(
             documentComponentDTOList = meldingTilBehandler.document
         ) ?: throw RuntimeException("Failed to request PDF - Dialogmelding forespørsel om pasient")
 
-        database.connection.use { connection ->
-            val meldingId = connection.createMeldingTilBehandler(
-                meldingTilBehandler = meldingTilBehandler,
-                commit = false,
-            )
-            connection.createPdf(
-                pdf = pdf,
-                meldingId = meldingId,
-                commit = false,
-            )
-            connection.commit()
-        }
-
-        dialogmeldingBestillingProducer.sendDialogmeldingBestilling(
-            meldingTilBehandler = meldingTilBehandler,
-            meldingPdf = pdf,
-        )
+        createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = meldingTilBehandler, pdf = pdf)
     }
 
     fun getConversations(personIdent: PersonIdent): Map<UUID, List<MeldingDTO>> {
@@ -92,4 +76,40 @@ class MeldingService(
         meldingId: Int,
         connection: Connection? = null,
     ): MeldingStatus? = database.getMeldingStatus(meldingId = meldingId, connection = connection)?.toMeldingStatus()
+
+    internal fun getMeldingTilBehandler(meldingUuid: UUID): MeldingTilBehandler? {
+        return database.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
+    }
+
+    internal suspend fun createPaminnelse(callId: String, paminnelse: MeldingTilBehandler) {
+        val pdf = pdfgenClient.generateForesporselOmPasientPaminnelse(
+            callId = callId,
+            documentComponentDTOList = paminnelse.document
+        ) ?: throw RuntimeException("Failed to request PDF - Dialogmelding forespørsel om pasient paminnelse")
+
+        createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = paminnelse, pdf = pdf)
+    }
+
+    private fun createMeldingTilBehandlerAndSendDialogmeldingBestilling(
+        meldingTilBehandler: MeldingTilBehandler,
+        pdf: ByteArray,
+    ) {
+        database.connection.use { connection ->
+            val meldingId = connection.createMeldingTilBehandler(
+                meldingTilBehandler = meldingTilBehandler,
+                commit = false,
+            )
+            connection.createPdf(
+                pdf = pdf,
+                meldingId = meldingId,
+                commit = false,
+            )
+            connection.commit()
+        }
+
+        dialogmeldingBestillingProducer.sendDialogmeldingBestilling(
+            meldingTilBehandler = meldingTilBehandler,
+            meldingPdf = pdf,
+        )
+    }
 }

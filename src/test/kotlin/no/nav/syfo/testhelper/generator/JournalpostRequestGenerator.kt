@@ -4,7 +4,8 @@ import no.nav.syfo.client.dokarkiv.domain.*
 import no.nav.syfo.testhelper.UserConstants
 
 fun journalpostRequestGenerator(
-    pdf: ByteArray
+    pdf: ByteArray,
+    brevkodeType: BrevkodeType
 ) = JournalpostRequest(
     avsenderMottaker = AvsenderMottaker.create(
         id = UserConstants.BEHANDLER_PERSONIDENT.value,
@@ -15,7 +16,7 @@ fun journalpostRequestGenerator(
     tittel = "Dialogmelding til behandler",
     dokumenter = listOf(
         Dokument.create(
-            brevkode = BrevkodeType.FORESPORSEL_OM_PASIENT,
+            brevkode = brevkodeType,
             tittel = "Dialogmelding til behandler",
             dokumentvarianter = listOf(
                 Dokumentvariant.create(

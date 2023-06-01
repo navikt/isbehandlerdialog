@@ -13,8 +13,7 @@ import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatusType
 import no.nav.syfo.testhelper.*
-import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
-import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
+import no.nav.syfo.testhelper.generator.*
 import no.nav.syfo.util.*
 import org.amshove.kluent.*
 import org.apache.kafka.clients.producer.*
@@ -247,6 +246,113 @@ class MeldingApiSpek : Spek({
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.Forbidden
+                        }
+                    }
+                }
+            }
+
+            describe("Create new paminnelse for melding to behandler") {
+                val meldingTilBehandler = generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent)
+                val paminnelseApiUrl = "$apiUrl/${meldingTilBehandler.uuid}/paminnelse"
+                val paminnelseDTO = generatePaminnelseRequestDTO()
+
+                describe("Happy path") {
+                    it("Creates paminnelse for melding til behandler and produces dialogmelding-bestilling to kafka") {
+                        database.connection.use {
+                            it.createMeldingTilBehandler(meldingTilBehandler)
+                        }
+                        with(
+                            handleRequest(HttpMethod.Post, "$apiUrl/${meldingTilBehandler.uuid}/paminnelse") {
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, UserConstants.ARBEIDSTAKER_PERSONIDENT.value)
+                                setBody(objectMapper.writeValueAsString(paminnelseDTO))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val pMeldinger =
+                                database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                            pMeldinger.size shouldBeEqualTo 2
+                            val pMelding = pMeldinger.last()
+                            pMelding.tekst?.shouldBeEmpty()
+                            pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_PAMINNELSE.name
+                            pMelding.innkommende.shouldBeFalse()
+                            pMelding.conversationRef shouldBeEqualTo meldingTilBehandler.conversationRef
+                            pMelding.parentRef shouldBeEqualTo meldingTilBehandler.uuid
+                            val brodtekst =
+                                pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
+                            brodtekst.texts.first() shouldBeEqualTo "Vi viser til tidligere forespørsel angående din pasient"
+
+                            val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
+                            verify(exactly = 1) {
+                                kafkaProducer.send(capture(producerRecordSlot))
+                            }
+
+                            val dialogmeldingBestillingDTO = producerRecordSlot.captured.value()
+                            dialogmeldingBestillingDTO.behandlerRef shouldBeEqualTo meldingTilBehandler.behandlerRef.toString()
+                            dialogmeldingBestillingDTO.dialogmeldingTekst shouldBeEqualTo paminnelseDTO.document.serialize()
+                            dialogmeldingBestillingDTO.dialogmeldingType shouldBeEqualTo DialogmeldingType.DIALOG_FORESPORSEL.name
+                            dialogmeldingBestillingDTO.dialogmeldingKode shouldBeEqualTo DialogmeldingKode.PAMINNELSE_FORESPORSEL.value
+                            dialogmeldingBestillingDTO.dialogmeldingKodeverk shouldBeEqualTo DialogmeldingKodeverk.FORESPORSEL.name
+                            dialogmeldingBestillingDTO.dialogmeldingUuid shouldBeEqualTo pMelding.uuid.toString()
+                            dialogmeldingBestillingDTO.personIdent shouldBeEqualTo pMelding.arbeidstakerPersonIdent
+                            dialogmeldingBestillingDTO.dialogmeldingRefConversation shouldBeEqualTo pMelding.conversationRef.toString()
+                            dialogmeldingBestillingDTO.dialogmeldingRefParent shouldBeEqualTo pMelding.parentRef.toString()
+                            dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldNotBeEqualTo null
+                        }
+                    }
+                }
+                describe("Unnhappy path") {
+                    it("Returns status Unauthorized if no token is supplied") {
+                        testMissingToken(paminnelseApiUrl, HttpMethod.Post)
+                    }
+                    it("returns status Forbidden if denied access to person") {
+                        testDeniedPersonAccess(paminnelseApiUrl, validToken, HttpMethod.Post)
+                    }
+                    it("returns status BadRequest if no $NAV_PERSONIDENT_HEADER is supplied") {
+                        testMissingPersonIdent(paminnelseApiUrl, validToken, HttpMethod.Post)
+                    }
+                    it("returns status BadRequest if $NAV_PERSONIDENT_HEADER with invalid PersonIdent is supplied") {
+                        testInvalidPersonIdent(paminnelseApiUrl, validToken, HttpMethod.Post)
+                    }
+                    it("returns status BadRequest if no melding exists for given uuid") {
+                        with(
+                            handleRequest(HttpMethod.Post, paminnelseApiUrl) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(
+                                    NAV_PERSONIDENT_HEADER,
+                                    UserConstants.ARBEIDSTAKER_PERSONIDENT.value
+                                )
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.BadRequest
+                        }
+                    }
+                    it("returns status BadRequest if given uuid is meldingFraBehandler") {
+                        val (conversation, _) = database.createMeldingerTilBehandler(meldingTilBehandler)
+                        val meldingFraBehandler = generateMeldingFraBehandler(
+                            conversationRef = conversation,
+                            personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+                        )
+                        database.connection.use {
+                            it.createMeldingFraBehandler(
+                                meldingFraBehandler = meldingFraBehandler,
+                                fellesformat = null,
+                            )
+                            it.commit()
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Post, "$apiUrl/${meldingFraBehandler.uuid}/paminnelse") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(
+                                    NAV_PERSONIDENT_HEADER,
+                                    UserConstants.ARBEIDSTAKER_PERSONIDENT.value
+                                )
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.BadRequest
                         }
                     }
                 }
