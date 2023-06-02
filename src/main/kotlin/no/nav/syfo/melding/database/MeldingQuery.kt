@@ -130,7 +130,6 @@ fun DatabaseInterface.updateInnkommendePublishedAt(uuid: UUID) {
     }
 }
 
-// TODO: Etterhvert må også denne utelukke de meldingene med meldingstype=påminnelse, siden vi ikke skal sende en påminnelse på en påminnelse
 const val queryGetUbesvarteMeldinger =
     """
         SELECT DISTINCT m_utgaende.*
@@ -138,6 +137,12 @@ const val queryGetUbesvarteMeldinger =
         WHERE NOT m_utgaende.innkommende
             AND m_utgaende.ubesvart_published_at IS NULL
             AND m_utgaende.created_at <= ?
+            AND m_utgaende.type != 'FORESPORSEL_PASIENT_PAMINNELSE'
+            AND NOT EXISTS (
+                SELECT melding_id
+                FROM melding_status
+                WHERE melding_id = m_utgaende.id AND status = 'AVVIST'
+            )
             AND NOT EXISTS (
                 SELECT id
                 FROM MELDING m_innkommende

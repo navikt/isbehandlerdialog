@@ -3,7 +3,11 @@ package no.nav.syfo.melding.cronjob
 import io.ktor.server.testing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
+import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.PublishUbesvartMeldingService
+import no.nav.syfo.melding.status.database.createMeldingStatus
+import no.nav.syfo.melding.status.domain.MeldingStatus
+import no.nav.syfo.melding.status.domain.MeldingStatusType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
@@ -12,6 +16,7 @@ import org.amshove.kluent.shouldNotBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.OffsetDateTime
+import java.util.*
 
 class UbesvartMeldingCronjobSpek : Spek({
 
@@ -31,12 +36,13 @@ class UbesvartMeldingCronjobSpek : Spek({
 
         describe(UbesvartMeldingCronjobSpek::class.java.simpleName) {
             describe("Test cronjob") {
+                val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
+
                 afterEachTest {
                     database.dropData()
                 }
 
                 it("Will update ubesvart_published_at when cronjob has run") {
-                    val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (_, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -60,7 +66,6 @@ class UbesvartMeldingCronjobSpek : Spek({
                 }
 
                 it("Will update ubesvart_published_at for several ubesvarte when cronjob has run") {
-                    val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (_, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -94,7 +99,6 @@ class UbesvartMeldingCronjobSpek : Spek({
                 }
 
                 it("Will not update ubesvart_published_at when no melding older than 2 weeks") {
-                    val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (_, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -118,7 +122,6 @@ class UbesvartMeldingCronjobSpek : Spek({
                 }
 
                 it("Will not update ubesvart_published_at when melding is besvart") {
-                    val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (conversationRef, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -150,7 +153,6 @@ class UbesvartMeldingCronjobSpek : Spek({
                 }
 
                 it("Will update ubesvart_published_at when newest melding in conversation is ubesvart") {
-                    val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (conversationRef, idListUtgaende) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -190,6 +192,67 @@ class UbesvartMeldingCronjobSpek : Spek({
                     val utgaendeMeldinger = meldinger.filter { !it.innkommende }
                     utgaendeMeldinger.first().ubesvartPublishedAt shouldBeEqualTo null
                     utgaendeMeldinger.last().ubesvartPublishedAt shouldNotBeEqualTo null
+                }
+
+                it("Will not update ubesvart_published_at when melding is of type paminnelse") {
+                    val meldingTilBehandler = generateMeldingTilBehandler(
+                        personIdent = personIdent,
+                        type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
+                    )
+                    val (_, idList) = database.createMeldingerTilBehandler(
+                        meldingTilBehandler = meldingTilBehandler,
+                    )
+                    database.updateMeldingCreatedAt(
+                        id = idList.first(),
+                        createdAt = OffsetDateTime.now().minusDays(14)
+                    )
+
+                    runBlocking {
+                        val result = ubesvartMeldingCronjob.runJob()
+
+                        result.failed shouldBeEqualTo 0
+                        result.updated shouldBeEqualTo 0
+                    }
+
+                    // TODO: Add check for no publish to kafka
+
+                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                    meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+                }
+
+                it("Will not update ubesvart_published_at when melding has avvist apprec status") {
+                    val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
+                    val (_, idList) = database.createMeldingerTilBehandler(
+                        meldingTilBehandler = meldingTilBehandler,
+                    )
+                    database.updateMeldingCreatedAt(
+                        id = idList.first(),
+                        createdAt = OffsetDateTime.now().minusDays(14)
+                    )
+                    val meldingStatus = MeldingStatus(
+                        uuid = UUID.randomUUID(),
+                        status = MeldingStatusType.AVVIST,
+                        tekst = "Noe gikk galt",
+                    )
+                    database.connection.use { connection ->
+                        connection.createMeldingStatus(
+                            meldingStatus = meldingStatus,
+                            meldingId = idList.first(),
+                        )
+                        connection.commit()
+                    }
+
+                    runBlocking {
+                        val result = ubesvartMeldingCronjob.runJob()
+
+                        result.failed shouldBeEqualTo 0
+                        result.updated shouldBeEqualTo 0
+                    }
+
+                    // TODO: Add check for no publish to kafka
+
+                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                    meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
                 }
             }
         }

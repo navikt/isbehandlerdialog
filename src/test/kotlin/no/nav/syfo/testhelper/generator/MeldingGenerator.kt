@@ -5,6 +5,7 @@ import no.nav.syfo.melding.api.MeldingTilBehandlerRequestDTO
 import no.nav.syfo.melding.api.toMeldingTilBehandler
 import no.nav.syfo.melding.domain.DocumentComponentDTO
 import no.nav.syfo.melding.domain.DocumentComponentType
+import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.toMeldingFraBehandler
 import no.nav.syfo.testhelper.UserConstants
 import java.util.UUID
@@ -54,7 +55,11 @@ fun generateMeldingTilBehandler(
     personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
     behandlerRef: UUID = UUID.randomUUID(),
     tekst: String = "Melding til behandler",
+    type: MeldingType = MeldingType.FORESPORSEL_PASIENT,
 ) = generateMeldingTilBehandlerRequestDTO(
     behandlerRef = behandlerRef,
     tekst = tekst,
 ).toMeldingTilBehandler(personIdent)
+    .copy(
+        type = type,
+    )
