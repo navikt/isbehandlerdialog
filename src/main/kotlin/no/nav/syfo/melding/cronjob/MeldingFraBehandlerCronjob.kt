@@ -25,12 +25,12 @@ class MeldingFraBehandlerCronjob(
         val result = CronjobResult()
         val unpublishedMeldingerFraBehandler = publishMeldingFraBehandlerService.getUnpublishedMeldingerFraBehandler()
 
-        unpublishedMeldingerFraBehandler.forEach { pMelding ->
+        unpublishedMeldingerFraBehandler.forEach { meldingFraBehandler ->
             try {
-                publishMeldingFraBehandlerService.publishMeldingFraBehandler(pMelding)
+                publishMeldingFraBehandlerService.publishMeldingFraBehandler(meldingFraBehandler)
                 result.updated++
             } catch (e: Exception) {
-                log.error("Caught exception in published meldingFraBehandler")
+                log.error("Caught exception in publish meldingFraBehandler", e)
                 result.failed++
             }
         }
