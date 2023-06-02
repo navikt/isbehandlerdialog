@@ -2,7 +2,6 @@ package no.nav.syfo.melding.database.domain
 
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.domain.*
-import no.nav.syfo.melding.kafka.domain.KafkaMeldingFraBehandlerDTO
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -58,15 +57,5 @@ fun PMelding.toMeldingFraBehandler() = MeldingFraBehandler(
     behandlerNavn = behandlerNavn,
     tekst = tekst ?: "",
     antallVedlegg = antallVedlegg,
-)
-
-fun PMelding.toKafkaMeldingFraBehandlerDTO() = KafkaMeldingFraBehandlerDTO(
-    uuid = uuid.toString(),
-    personIdent = arbeidstakerPersonIdent,
-    type = type,
-    conversationRef = conversationRef.toString(),
-    parentRef = parentRef?.toString(),
-    msgId = msgId,
-    tidspunkt = tidspunkt,
-    behandlerPersonIdent = behandlerPersonIdent,
+    innkommendePublishedAt = innkommendePublishedAt,
 )

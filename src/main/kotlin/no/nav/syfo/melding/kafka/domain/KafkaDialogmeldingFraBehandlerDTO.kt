@@ -60,6 +60,7 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler() =
         tekst = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
             ?: dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold,
         antallVedlegg = antallVedlegg,
+        innkommendePublishedAt = null,
     )
 
 data class Dialogmelding(

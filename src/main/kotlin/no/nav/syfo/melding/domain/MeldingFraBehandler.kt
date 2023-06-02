@@ -2,6 +2,7 @@ package no.nav.syfo.melding.domain
 
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.api.MeldingDTO
+import no.nav.syfo.melding.kafka.domain.KafkaMeldingFraBehandlerDTO
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -18,6 +19,7 @@ data class MeldingFraBehandler(
     override val behandlerNavn: String?,
     override val tekst: String?,
     override val antallVedlegg: Int,
+    val innkommendePublishedAt: OffsetDateTime?
 ) : Melding {
     override val behandlerRef: UUID? = null
     override val innkommende: Boolean = true
@@ -35,4 +37,15 @@ fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID) = MeldingDTO(
     innkommende = true,
     antallVedlegg = antallVedlegg,
     status = null,
+)
+
+fun MeldingFraBehandler.toKafkaMeldingFraBehandlerDTO() = KafkaMeldingFraBehandlerDTO(
+    uuid = uuid.toString(),
+    personIdent = arbeidstakerPersonIdent.value,
+    type = type.name,
+    conversationRef = conversationRef.toString(),
+    parentRef = parentRef?.toString(),
+    msgId = msgId,
+    tidspunkt = tidspunkt,
+    behandlerPersonIdent = behandlerPersonIdent?.value,
 )
