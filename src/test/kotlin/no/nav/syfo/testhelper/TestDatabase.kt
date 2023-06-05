@@ -48,7 +48,7 @@ fun DatabaseInterface.createMeldingerTilBehandler(
                 meldingTilBehandler = meldingTilBehandler
                     .copy(
                         uuid = UUID.randomUUID(),
-                        tekst = "${meldingTilBehandler.tekst}$i"
+                        tekst = "${meldingTilBehandler.tekst}$i",
                     ),
                 commit = false,
             )
