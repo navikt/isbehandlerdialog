@@ -11,9 +11,11 @@ import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
 import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
 import no.nav.syfo.melding.kafka.KafkaMeldingFraBehandlerProducer
+import no.nav.syfo.melding.kafka.KafkaUbesvartMeldingProducer
 import no.nav.syfo.melding.kafka.PublishMeldingFraBehandlerService
 import no.nav.syfo.melding.kafka.PublishUbesvartMeldingService
 import no.nav.syfo.melding.kafka.config.kafkaMeldingFraBehandlerProducerConfig
+import no.nav.syfo.melding.kafka.config.kafkaUbesvartMeldingProducerConfig
 
 fun Application.cronjobModule(
     applicationState: ApplicationState,
@@ -61,8 +63,14 @@ fun Application.cronjobModule(
     val allCronjobs = mutableListOf(journalforMeldingTilBehandlerCronjob, meldingFraBehandlerCronjob)
 
     if (environment.ubesvartMeldingCronjobEnabled) {
+        val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
+            ubesvartMeldingKafkaProducer = kafkaUbesvartMeldingProducerConfig(
+                applicationEnvironmentKafka = environment.kafka,
+            )
+        )
         val publishUbesvartMeldingService = PublishUbesvartMeldingService(
             database = database,
+            kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
             fristHours = environment.cronjobUbesvartMeldingFristHours,
         )
         val ubesvartMeldingCronjob = UbesvartMeldingCronjob(

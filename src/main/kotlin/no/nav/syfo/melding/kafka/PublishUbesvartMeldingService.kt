@@ -6,9 +6,11 @@ import no.nav.syfo.melding.database.getUbesvarteMeldinger
 import no.nav.syfo.melding.database.updateUbesvartPublishedAt
 import no.nav.syfo.melding.domain.MeldingTilBehandler
 import java.time.OffsetDateTime
+import java.util.*
 
 class PublishUbesvartMeldingService(
     private val database: DatabaseInterface,
+    private val kafkaUbesvartMeldingProducer: KafkaUbesvartMeldingProducer,
     private val fristHours: Long,
 ) {
     fun getUnpublishedUbesvarteMeldinger(): List<MeldingTilBehandler> {
@@ -19,7 +21,10 @@ class PublishUbesvartMeldingService(
     fun publishUbesvartMelding(
         meldingTilBehandler: MeldingTilBehandler,
     ) {
-        // TODO: Send på kafka
+        kafkaUbesvartMeldingProducer.sendUbesvartMelding(
+            meldingTilBehandler = meldingTilBehandler,
+            key = UUID.nameUUIDFromBytes(meldingTilBehandler.arbeidstakerPersonIdent.value.toByteArray())
+        )
         database.updateUbesvartPublishedAt(uuid = meldingTilBehandler.uuid)
     }
 }
