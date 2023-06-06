@@ -1,16 +1,16 @@
 package no.nav.syfo.melding.kafka
 
-import no.nav.syfo.melding.kafka.domain.KafkaMeldingFraBehandlerDTO
+import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import java.util.*
 
 class KafkaMeldingFraBehandlerProducer(
-    private val kafkaMeldingFraBehandlerProducer: KafkaProducer<String, KafkaMeldingFraBehandlerDTO>,
+    private val kafkaMeldingFraBehandlerProducer: KafkaProducer<String, KafkaMeldingDTO>,
 ) {
     fun sendMeldingFraBehandler(
-        kafkaMeldingFraBehandlerDTO: KafkaMeldingFraBehandlerDTO,
+        kafkaMeldingDTO: KafkaMeldingDTO,
         key: UUID,
     ) {
         try {
@@ -18,11 +18,15 @@ class KafkaMeldingFraBehandlerProducer(
                 ProducerRecord(
                     MELDING_FRA_BEHANDLER_TOPIC,
                     key.toString(),
-                    kafkaMeldingFraBehandlerDTO,
+                    kafkaMeldingDTO,
                 )
             ).get()
         } catch (e: Exception) {
-            log.error("Exception was thrown when attempting to send kafkaMeldingFraBehandlerDTO with id $key: ${e.message}")
+            log.error(
+                "Exception was thrown when attempting to send melding fra behandler with id $key: ${e.message}",
+                key,
+                e
+            )
             throw e
         }
     }

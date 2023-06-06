@@ -2,7 +2,7 @@ package no.nav.syfo.melding.domain
 
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.api.MeldingDTO
-import no.nav.syfo.melding.kafka.domain.KafkaMeldingFraBehandlerDTO
+import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -39,7 +39,7 @@ fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID) = MeldingDTO(
     status = null,
 )
 
-fun MeldingFraBehandler.toKafkaMeldingFraBehandlerDTO() = KafkaMeldingFraBehandlerDTO(
+fun MeldingFraBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(
     uuid = uuid.toString(),
     personIdent = arbeidstakerPersonIdent.value,
     type = type.name,
