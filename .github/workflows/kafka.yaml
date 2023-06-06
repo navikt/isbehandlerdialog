@@ -14,11 +14,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: nais/deploy/actions/deploy@v1
+
+      - name: Deploy meldingfrabehandler topic to dev-gcp
+        uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: .nais/kafka/meldingfrabehandler.yaml
+          VARS: .nais/kafka/dev.json
+
+      - name: Deploy ubesvartmelding topic to dev-gcp
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/kafka/ubesvartmelding.yaml
           VARS: .nais/kafka/dev.json
 
   deploy-kafka-prod:
@@ -27,9 +37,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: nais/deploy/actions/deploy@v1
+
+      - name: Deploy meldingfrabehandler to prod-gcp
+        uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: .nais/kafka/meldingfrabehandler.yaml
+          VARS: .nais/kafka/prod.json
+
+      - name: Deploy ubesvartmelding to prod-gcp
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: prod-gcp
+          RESOURCE: .nais/kafka/ubesvartmelding.yaml
           VARS: .nais/kafka/prod.json
