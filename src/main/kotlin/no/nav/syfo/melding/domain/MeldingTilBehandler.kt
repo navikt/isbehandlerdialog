@@ -104,6 +104,17 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) = JournalpostReques
     ),
 )
 
+fun MeldingTilBehandler.toKafkaUbesvartMeldingDTO() = KafkaUbesvartMeldingDTO(
+    uuid = uuid.toString(),
+    personIdent = arbeidstakerPersonIdent.value,
+    type = type.name,
+    conversationRef = conversationRef.toString(),
+    parentRef = parentRef?.toString(),
+    msgId = msgId,
+    tidspunkt = tidspunkt,
+    behandlerPersonIdent = behandlerPersonIdent?.value,
+)
+
 fun createAvsenderMottaker(
     behandlerPersonIdent: PersonIdent?,
     behandlerNavn: String?,

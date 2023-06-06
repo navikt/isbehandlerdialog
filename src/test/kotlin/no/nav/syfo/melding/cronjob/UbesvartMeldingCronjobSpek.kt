@@ -1,10 +1,13 @@
 package no.nav.syfo.melding.cronjob
 
 import io.ktor.server.testing.*
+import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.melding.domain.MeldingType
+import no.nav.syfo.melding.kafka.KafkaUbesvartMeldingProducer
 import no.nav.syfo.melding.kafka.PublishUbesvartMeldingService
+import no.nav.syfo.melding.kafka.domain.KafkaUbesvartMeldingDTO
 import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatusType
@@ -13,10 +16,14 @@ import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.OffsetDateTime
 import java.util.*
+import java.util.concurrent.Future
 
 class UbesvartMeldingCronjobSpek : Spek({
 
@@ -24,8 +31,14 @@ class UbesvartMeldingCronjobSpek : Spek({
         start()
         val database = ExternalMockEnvironment.instance.database
 
+        val kafkaProducer = mockk<KafkaProducer<String, KafkaUbesvartMeldingDTO>>()
+        val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
+            ubesvartMeldingKafkaProducer = kafkaProducer,
+        )
+
         val publishUbesvartMeldingService = PublishUbesvartMeldingService(
             database = database,
+            kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
             fristHours = ExternalMockEnvironment.instance.environment.cronjobUbesvartMeldingFristHours,
         )
 
@@ -37,6 +50,13 @@ class UbesvartMeldingCronjobSpek : Spek({
         describe(UbesvartMeldingCronjobSpek::class.java.simpleName) {
             describe("Test cronjob") {
                 val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
+
+                beforeEachTest {
+                    clearMocks(kafkaProducer)
+                    coEvery {
+                        kafkaProducer.send(any())
+                    } returns mockk<Future<RecordMetadata>>(relaxed = true)
+                }
 
                 afterEachTest {
                     database.dropData()
@@ -59,10 +79,18 @@ class UbesvartMeldingCronjobSpek : Spek({
                         result.updated shouldBeEqualTo 1
                     }
 
-                    // TODO: Add check for publish to kafka
+                    val melding = database.getMeldingerForArbeidstaker(personIdent).first()
+                    melding.ubesvartPublishedAt shouldNotBeEqualTo null
 
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    meldinger.first().ubesvartPublishedAt shouldNotBeEqualTo null
+                    val producerRecordSlot = slot<ProducerRecord<String, KafkaUbesvartMeldingDTO>>()
+                    verify(exactly = 1) {
+                        kafkaProducer.send(capture(producerRecordSlot))
+                    }
+
+                    val kafkaUbesvartMeldingDTO = producerRecordSlot.captured.value()
+                    kafkaUbesvartMeldingDTO.type shouldBeEqualTo "FORESPORSEL_PASIENT"
+                    kafkaUbesvartMeldingDTO.personIdent shouldBeEqualTo personIdent.value
+                    kafkaUbesvartMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
                 }
 
                 it("Will update ubesvart_published_at for several ubesvarte when cronjob has run") {
@@ -91,11 +119,21 @@ class UbesvartMeldingCronjobSpek : Spek({
                         result.updated shouldBeEqualTo 2
                     }
 
-                    // TODO: Add check for publish to kafka
-
                     val meldinger = database.getMeldingerForArbeidstaker(personIdent)
                     meldinger.first().ubesvartPublishedAt shouldNotBeEqualTo null
                     meldinger.last().ubesvartPublishedAt shouldNotBeEqualTo null
+
+                    val producerRecordSlot1 = slot<ProducerRecord<String, KafkaUbesvartMeldingDTO>>()
+                    val producerRecordSlot2 = slot<ProducerRecord<String, KafkaUbesvartMeldingDTO>>()
+                    verifyOrder {
+                        kafkaProducer.send(capture(producerRecordSlot1))
+                        kafkaProducer.send(capture(producerRecordSlot2))
+                    }
+
+                    val firstKafkaUbesvartMeldingDTO = producerRecordSlot1.captured.value()
+                    val lastKafkaUbesvartMeldingDTO = producerRecordSlot2.captured.value()
+                    firstKafkaUbesvartMeldingDTO.uuid shouldBeEqualTo meldinger.first().uuid.toString()
+                    lastKafkaUbesvartMeldingDTO.uuid shouldBeEqualTo meldinger.last().uuid.toString()
                 }
 
                 it("Will not update ubesvart_published_at when no melding older than 2 weeks") {
@@ -115,10 +153,10 @@ class UbesvartMeldingCronjobSpek : Spek({
                         result.updated shouldBeEqualTo 0
                     }
 
-                    // TODO: Add check for no publish to kafka
-
                     val meldinger = database.getMeldingerForArbeidstaker(personIdent)
                     meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+
+                    verify(exactly = 0) { kafkaProducer.send(any()) }
                 }
 
                 it("Will not update ubesvart_published_at when melding is besvart") {
@@ -146,10 +184,10 @@ class UbesvartMeldingCronjobSpek : Spek({
                         result.updated shouldBeEqualTo 0
                     }
 
-                    // TODO: Add check for no publish to kafka
-
                     val meldinger = database.getMeldingerForArbeidstaker(personIdent)
                     meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+
+                    verify(exactly = 0) { kafkaProducer.send(any()) }
                 }
 
                 it("Will update ubesvart_published_at when newest melding in conversation is ubesvart") {
@@ -186,12 +224,20 @@ class UbesvartMeldingCronjobSpek : Spek({
                         result.updated shouldBeEqualTo 1
                     }
 
-                    // TODO: Add check for publish to kafka
-
                     val meldinger = database.getMeldingerForArbeidstaker(personIdent)
                     val utgaendeMeldinger = meldinger.filter { !it.innkommende }
                     utgaendeMeldinger.first().ubesvartPublishedAt shouldBeEqualTo null
                     utgaendeMeldinger.last().ubesvartPublishedAt shouldNotBeEqualTo null
+
+                    val producerRecordSlot = slot<ProducerRecord<String, KafkaUbesvartMeldingDTO>>()
+                    verify(exactly = 1) {
+                        kafkaProducer.send(capture(producerRecordSlot))
+                    }
+
+                    val kafkaUbesvartMeldingDTO = producerRecordSlot.captured.value()
+                    kafkaUbesvartMeldingDTO.type shouldBeEqualTo "FORESPORSEL_PASIENT"
+                    kafkaUbesvartMeldingDTO.personIdent shouldBeEqualTo personIdent.value
+                    kafkaUbesvartMeldingDTO.uuid shouldBeEqualTo utgaendeMeldinger.last().uuid.toString()
                 }
 
                 it("Will not update ubesvart_published_at when melding is of type paminnelse") {
@@ -214,10 +260,10 @@ class UbesvartMeldingCronjobSpek : Spek({
                         result.updated shouldBeEqualTo 0
                     }
 
-                    // TODO: Add check for no publish to kafka
-
                     val meldinger = database.getMeldingerForArbeidstaker(personIdent)
                     meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+
+                    verify(exactly = 0) { kafkaProducer.send(any()) }
                 }
 
                 it("Will not update ubesvart_published_at when melding has avvist apprec status") {
@@ -249,10 +295,10 @@ class UbesvartMeldingCronjobSpek : Spek({
                         result.updated shouldBeEqualTo 0
                     }
 
-                    // TODO: Add check for no publish to kafka
-
                     val meldinger = database.getMeldingerForArbeidstaker(personIdent)
                     meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+
+                    verify(exactly = 0) { kafkaProducer.send(any()) }
                 }
             }
         }

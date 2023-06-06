@@ -1,0 +1,27 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  annotations:
+    dcat.data.nav.no/title: "Ubesvart melding"
+    dcat.data.nav.no/description: >-
+      Topic inneholder meldinger til behandlere uten svar innen frist.
+  name: ubesvart-melding
+  namespace: teamsykefravr
+  labels:
+    team: teamsykefravr
+spec:
+  pool: {{ kafkaPool }}
+  config:
+    cleanupPolicy: delete
+    minimumInSyncReplicas: 1
+    partitions: 1
+    replication: 3
+    retentionBytes: -1  # -1 means unlimited
+    retentionHours: -1  # -1 means unlimited
+  acl:
+    - team: teamsykefravr
+      application: isbehandlerdialog
+      access: readwrite
+    - team: teamsykefravr
+      application: ispersonoppgave
+      access: read
