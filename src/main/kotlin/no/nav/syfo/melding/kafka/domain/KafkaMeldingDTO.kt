@@ -2,7 +2,7 @@ package no.nav.syfo.melding.kafka.domain
 
 import java.time.OffsetDateTime
 
-data class KafkaMeldingFraBehandlerDTO(
+data class KafkaMeldingDTO(
     val uuid: String,
     val personIdent: String,
     val type: String,

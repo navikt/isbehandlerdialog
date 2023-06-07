@@ -104,7 +104,7 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) = JournalpostReques
     ),
 )
 
-fun MeldingTilBehandler.toKafkaUbesvartMeldingDTO() = KafkaUbesvartMeldingDTO(
+fun MeldingTilBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(
     uuid = uuid.toString(),
     personIdent = arbeidstakerPersonIdent.value,
     type = type.name,

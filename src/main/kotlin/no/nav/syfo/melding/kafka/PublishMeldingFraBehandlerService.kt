@@ -5,7 +5,7 @@ import no.nav.syfo.melding.database.domain.toMeldingFraBehandler
 import no.nav.syfo.melding.database.getUnpublishedMeldingerFraBehandler
 import no.nav.syfo.melding.database.updateInnkommendePublishedAt
 import no.nav.syfo.melding.domain.MeldingFraBehandler
-import no.nav.syfo.melding.domain.toKafkaMeldingFraBehandlerDTO
+import no.nav.syfo.melding.domain.toKafkaMeldingDTO
 import java.util.*
 
 class PublishMeldingFraBehandlerService(
@@ -20,7 +20,7 @@ class PublishMeldingFraBehandlerService(
         meldingFraBehandler: MeldingFraBehandler,
     ) {
         kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(
-            kafkaMeldingFraBehandlerDTO = meldingFraBehandler.toKafkaMeldingFraBehandlerDTO(),
+            kafkaMeldingDTO = meldingFraBehandler.toKafkaMeldingDTO(),
             key = UUID.nameUUIDFromBytes(meldingFraBehandler.arbeidstakerPersonIdent.value.toByteArray()),
         )
 

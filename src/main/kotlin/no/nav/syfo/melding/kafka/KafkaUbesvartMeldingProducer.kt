@@ -1,15 +1,15 @@
 package no.nav.syfo.melding.kafka
 
 import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.domain.toKafkaUbesvartMeldingDTO
-import no.nav.syfo.melding.kafka.domain.KafkaUbesvartMeldingDTO
+import no.nav.syfo.melding.domain.toKafkaMeldingDTO
+import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import java.util.*
 
 class KafkaUbesvartMeldingProducer(
-    private val ubesvartMeldingKafkaProducer: KafkaProducer<String, KafkaUbesvartMeldingDTO>,
+    private val ubesvartMeldingKafkaProducer: KafkaProducer<String, KafkaMeldingDTO>,
 ) {
     fun sendUbesvartMelding(
         meldingTilBehandler: MeldingTilBehandler,
@@ -20,7 +20,7 @@ class KafkaUbesvartMeldingProducer(
                 ProducerRecord(
                     UBESVART_MELDING_TOPIC,
                     key.toString(),
-                    meldingTilBehandler.toKafkaUbesvartMeldingDTO(),
+                    meldingTilBehandler.toKafkaMeldingDTO(),
                 )
             ).get()
         } catch (e: Exception) {

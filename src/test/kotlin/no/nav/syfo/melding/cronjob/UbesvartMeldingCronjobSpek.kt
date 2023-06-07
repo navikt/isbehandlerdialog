@@ -7,7 +7,7 @@ import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.KafkaUbesvartMeldingProducer
 import no.nav.syfo.melding.kafka.PublishUbesvartMeldingService
-import no.nav.syfo.melding.kafka.domain.KafkaUbesvartMeldingDTO
+import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatusType
@@ -31,7 +31,7 @@ class UbesvartMeldingCronjobSpek : Spek({
         start()
         val database = ExternalMockEnvironment.instance.database
 
-        val kafkaProducer = mockk<KafkaProducer<String, KafkaUbesvartMeldingDTO>>()
+        val kafkaProducer = mockk<KafkaProducer<String, KafkaMeldingDTO>>()
         val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
             ubesvartMeldingKafkaProducer = kafkaProducer,
         )
@@ -82,15 +82,15 @@ class UbesvartMeldingCronjobSpek : Spek({
                     val melding = database.getMeldingerForArbeidstaker(personIdent).first()
                     melding.ubesvartPublishedAt shouldNotBeEqualTo null
 
-                    val producerRecordSlot = slot<ProducerRecord<String, KafkaUbesvartMeldingDTO>>()
+                    val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
                     verify(exactly = 1) {
                         kafkaProducer.send(capture(producerRecordSlot))
                     }
 
-                    val kafkaUbesvartMeldingDTO = producerRecordSlot.captured.value()
-                    kafkaUbesvartMeldingDTO.type shouldBeEqualTo "FORESPORSEL_PASIENT"
-                    kafkaUbesvartMeldingDTO.personIdent shouldBeEqualTo personIdent.value
-                    kafkaUbesvartMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
+                    val kafkaMeldingDTO = producerRecordSlot.captured.value()
+                    kafkaMeldingDTO.type shouldBeEqualTo "FORESPORSEL_PASIENT"
+                    kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
+                    kafkaMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
                 }
 
                 it("Will update ubesvart_published_at for several ubesvarte when cronjob has run") {
@@ -123,17 +123,17 @@ class UbesvartMeldingCronjobSpek : Spek({
                     meldinger.first().ubesvartPublishedAt shouldNotBeEqualTo null
                     meldinger.last().ubesvartPublishedAt shouldNotBeEqualTo null
 
-                    val producerRecordSlot1 = slot<ProducerRecord<String, KafkaUbesvartMeldingDTO>>()
-                    val producerRecordSlot2 = slot<ProducerRecord<String, KafkaUbesvartMeldingDTO>>()
+                    val producerRecordSlot1 = slot<ProducerRecord<String, KafkaMeldingDTO>>()
+                    val producerRecordSlot2 = slot<ProducerRecord<String, KafkaMeldingDTO>>()
                     verifyOrder {
                         kafkaProducer.send(capture(producerRecordSlot1))
                         kafkaProducer.send(capture(producerRecordSlot2))
                     }
 
-                    val firstKafkaUbesvartMeldingDTO = producerRecordSlot1.captured.value()
-                    val lastKafkaUbesvartMeldingDTO = producerRecordSlot2.captured.value()
-                    firstKafkaUbesvartMeldingDTO.uuid shouldBeEqualTo meldinger.first().uuid.toString()
-                    lastKafkaUbesvartMeldingDTO.uuid shouldBeEqualTo meldinger.last().uuid.toString()
+                    val firstKafkaMeldingDTO = producerRecordSlot1.captured.value()
+                    val secondKafkaMeldingDTO = producerRecordSlot2.captured.value()
+                    firstKafkaMeldingDTO.uuid shouldBeEqualTo meldinger.first().uuid.toString()
+                    secondKafkaMeldingDTO.uuid shouldBeEqualTo meldinger.last().uuid.toString()
                 }
 
                 it("Will not update ubesvart_published_at when no melding older than 2 weeks") {
@@ -229,15 +229,15 @@ class UbesvartMeldingCronjobSpek : Spek({
                     utgaendeMeldinger.first().ubesvartPublishedAt shouldBeEqualTo null
                     utgaendeMeldinger.last().ubesvartPublishedAt shouldNotBeEqualTo null
 
-                    val producerRecordSlot = slot<ProducerRecord<String, KafkaUbesvartMeldingDTO>>()
+                    val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
                     verify(exactly = 1) {
                         kafkaProducer.send(capture(producerRecordSlot))
                     }
 
-                    val kafkaUbesvartMeldingDTO = producerRecordSlot.captured.value()
-                    kafkaUbesvartMeldingDTO.type shouldBeEqualTo "FORESPORSEL_PASIENT"
-                    kafkaUbesvartMeldingDTO.personIdent shouldBeEqualTo personIdent.value
-                    kafkaUbesvartMeldingDTO.uuid shouldBeEqualTo utgaendeMeldinger.last().uuid.toString()
+                    val kafkaMeldingDTO = producerRecordSlot.captured.value()
+                    kafkaMeldingDTO.type shouldBeEqualTo "FORESPORSEL_PASIENT"
+                    kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
+                    kafkaMeldingDTO.uuid shouldBeEqualTo utgaendeMeldinger.last().uuid.toString()
                 }
 
                 it("Will not update ubesvart_published_at when melding is of type paminnelse") {

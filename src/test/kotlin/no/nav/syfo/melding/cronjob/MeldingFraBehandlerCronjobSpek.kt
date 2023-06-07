@@ -30,7 +30,7 @@ class MeldingFraBehandlerCronjobSpek : Spek({
         val kafkaMeldingFraBehandlerProducer = mockk<KafkaMeldingFraBehandlerProducer>()
         justRun {
             kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(
-                kafkaMeldingFraBehandlerDTO = any(),
+                kafkaMeldingDTO = any(),
                 key = any(),
             )
         }
