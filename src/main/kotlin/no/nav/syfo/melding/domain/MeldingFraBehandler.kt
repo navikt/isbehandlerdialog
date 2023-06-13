@@ -35,6 +35,7 @@ fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID) = MeldingDTO(
     document = emptyList(),
     tidspunkt = tidspunkt,
     innkommende = true,
+    type = type,
     antallVedlegg = antallVedlegg,
     status = null,
 )

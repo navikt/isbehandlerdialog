@@ -38,6 +38,7 @@ fun MeldingTilBehandler.toMeldingDTO(status: MeldingStatus?) = MeldingDTO(
     document = document,
     tidspunkt = tidspunkt,
     innkommende = false,
+    type = type,
     antallVedlegg = antallVedlegg,
     status = status?.toMeldingStatusDTO(),
 )
