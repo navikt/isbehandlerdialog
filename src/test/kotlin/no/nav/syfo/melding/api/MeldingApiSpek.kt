@@ -92,6 +92,7 @@ class MeldingApiSpek : Spek({
                             val message = conversation.first()
                             message.tekst shouldBeEqualTo "${meldingTilBehandlerDTO.tekst}1"
                             message.document shouldBeEqualTo meldingTilBehandlerDTO.document
+                            message.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT
                             conversation.all { it.status == null } shouldBeEqualTo true
 
                             respons.conversations[secondConversation]?.size shouldBeEqualTo 1
