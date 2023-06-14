@@ -3,23 +3,18 @@ package no.nav.syfo.melding.status.kafka
 import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.melding.MeldingService
-import no.nav.syfo.melding.api.toMeldingTilBehandler
 import no.nav.syfo.melding.database.createMeldingTilBehandler
 import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatusType
 import no.nav.syfo.testhelper.*
+import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateKafkaDialogmeldingStatusDTO
-import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
 import no.nav.syfo.testhelper.mock.mockKafkaConsumer
 import org.amshove.kluent.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.util.*
-
-val meldingTilBehandler = generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
-    personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
-)
 
 class KafkaDialogmeldingStatusConsumerSpek : Spek({
     with(TestApplicationEngine()) {
@@ -55,7 +50,7 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
             }
             it("Creates no melding-status for unknown melding") {
                 database.connection.use {
-                    it.createMeldingTilBehandler(meldingTilBehandler)
+                    it.createMeldingTilBehandler(defaultMeldingTilBehandler)
                 }
 
                 val kafkaDialogmeldingStatusDTO = generateKafkaDialogmeldingStatusDTO(
@@ -72,11 +67,11 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
             }
             it("Creates new melding-status for known melding with no existing status") {
                 database.connection.use {
-                    it.createMeldingTilBehandler(meldingTilBehandler)
+                    it.createMeldingTilBehandler(defaultMeldingTilBehandler)
                 }
 
                 val kafkaDialogmeldingStatusDTO = generateKafkaDialogmeldingStatusDTO(
-                    meldingUUID = meldingTilBehandler.uuid,
+                    meldingUUID = defaultMeldingTilBehandler.uuid,
                     status = MeldingStatusType.OK,
                 )
                 val mockConsumer = mockKafkaConsumer(kafkaDialogmeldingStatusDTO, DIALOGMELDING_STATUS_TOPIC)
@@ -95,7 +90,7 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
                 )
                 database.connection.use {
                     val meldingId =
-                        it.createMeldingTilBehandler(meldingTilBehandler = meldingTilBehandler, commit = false)
+                        it.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, commit = false)
                     it.createMeldingStatus(
                         meldingStatus = existingStatus,
                         meldingId = meldingId,
@@ -103,7 +98,7 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
                     it.commit()
                 }
                 val kafkaDialogmeldingStatusDTO = generateKafkaDialogmeldingStatusDTO(
-                    meldingUUID = meldingTilBehandler.uuid,
+                    meldingUUID = defaultMeldingTilBehandler.uuid,
                     status = MeldingStatusType.AVVIST,
                     tekst = "Avvist av EPJ"
                 )

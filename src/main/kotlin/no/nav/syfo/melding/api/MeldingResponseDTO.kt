@@ -20,7 +20,8 @@ data class MeldingDTO(
     val innkommende: Boolean,
     val type: MeldingType,
     val antallVedlegg: Int,
-    val status: MeldingStatusDTO?
+    val status: MeldingStatusDTO?,
+    val veilederIdent: String,
 )
 
 data class MeldingStatusDTO(

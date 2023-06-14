@@ -25,6 +25,7 @@ data class MeldingFraBehandler(
     override val innkommende: Boolean = true
     override val document: List<DocumentComponentDTO> = emptyList()
     override val journalpostId: String? = null
+    override val veilederIdent: String = ""
 }
 
 fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID) = MeldingDTO(
@@ -38,6 +39,7 @@ fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID) = MeldingDTO(
     type = type,
     antallVedlegg = antallVedlegg,
     status = null,
+    veilederIdent = veilederIdent,
 )
 
 fun MeldingFraBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(

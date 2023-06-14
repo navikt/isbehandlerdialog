@@ -5,12 +5,11 @@ import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.padm2.Padm2Client
-import no.nav.syfo.melding.api.toMeldingTilBehandler
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.kafka.domain.DialogmeldingType
 import no.nav.syfo.testhelper.*
+import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerDTO
-import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
 import no.nav.syfo.testhelper.mock.mockKafkaConsumer
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
@@ -31,6 +30,8 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
             azureAdClient = azureAdClient,
             clientEnvironment = externalMockEnvironment.environment.clients.padm2,
         )
+
+        val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
 
         afterEachTest {
             database.dropData()
@@ -58,7 +59,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                     verify(exactly = 1) { mockConsumer.commitSync() }
 
-                    database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT).size shouldBeEqualTo 0
+                    database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
                 }
                 it("Receive dialogmelding DIALOG_SVAR but unknown conversationRef") {
                     val dialogmelding = generateDialogmeldingFraBehandlerDTO(
@@ -75,14 +76,10 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                     verify(exactly = 1) { mockConsumer.commitSync() }
 
-                    database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT).size shouldBeEqualTo 0
+                    database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
                 }
                 it("Receive dialogmelding DIALOG_SVAR and known conversationRef") {
-                    val (conversationRef, _) = database.createMeldingerTilBehandler(
-                        generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
-                            personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
-                        )
-                    )
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
                     val msgId = UUID.randomUUID()
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
                         uuid = msgId,
@@ -99,24 +96,21 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                     verify(exactly = 1) { mockConsumer.commitSync() }
 
-                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
                     pMeldingListAfter.size shouldBeEqualTo 2
                     val pSvar = pMeldingListAfter.last()
-                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_PERSONIDENT.value
+                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
                     pSvar.innkommende shouldBe true
                     pSvar.msgId shouldBeEqualTo msgId.toString()
                     pSvar.behandlerPersonIdent shouldBeEqualTo UserConstants.BEHANDLER_PERSONIDENT.value
                     pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
                     pSvar.antallVedlegg shouldBeEqualTo 0
+                    pSvar.veilederIdent shouldBeEqualTo ""
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }
                 it("Receive dialogmelding DIALOG_SVAR and known conversationRef and with vedlegg") {
-                    val (conversationRef, _) = database.createMeldingerTilBehandler(
-                        generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
-                            personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
-                        )
-                    )
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
                     val msgId = UserConstants.MSG_ID_WITH_VEDLEGG
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
                         uuid = msgId,
@@ -134,10 +128,10 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                     verify(exactly = 1) { mockConsumer.commitSync() }
 
-                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
                     pMeldingListAfter.size shouldBeEqualTo 2
                     val pSvar = pMeldingListAfter.last()
-                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_PERSONIDENT.value
+                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
                     pSvar.innkommende shouldBe true
                     pSvar.msgId shouldBeEqualTo UserConstants.MSG_ID_WITH_VEDLEGG.toString()
                     pSvar.antallVedlegg shouldBeEqualTo 1
@@ -162,14 +156,10 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     }
 
                     verify(exactly = 1) { mockConsumer.commitSync() }
-                    database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT).size shouldBeEqualTo 0
+                    database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
                 }
                 it("Receive duplicate dialogmelding DIALOG_SVAR and known conversationRef") {
-                    val (conversationRef, _) = database.createMeldingerTilBehandler(
-                        generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
-                            personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
-                        )
-                    )
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
 
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
                         uuid = UUID.randomUUID(),
@@ -191,15 +181,11 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     }
                     verify(exactly = 2) { mockConsumer.commitSync() }
 
-                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
                     pMeldingListAfter.size shouldBeEqualTo 2
                 }
                 it("Receive two dialogmelding DIALOG_SVAR and known conversationRef") {
-                    val (conversationRef, _) = database.createMeldingerTilBehandler(
-                        generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
-                            personident = UserConstants.ARBEIDSTAKER_PERSONIDENT,
-                        )
-                    )
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
 
                     val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDTO(
                         uuid = UUID.randomUUID(),
@@ -229,7 +215,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     }
                     verify(exactly = 1) { mockConsumerAgain.commitSync() }
 
-                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
                     pMeldingListAfter.size shouldBeEqualTo 3
                 }
             }

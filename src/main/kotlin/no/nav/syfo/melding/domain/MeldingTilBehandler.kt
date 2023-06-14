@@ -24,6 +24,7 @@ data class MeldingTilBehandler(
     override val document: List<DocumentComponentDTO>,
     override val antallVedlegg: Int,
     val ubesvartPublishedAt: OffsetDateTime?,
+    override val veilederIdent: String,
 ) : Melding {
     override val msgId: String? = null
     override val innkommende: Boolean = false
@@ -41,6 +42,7 @@ fun MeldingTilBehandler.toMeldingDTO(status: MeldingStatus?) = MeldingDTO(
     type = type,
     antallVedlegg = antallVedlegg,
     status = status?.toMeldingStatusDTO(),
+    veilederIdent = veilederIdent,
 )
 
 fun MeldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf: ByteArray) = DialogmeldingBestillingDTO(

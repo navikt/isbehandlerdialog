@@ -62,6 +62,7 @@ fun Route.registerMeldingApi(
 
         post {
             val personIdent = call.personIdent()
+            val veilederIdent = call.getNAVIdent()
             call.checkVeilederTilgang(
                 action = API_ACTION,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
@@ -71,13 +72,17 @@ fun Route.registerMeldingApi(
 
             meldingService.createMeldingTilBehandler(
                 callId = getCallId(),
-                meldingTilBehandler = requestDTO.toMeldingTilBehandler(personIdent),
+                meldingTilBehandler = requestDTO.toMeldingTilBehandler(
+                    personIdent = personIdent,
+                    veilederIdent = veilederIdent,
+                ),
             )
 
             call.respond(HttpStatusCode.OK)
         }
         post("/{$uuid}/paminnelse") {
             val personIdent = call.personIdent()
+            val veilederIdent = call.getNAVIdent()
             call.checkVeilederTilgang(
                 action = API_ACTION,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
@@ -91,7 +96,10 @@ fun Route.registerMeldingApi(
             val requestDTO = call.receive<PaminnelseRequestDTO>()
             meldingService.createPaminnelse(
                 callId = getCallId(),
-                paminnelse = requestDTO.toMeldingTilBehandler(opprinneligMelding = opprinneligMelding),
+                paminnelse = requestDTO.toMeldingTilBehandler(
+                    opprinneligMelding = opprinneligMelding,
+                    veilederIdent = veilederIdent,
+                ),
             )
 
             call.respond(HttpStatusCode.OK)

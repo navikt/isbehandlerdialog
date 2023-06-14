@@ -13,7 +13,7 @@ data class MeldingTilBehandlerRequestDTO(
     val document: List<DocumentComponentDTO> = emptyList(),
 )
 
-fun MeldingTilBehandlerRequestDTO.toMeldingTilBehandler(personident: PersonIdent): MeldingTilBehandler {
+fun MeldingTilBehandlerRequestDTO.toMeldingTilBehandler(personIdent: PersonIdent, veilederIdent: String): MeldingTilBehandler {
     val now = OffsetDateTime.now()
     return MeldingTilBehandler(
         uuid = UUID.randomUUID(),
@@ -22,13 +22,14 @@ fun MeldingTilBehandlerRequestDTO.toMeldingTilBehandler(personident: PersonIdent
         conversationRef = UUID.randomUUID(),
         parentRef = null,
         tidspunkt = now,
-        arbeidstakerPersonIdent = personident,
+        arbeidstakerPersonIdent = personIdent,
         behandlerPersonIdent = behandlerIdent?.let { PersonIdent(behandlerIdent) },
         behandlerNavn = behandlerNavn,
         behandlerRef = behandlerRef,
         tekst = tekst,
         document = document,
-        antallVedlegg = 0, // TODO: Denne må vel komme fra frontend / regnes ut på en eller annen måte?
+        antallVedlegg = 0,
         ubesvartPublishedAt = null,
+        veilederIdent = veilederIdent,
     )
 }
