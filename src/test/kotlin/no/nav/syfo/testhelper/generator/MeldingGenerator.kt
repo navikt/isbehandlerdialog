@@ -56,10 +56,13 @@ fun generateMeldingTilBehandler(
     behandlerRef: UUID = UUID.randomUUID(),
     tekst: String = "Melding til behandler",
     type: MeldingType = MeldingType.FORESPORSEL_PASIENT,
+    veilederIdent: String = UserConstants.VEILEDER_IDENT,
 ) = generateMeldingTilBehandlerRequestDTO(
     behandlerRef = behandlerRef,
     tekst = tekst,
-).toMeldingTilBehandler(personIdent)
+).toMeldingTilBehandler(personIdent, veilederIdent)
     .copy(
         type = type,
     )
+
+val defaultMeldingTilBehandler = generateMeldingTilBehandler()

@@ -47,6 +47,7 @@ class MeldingApiSpek : Spek({
                 navIdent = UserConstants.VEILEDER_IDENT,
             )
             val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
+            val veilederIdent = UserConstants.VEILEDER_IDENT
 
             beforeEachTest {
                 clearMocks(kafkaProducer)
@@ -61,9 +62,8 @@ class MeldingApiSpek : Spek({
             describe("Get meldinger for person") {
                 describe("Happy path") {
                     it("Returns all meldinger for personident grouped by conversationRef") {
-                        val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
                         val (firstConversation, _) = database.createMeldingerTilBehandler(
-                            meldingTilBehandler = meldingTilBehandlerDTO.toMeldingTilBehandler(personIdent),
+                            meldingTilBehandler = defaultMeldingTilBehandler,
                             numberOfMeldinger = 2,
                         )
                         val meldingFraBehandler = generateMeldingFraBehandler(
@@ -75,9 +75,9 @@ class MeldingApiSpek : Spek({
                             numberOfMeldinger = 2,
                         )
                         val (secondConversation, _) = database.createMeldingerTilBehandler(
-                            meldingTilBehandler = meldingTilBehandlerDTO
-                                .toMeldingTilBehandler(personIdent)
-                                .copy(conversationRef = UUID.randomUUID()),
+                            meldingTilBehandler = defaultMeldingTilBehandler.copy(
+                                conversationRef = UUID.randomUUID()
+                            ),
                         )
                         with(
                             handleRequest(HttpMethod.Get, apiUrl) {
@@ -90,8 +90,8 @@ class MeldingApiSpek : Spek({
                             val conversation = respons.conversations[firstConversation]!!
                             conversation.size shouldBeEqualTo 4
                             val message = conversation.first()
-                            message.tekst shouldBeEqualTo "${meldingTilBehandlerDTO.tekst}1"
-                            message.document shouldBeEqualTo meldingTilBehandlerDTO.document
+                            message.tekst shouldBeEqualTo "${defaultMeldingTilBehandler.tekst}1"
+                            message.document shouldBeEqualTo defaultMeldingTilBehandler.document
                             message.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT
                             conversation.all { it.status == null } shouldBeEqualTo true
 
@@ -100,14 +100,15 @@ class MeldingApiSpek : Spek({
                             val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
                             pMeldinger.size shouldBeEqualTo 5
                             pMeldinger.first().arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                            pMeldinger.first().veilederIdent shouldBeEqualTo veilederIdent
                         }
                     }
                     it("Returns meldinger for personident with status for melding til behander") {
-                        val meldingTilBehandler =
-                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent)
                         database.connection.use {
-                            val meldingId =
-                                it.createMeldingTilBehandler(meldingTilBehandler = meldingTilBehandler, commit = false)
+                            val meldingId = it.createMeldingTilBehandler(
+                                meldingTilBehandler = defaultMeldingTilBehandler,
+                                commit = false,
+                            )
                             it.createMeldingStatus(
                                 meldingStatus = MeldingStatus(
                                     uuid = UUID.randomUUID(),
@@ -155,7 +156,7 @@ class MeldingApiSpek : Spek({
                 describe("Happy path") {
                     it("Returns vedlegg for melding") {
                         val (conversation, _) = database.createMeldingerTilBehandler(
-                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent),
+                            meldingTilBehandler = defaultMeldingTilBehandler,
                         )
                         val meldingFraBehandler = generateMeldingFraBehandler(
                             conversationRef = conversation,
@@ -183,7 +184,7 @@ class MeldingApiSpek : Spek({
                     }
                     it("Returns 204 when no vedlegg for melding") {
                         val (conversation, _) = database.createMeldingerTilBehandler(
-                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent),
+                            meldingTilBehandler = defaultMeldingTilBehandler,
                         )
                         val meldingFraBehandler = generateMeldingFraBehandler(
                             conversationRef = conversation,
@@ -227,7 +228,10 @@ class MeldingApiSpek : Spek({
                     }
                     it("Returns status Forbidden if denied access to person") {
                         val (conversation, _) = database.createMeldingerTilBehandler(
-                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS),
+                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
+                                personIdent = UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS,
+                                veilederIdent = veilederIdent,
+                            ),
                         )
                         val meldingFraBehandler = generateMeldingFraBehandler(
                             conversationRef = conversation,
@@ -254,17 +258,16 @@ class MeldingApiSpek : Spek({
             }
 
             describe("Create new paminnelse for melding to behandler") {
-                val meldingTilBehandler = generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(personIdent)
-                val paminnelseApiUrl = "$apiUrl/${meldingTilBehandler.uuid}/paminnelse"
+                val paminnelseApiUrl = "$apiUrl/${defaultMeldingTilBehandler.uuid}/paminnelse"
                 val paminnelseDTO = generatePaminnelseRequestDTO()
 
                 describe("Happy path") {
                     it("Creates paminnelse for melding til behandler and produces dialogmelding-bestilling to kafka") {
                         database.connection.use {
-                            it.createMeldingTilBehandler(meldingTilBehandler)
+                            it.createMeldingTilBehandler(defaultMeldingTilBehandler)
                         }
                         with(
-                            handleRequest(HttpMethod.Post, "$apiUrl/${meldingTilBehandler.uuid}/paminnelse") {
+                            handleRequest(HttpMethod.Post, "$apiUrl/${defaultMeldingTilBehandler.uuid}/paminnelse") {
                                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                                 addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
                                 addHeader(NAV_PERSONIDENT_HEADER, UserConstants.ARBEIDSTAKER_PERSONIDENT.value)
@@ -280,8 +283,8 @@ class MeldingApiSpek : Spek({
                             pMelding.tekst?.shouldBeEmpty()
                             pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_PAMINNELSE.name
                             pMelding.innkommende.shouldBeFalse()
-                            pMelding.conversationRef shouldBeEqualTo meldingTilBehandler.conversationRef
-                            pMelding.parentRef shouldBeEqualTo meldingTilBehandler.uuid
+                            pMelding.conversationRef shouldBeEqualTo defaultMeldingTilBehandler.conversationRef
+                            pMelding.parentRef shouldBeEqualTo defaultMeldingTilBehandler.uuid
                             val brodtekst =
                                 pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
                             brodtekst.texts.first() shouldBeEqualTo "Vi viser til tidligere forespørsel angående din pasient"
@@ -295,7 +298,7 @@ class MeldingApiSpek : Spek({
                             }
 
                             val dialogmeldingBestillingDTO = producerRecordSlot.captured.value()
-                            dialogmeldingBestillingDTO.behandlerRef shouldBeEqualTo meldingTilBehandler.behandlerRef.toString()
+                            dialogmeldingBestillingDTO.behandlerRef shouldBeEqualTo defaultMeldingTilBehandler.behandlerRef.toString()
                             dialogmeldingBestillingDTO.dialogmeldingTekst shouldBeEqualTo paminnelseDTO.document.serialize()
                             dialogmeldingBestillingDTO.dialogmeldingType shouldBeEqualTo DialogmeldingType.DIALOG_FORESPORSEL.name
                             dialogmeldingBestillingDTO.dialogmeldingKode shouldBeEqualTo DialogmeldingKode.PAMINNELSE_FORESPORSEL.value
@@ -335,7 +338,7 @@ class MeldingApiSpek : Spek({
                         }
                     }
                     it("returns status BadRequest if given uuid is meldingFraBehandler") {
-                        val (conversation, _) = database.createMeldingerTilBehandler(meldingTilBehandler)
+                        val (conversation, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
                         val meldingFraBehandler = generateMeldingFraBehandler(
                             conversationRef = conversation,
                             personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
@@ -383,6 +386,8 @@ class MeldingApiSpek : Spek({
                         pMelding.tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
                         pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT.name
                         pMelding.innkommende shouldBeEqualTo false
+                        pMelding.veilederIdent shouldBeEqualTo veilederIdent
+
                         val brodtekst =
                             pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
                         brodtekst.texts.first() shouldBeEqualTo meldingTilBehandlerDTO.tekst

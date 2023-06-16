@@ -8,7 +8,7 @@ data class PaminnelseRequestDTO(
     val document: List<DocumentComponentDTO>,
 )
 
-fun PaminnelseRequestDTO.toMeldingTilBehandler(opprinneligMelding: MeldingTilBehandler): MeldingTilBehandler {
+fun PaminnelseRequestDTO.toMeldingTilBehandler(opprinneligMelding: MeldingTilBehandler, veilederIdent: String): MeldingTilBehandler {
     val now = OffsetDateTime.now()
     return MeldingTilBehandler(
         uuid = UUID.randomUUID(),
@@ -25,5 +25,6 @@ fun PaminnelseRequestDTO.toMeldingTilBehandler(opprinneligMelding: MeldingTilBeh
         document = document,
         antallVedlegg = 0, // TODO: Eventuell opprinnelig melding pdf som vedlegg?
         ubesvartPublishedAt = null,
+        veilederIdent = veilederIdent,
     )
 }

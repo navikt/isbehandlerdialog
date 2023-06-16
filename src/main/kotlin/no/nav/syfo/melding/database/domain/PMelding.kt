@@ -25,6 +25,7 @@ data class PMelding(
     val innkommendePublishedAt: OffsetDateTime?,
     val journalpostId: String?,
     val ubesvartPublishedAt: OffsetDateTime?,
+    val veilederIdent: String?,
 )
 
 fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
@@ -42,6 +43,7 @@ fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
     document = document,
     antallVedlegg = antallVedlegg,
     ubesvartPublishedAt = ubesvartPublishedAt,
+    veilederIdent = veilederIdent,
 )
 
 fun PMelding.toMeldingFraBehandler() = MeldingFraBehandler(

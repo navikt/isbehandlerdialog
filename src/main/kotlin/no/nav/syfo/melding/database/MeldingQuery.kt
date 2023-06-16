@@ -203,8 +203,9 @@ const val queryCreateMelding =
             behandler_navn,
             innkommende_published_at,
             journalpost_id,
-            ubesvart_published_at
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?) RETURNING id
+            ubesvart_published_at,
+            veileder_ident
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?) RETURNING id
     """
 
 const val queryCreateMeldingFellesformat =
@@ -262,6 +263,7 @@ private fun Connection.createMelding(
         it.setNull(16, Types.TIMESTAMP_WITH_TIMEZONE)
         it.setString(17, melding.journalpostId)
         it.setNull(18, Types.TIMESTAMP_WITH_TIMEZONE)
+        it.setString(19, melding.veilederIdent)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -338,4 +340,5 @@ fun ResultSet.toPMelding() =
         innkommendePublishedAt = getObject("innkommende_published_at", OffsetDateTime::class.java),
         journalpostId = getString("journalpost_id"),
         ubesvartPublishedAt = getObject("ubesvart_published_at", OffsetDateTime::class.java),
+        veilederIdent = getString("veileder_ident"),
     )

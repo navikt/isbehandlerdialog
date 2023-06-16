@@ -20,4 +20,5 @@ interface Melding {
     val antallVedlegg: Int
     val document: List<DocumentComponentDTO>
     val journalpostId: String?
+    val veilederIdent: String?
 }

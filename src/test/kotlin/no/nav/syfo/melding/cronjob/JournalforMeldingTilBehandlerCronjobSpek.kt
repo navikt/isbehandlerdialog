@@ -39,8 +39,7 @@ class JournalforDialogmeldingCronjobSpek : Spek({
             }
 
             it("Journalfør and update melding in database for each melding that's not journalført") {
-                val meldingTilBehandler =
-                    generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                val meldingTilBehandler = defaultMeldingTilBehandler
                 val journalpostId = 1
                 val journalpostResponse = createJournalpostResponse().copy(
                     journalpostId = journalpostId,
@@ -61,7 +60,10 @@ class JournalforDialogmeldingCronjobSpek : Spek({
                         commit = false,
                     )
                     val paminnelseId = connection.createMeldingTilBehandler(
-                        generatePaminnelseRequestDTO().toMeldingTilBehandler(opprinneligMelding = meldingTilBehandler),
+                        meldingTilBehandler = generatePaminnelseRequestDTO().toMeldingTilBehandler(
+                            opprinneligMelding = meldingTilBehandler,
+                            veilederIdent = UserConstants.VEILEDER_IDENT,
+                        ),
                         commit = false,
                     )
                     connection.createPdf(
