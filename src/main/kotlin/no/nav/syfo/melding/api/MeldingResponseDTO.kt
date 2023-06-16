@@ -21,7 +21,7 @@ data class MeldingDTO(
     val type: MeldingType,
     val antallVedlegg: Int,
     val status: MeldingStatusDTO?,
-    val veilederIdent: String,
+    val veilederIdent: String?,
 )
 
 data class MeldingStatusDTO(

@@ -25,7 +25,7 @@ data class MeldingFraBehandler(
     override val innkommende: Boolean = true
     override val document: List<DocumentComponentDTO> = emptyList()
     override val journalpostId: String? = null
-    override val veilederIdent: String = ""
+    override val veilederIdent: String? = null
 }
 
 fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID) = MeldingDTO(

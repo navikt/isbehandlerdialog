@@ -105,7 +105,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     pSvar.behandlerPersonIdent shouldBeEqualTo UserConstants.BEHANDLER_PERSONIDENT.value
                     pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
                     pSvar.antallVedlegg shouldBeEqualTo 0
-                    pSvar.veilederIdent shouldBeEqualTo ""
+                    pSvar.veilederIdent shouldBeEqualTo null
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }
