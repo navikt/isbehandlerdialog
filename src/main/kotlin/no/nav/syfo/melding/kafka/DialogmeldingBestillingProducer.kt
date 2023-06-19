@@ -21,12 +21,14 @@ class DialogmeldingBestillingProducer(
                     dialogmeldingBestillingDTO
                 )
             ).get()
+            COUNT_KAFKA_CONSUMER_MELDING_TIL_BEHANDLER_BESTILLING_SENT.increment()
         } catch (e: Exception) {
             log.error(
                 "Exception was thrown when attempting to send behandler-dialogmelding-bestilling with key {}: ${e.message}",
                 key,
                 e
             )
+            COUNT_KAFKA_CONSUMER_MELDING_TIL_BEHANDLER_BESTILLING_ERROR.increment()
             throw e
         }
     }
