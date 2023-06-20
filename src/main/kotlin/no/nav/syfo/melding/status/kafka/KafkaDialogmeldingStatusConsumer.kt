@@ -83,6 +83,9 @@ class KafkaDialogmeldingStatusConsumer(
             connection.createMeldingStatus(meldingStatus = meldingStatus, meldingId = meldingId)
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_STATUS_CREATED.increment()
         }
+        if (kafkaDialogmeldingStatus.status == MeldingStatusType.AVVIST.name) {
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_STATUS_AVVIST.increment()
+        }
     }
 
     companion object {
