@@ -60,25 +60,28 @@ fun Application.cronjobModule(
         publishMeldingFraBehandlerService = publishMeldingFraBehandlerService,
     )
 
-    val allCronjobs = mutableListOf(journalforMeldingTilBehandlerCronjob, meldingFraBehandlerCronjob)
+    val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
+        ubesvartMeldingKafkaProducer = kafkaUbesvartMeldingProducerConfig(
+            applicationEnvironmentKafka = environment.kafka,
+        )
+    )
 
-    if (environment.ubesvartMeldingCronjobEnabled) {
-        val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
-            ubesvartMeldingKafkaProducer = kafkaUbesvartMeldingProducerConfig(
-                applicationEnvironmentKafka = environment.kafka,
-            )
-        )
-        val publishUbesvartMeldingService = PublishUbesvartMeldingService(
-            database = database,
-            kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
-            fristHours = environment.cronjobUbesvartMeldingFristHours,
-        )
-        val ubesvartMeldingCronjob = UbesvartMeldingCronjob(
-            publishUbesvartMeldingService = publishUbesvartMeldingService,
-            intervalDelayMinutes = environment.cronjobUbesvartMeldingIntervalDelayMinutes,
-        )
-        allCronjobs.add(ubesvartMeldingCronjob)
-    }
+    val publishUbesvartMeldingService = PublishUbesvartMeldingService(
+        database = database,
+        kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
+        fristHours = environment.cronjobUbesvartMeldingFristHours,
+    )
+
+    val ubesvartMeldingCronjob = UbesvartMeldingCronjob(
+        publishUbesvartMeldingService = publishUbesvartMeldingService,
+        intervalDelayMinutes = environment.cronjobUbesvartMeldingIntervalDelayMinutes,
+    )
+
+    val allCronjobs = listOf(
+        journalforMeldingTilBehandlerCronjob,
+        meldingFraBehandlerCronjob,
+        ubesvartMeldingCronjob,
+    )
 
     allCronjobs.forEach {
         launchBackgroundTask(
