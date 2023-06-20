@@ -54,7 +54,6 @@ fun testEnvironment(
         )
     ),
     electorPath = "electorPath",
-    ubesvartMeldingCronjobEnabled = true,
     cronjobUbesvartMeldingIntervalDelayMinutes = 60L * 4,
     cronjobUbesvartMeldingFristHours = 24L * 14,
 )
