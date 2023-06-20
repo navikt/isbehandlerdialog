@@ -5,6 +5,7 @@ import no.nav.syfo.application.cronjob.Cronjob
 import no.nav.syfo.application.cronjob.CronjobResult
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
+import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.domain.toJournalpostRequest
 import org.slf4j.LoggerFactory
 
@@ -31,7 +32,11 @@ class JournalforMeldingTilBehandlerCronjob(
 
         ikkeJournalforteMeldingerTilBehandler.forEach { (meldingTilBehandler, pdf) ->
             try {
-                val journalpostRequest = meldingTilBehandler.toJournalpostRequest(pdf)
+                val journalpostRequest = if (meldingTilBehandler.type === MeldingType.FORESPORSEL_PASIENT_PAMINNELSE) {
+                    meldingTilBehandler.toJournalpostRequest(pdf = pdf, tittel = "Påminnelse til behandler")
+                } else {
+                    meldingTilBehandler.toJournalpostRequest(pdf = pdf, tittel = "Dialogmelding til behandler", overstyrInnsynsregler = "VISES_MASKINELT_GODKJENT")
+                }
 
                 val journalpostId = dokarkivClient.journalfor(
                     journalpostRequest = journalpostRequest,

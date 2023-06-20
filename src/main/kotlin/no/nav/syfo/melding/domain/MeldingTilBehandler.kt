@@ -84,28 +84,30 @@ private fun MeldingTilBehandler.getBrevKode(): BrevkodeType {
     }
 }
 
-fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) = JournalpostRequest(
-    avsenderMottaker = createAvsenderMottaker(behandlerPersonIdent, behandlerNavn),
-    tittel = "Dialogmelding til behandler",
-    bruker = Bruker.create(
-        id = arbeidstakerPersonIdent.value,
-        idType = BrukerIdType.PERSON_IDENT,
-    ),
-    dokumenter = listOf(
-        Dokument.create(
-            brevkode = this.getBrevKode(),
-            tittel = "Dialogmelding til behandler",
-            dokumentvarianter = listOf(
-                Dokumentvariant.create(
-                    filnavn = "Dialogmelding til behandler",
-                    filtype = FiltypeType.PDFA,
-                    fysiskDokument = pdf,
-                    variantformat = VariantformatType.ARKIV,
-                )
-            ),
-        )
-    ),
-)
+fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray, tittel: String, overstyrInnsynsregler: String? = null) =
+    JournalpostRequest(
+        avsenderMottaker = createAvsenderMottaker(behandlerPersonIdent, behandlerNavn),
+        tittel = tittel,
+        bruker = Bruker.create(
+            id = arbeidstakerPersonIdent.value,
+            idType = BrukerIdType.PERSON_IDENT,
+        ),
+        dokumenter = listOf(
+            Dokument.create(
+                brevkode = this.getBrevKode(),
+                tittel = tittel,
+                dokumentvarianter = listOf(
+                    Dokumentvariant.create(
+                        filnavn = tittel,
+                        filtype = FiltypeType.PDFA,
+                        fysiskDokument = pdf,
+                        variantformat = VariantformatType.ARKIV,
+                    )
+                ),
+            )
+        ),
+        overstyrInnsynsregler = overstyrInnsynsregler,
+    )
 
 fun MeldingTilBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(
     uuid = uuid.toString(),

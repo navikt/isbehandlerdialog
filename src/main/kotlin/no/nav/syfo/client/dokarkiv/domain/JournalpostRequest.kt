@@ -32,5 +32,5 @@ data class JournalpostRequest(
     val tema: String = JournalpostTema.OPPFOLGING.value,
     val kanal: String = JournalpostKanal.HELSENETTET.value,
     val sak: Sak = Sak(),
-    val overstyrInnsynsregler: String = "VISES_MASKINELT_GODKJENT",
+    val overstyrInnsynsregler: String? = null,
 )
