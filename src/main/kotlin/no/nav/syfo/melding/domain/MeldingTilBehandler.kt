@@ -84,10 +84,10 @@ private fun MeldingTilBehandler.getBrevKode(): BrevkodeType {
     }
 }
 
-fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray, tittel: String, overstyrInnsynsregler: String? = null) =
+fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray, isPaminnelse: Boolean) =
     JournalpostRequest(
         avsenderMottaker = createAvsenderMottaker(behandlerPersonIdent, behandlerNavn),
-        tittel = tittel,
+        tittel = createTittel(isPaminnelse),
         bruker = Bruker.create(
             id = arbeidstakerPersonIdent.value,
             idType = BrukerIdType.PERSON_IDENT,
@@ -95,10 +95,10 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray, tittel: String, ove
         dokumenter = listOf(
             Dokument.create(
                 brevkode = this.getBrevKode(),
-                tittel = tittel,
+                tittel = createTittel(isPaminnelse),
                 dokumentvarianter = listOf(
                     Dokumentvariant.create(
-                        filnavn = tittel,
+                        filnavn = createTittel(isPaminnelse),
                         filtype = FiltypeType.PDFA,
                         fysiskDokument = pdf,
                         variantformat = VariantformatType.ARKIV,
@@ -106,8 +106,23 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray, tittel: String, ove
                 ),
             )
         ),
-        overstyrInnsynsregler = overstyrInnsynsregler,
+        overstyrInnsynsregler = createOverstyrInnsynsregler(!isPaminnelse),
     )
+
+fun createTittel(isPaminnelse: Boolean): String {
+    return if (isPaminnelse) {
+        MeldingTittel.PAMINNELSE.value
+    } else {
+        MeldingTittel.DIALOGMELDING.value
+    }
+}
+fun createOverstyrInnsynsregler(overstyrInnsynsregler: Boolean): String? {
+    return if (overstyrInnsynsregler) {
+        OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
+    } else {
+        null
+    }
+}
 
 fun MeldingTilBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(
     uuid = uuid.toString(),

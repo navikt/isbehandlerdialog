@@ -22,6 +22,19 @@ enum class JournalpostKanal(
     HELSENETTET("HELSENETTET"),
 }
 
+enum class MeldingTittel(
+    val value: String,
+) {
+    PAMINNELSE("Påminnelse til behandler"),
+    DIALOGMELDING("Dialogmelding til behandler")
+}
+
+enum class OverstyrInnsynsregler(
+    val value: String,
+) {
+    VISES_MASKINELT_GODKJENT("VISES_MASKINELT_GODKJENT"),
+}
+
 data class JournalpostRequest(
     val avsenderMottaker: AvsenderMottaker,
     val tittel: String,

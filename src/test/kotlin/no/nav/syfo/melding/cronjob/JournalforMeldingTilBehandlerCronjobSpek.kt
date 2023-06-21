@@ -45,8 +45,8 @@ class JournalforDialogmeldingCronjobSpek : Spek({
                     journalpostId = journalpostId,
                 )
                 val pdf = byteArrayOf(0x6b, 0X61, 0x6b, 0x65)
-                val expectedJournalpostRequestMeldingTilBehandler = journalpostRequestGenerator(pdf, BrevkodeType.FORESPORSEL_OM_PASIENT)
-                val expectedJournalpostRequestPaminnelse = journalpostRequestGenerator(pdf, BrevkodeType.FORESPORSEL_OM_PASIENT_PAMINNELSE)
+                val expectedJournalpostRequestMeldingTilBehandler = journalpostRequestGenerator(pdf, BrevkodeType.FORESPORSEL_OM_PASIENT, false)
+                val expectedJournalpostRequestPaminnelse = journalpostRequestGenerator(pdf, BrevkodeType.FORESPORSEL_OM_PASIENT_PAMINNELSE, true)
                 coEvery { dokarkivClient.journalfor(any()) } returns journalpostResponse
 
                 database.connection.use { connection ->

@@ -31,12 +31,9 @@ class JournalforMeldingTilBehandlerCronjob(
         val ikkeJournalforteMeldingerTilBehandler = journalforMeldingTilBehandlerService.getIkkeJournalforte()
 
         ikkeJournalforteMeldingerTilBehandler.forEach { (meldingTilBehandler, pdf) ->
+            val isPaminnelse = meldingTilBehandler.type === MeldingType.FORESPORSEL_PASIENT_PAMINNELSE
             try {
-                val journalpostRequest = if (meldingTilBehandler.type === MeldingType.FORESPORSEL_PASIENT_PAMINNELSE) {
-                    meldingTilBehandler.toJournalpostRequest(pdf = pdf, tittel = "Påminnelse til behandler")
-                } else {
-                    meldingTilBehandler.toJournalpostRequest(pdf = pdf, tittel = "Dialogmelding til behandler", overstyrInnsynsregler = "VISES_MASKINELT_GODKJENT")
-                }
+                val journalpostRequest = meldingTilBehandler.toJournalpostRequest(pdf = pdf, isPaminnelse = isPaminnelse)
 
                 val journalpostId = dokarkivClient.journalfor(
                     journalpostRequest = journalpostRequest,
