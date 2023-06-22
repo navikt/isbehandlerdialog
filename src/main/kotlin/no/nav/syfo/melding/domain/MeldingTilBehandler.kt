@@ -84,10 +84,10 @@ private fun MeldingTilBehandler.getBrevKode(): BrevkodeType {
     }
 }
 
-fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray, isPaminnelse: Boolean) =
+fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) =
     JournalpostRequest(
         avsenderMottaker = createAvsenderMottaker(behandlerPersonIdent, behandlerNavn),
-        tittel = createTittel(isPaminnelse),
+        tittel = this.createTittel(),
         bruker = Bruker.create(
             id = arbeidstakerPersonIdent.value,
             idType = BrukerIdType.PERSON_IDENT,
@@ -95,10 +95,10 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray, isPaminnelse: Boole
         dokumenter = listOf(
             Dokument.create(
                 brevkode = this.getBrevKode(),
-                tittel = createTittel(isPaminnelse),
+                tittel = this.createTittel(),
                 dokumentvarianter = listOf(
                     Dokumentvariant.create(
-                        filnavn = createTittel(isPaminnelse),
+                        filnavn = this.createTittel(),
                         filtype = FiltypeType.PDFA,
                         fysiskDokument = pdf,
                         variantformat = VariantformatType.ARKIV,
@@ -106,21 +106,20 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray, isPaminnelse: Boole
                 ),
             )
         ),
-        overstyrInnsynsregler = createOverstyrInnsynsregler(!isPaminnelse),
+        overstyrInnsynsregler = this.createOverstyrInnsynsregler(),
     )
 
-fun createTittel(isPaminnelse: Boolean): String {
-    return if (isPaminnelse) {
-        MeldingTittel.PAMINNELSE.value
-    } else {
-        MeldingTittel.DIALOGMELDING.value
+fun MeldingTilBehandler.createTittel(): String {
+    return when (this.type) {
+        MeldingType.FORESPORSEL_PASIENT -> MeldingTittel.DIALOGMELDING_DEFAULT.value
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> MeldingTittel.DIALOGMELDING_PAMINNELSE.value
     }
 }
-fun createOverstyrInnsynsregler(overstyrInnsynsregler: Boolean): String? {
-    return if (overstyrInnsynsregler) {
-        OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
-    } else {
-        null
+
+fun MeldingTilBehandler.createOverstyrInnsynsregler(): String? {
+    return when (this.type) {
+        MeldingType.FORESPORSEL_PASIENT -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> null
     }
 }
 

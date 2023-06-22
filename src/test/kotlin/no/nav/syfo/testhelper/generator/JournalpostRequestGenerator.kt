@@ -1,14 +1,13 @@
 package no.nav.syfo.testhelper.generator
 
 import no.nav.syfo.client.dokarkiv.domain.*
-import no.nav.syfo.melding.domain.createOverstyrInnsynsregler
-import no.nav.syfo.melding.domain.createTittel
 import no.nav.syfo.testhelper.UserConstants
 
 fun journalpostRequestGenerator(
     pdf: ByteArray,
     brevkodeType: BrevkodeType,
-    isPaminnelse: Boolean,
+    tittel: String,
+    overstyrInnsynsregler: String?,
 ) = JournalpostRequest(
     avsenderMottaker = AvsenderMottaker.create(
         id = UserConstants.BEHANDLER_PERSONIDENT.value,
@@ -16,14 +15,14 @@ fun journalpostRequestGenerator(
         navn = UserConstants.BEHANDLER_NAVN,
     ),
     bruker = Bruker.create(UserConstants.ARBEIDSTAKER_PERSONIDENT.value, BrukerIdType.PERSON_IDENT),
-    tittel = createTittel(isPaminnelse),
+    tittel = tittel,
     dokumenter = listOf(
         Dokument.create(
             brevkode = brevkodeType,
-            tittel = createTittel(isPaminnelse),
+            tittel = tittel,
             dokumentvarianter = listOf(
                 Dokumentvariant.create(
-                    filnavn = createTittel(isPaminnelse),
+                    filnavn = tittel,
                     filtype = FiltypeType.PDFA,
                     fysiskDokument = pdf,
                     variantformat = VariantformatType.ARKIV,
@@ -31,5 +30,5 @@ fun journalpostRequestGenerator(
             ),
         )
     ),
-    overstyrInnsynsregler = createOverstyrInnsynsregler(!isPaminnelse),
+    overstyrInnsynsregler = overstyrInnsynsregler,
 )

@@ -25,8 +25,8 @@ enum class JournalpostKanal(
 enum class MeldingTittel(
     val value: String,
 ) {
-    PAMINNELSE("Påminnelse til behandler"),
-    DIALOGMELDING("Dialogmelding til behandler")
+    DIALOGMELDING_DEFAULT("Dialogmelding til behandler"),
+    DIALOGMELDING_PAMINNELSE("Påminnelse til behandler"),
 }
 
 enum class OverstyrInnsynsregler(
