@@ -1,5 +1,6 @@
 package no.nav.syfo.client.pdfgen
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -13,7 +14,8 @@ import no.nav.syfo.util.callIdArgument
 import org.slf4j.LoggerFactory
 
 class PdfGenClient(
-    pdfGenBaseUrl: String
+    pdfGenBaseUrl: String,
+    private val httpClient: HttpClient = httpClientDefault()
 ) {
     private val foresporselOmPasientUrl: String
     private val foresporselOmPasientPaminnelseUrl: String
@@ -22,8 +24,6 @@ class PdfGenClient(
         this.foresporselOmPasientUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_PATH"
         this.foresporselOmPasientPaminnelseUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH"
     }
-
-    private val httpClient = httpClientDefault()
 
     suspend fun generateForesporselOmPasient(
         callId: String,

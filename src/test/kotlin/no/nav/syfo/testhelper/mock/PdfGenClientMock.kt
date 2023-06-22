@@ -1,20 +1,21 @@
 package no.nav.syfo.testhelper.mock
 
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
 import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.testhelper.UserConstants
 
-class PdfGenClientMock : MockServer() {
-    override val name = "pdfgenclient"
+fun MockRequestHandleScope.pdfGenClientMockResponse(request: HttpRequestData): HttpResponseData {
+    val requestUrl = request.url.encodedPath
+    return when {
+        requestUrl.endsWith(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_PATH) -> {
+            respond(content = UserConstants.PDF_FORESPORSEL_OM_PASIENT)
+        }
 
-    override val routingConfiguration: Routing.() -> Unit = {
-        post(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_PATH) {
-            call.respond(UserConstants.PDF_FORESPORSEL_OM_PASIENT)
+        requestUrl.endsWith(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH) -> {
+            respond(content = UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE)
         }
-        post(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH) {
-            call.respond(UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE)
-        }
+
+        else -> error("Unhandled pdf ${request.url.encodedPath}")
     }
 }

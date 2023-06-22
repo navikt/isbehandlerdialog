@@ -7,12 +7,7 @@ import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.client.*
 import no.nav.syfo.client.azuread.AzureEnvironment
 
-fun testEnvironment(
-    azureOpenIdTokenEndpoint: String,
-    syfoTilgangskontrollUrl: String,
-    pdfGenClientUrl: String,
-    padm2Url: String,
-) = Environment(
+fun testEnvironment() = Environment(
     database = DatabaseEnvironment(
         host = "localhost",
         port = "5432",
@@ -24,7 +19,7 @@ fun testEnvironment(
         appClientId = "isbehandlerdialog-client-id",
         appClientSecret = "isbehandlerdialog-secret",
         appWellKnownUrl = "wellknown",
-        openidConfigTokenEndpoint = azureOpenIdTokenEndpoint,
+        openidConfigTokenEndpoint = "azureOpenIdTokenEndpoint",
     ),
     kafka = KafkaEnvironment(
         aivenBootstrapServers = "kafkaBootstrapServers",
@@ -38,14 +33,14 @@ fun testEnvironment(
     ),
     clients = ClientsEnvironment(
         syfotilgangskontroll = ClientEnvironment(
-            baseUrl = syfoTilgangskontrollUrl,
+            baseUrl = "syfoTilgangskontrollUrl",
             clientId = "dev-fss.teamsykefravr.syfotilgangskontroll",
         ),
         dialogmeldingpdfgen = OpenClientEnvironment(
-            baseUrl = pdfGenClientUrl
+            baseUrl = "pdfGenClientUrl"
         ),
         padm2 = ClientEnvironment(
-            baseUrl = padm2Url,
+            baseUrl = "padm2Url",
             clientId = "dev-gcp.teamsykefravr.padm2",
         ),
         dokarkiv = ClientEnvironment(
