@@ -5,7 +5,9 @@ import no.nav.syfo.testhelper.UserConstants
 
 fun journalpostRequestGenerator(
     pdf: ByteArray,
-    brevkodeType: BrevkodeType
+    brevkodeType: BrevkodeType,
+    tittel: String,
+    overstyrInnsynsregler: String?,
 ) = JournalpostRequest(
     avsenderMottaker = AvsenderMottaker.create(
         id = UserConstants.BEHANDLER_PERSONIDENT.value,
@@ -13,14 +15,14 @@ fun journalpostRequestGenerator(
         navn = UserConstants.BEHANDLER_NAVN,
     ),
     bruker = Bruker.create(UserConstants.ARBEIDSTAKER_PERSONIDENT.value, BrukerIdType.PERSON_IDENT),
-    tittel = "Dialogmelding til behandler",
+    tittel = tittel,
     dokumenter = listOf(
         Dokument.create(
             brevkode = brevkodeType,
-            tittel = "Dialogmelding til behandler",
+            tittel = tittel,
             dokumentvarianter = listOf(
                 Dokumentvariant.create(
-                    filnavn = "Dialogmelding til behandler",
+                    filnavn = tittel,
                     filtype = FiltypeType.PDFA,
                     fysiskDokument = pdf,
                     variantformat = VariantformatType.ARKIV,
@@ -28,4 +30,5 @@ fun journalpostRequestGenerator(
             ),
         )
     ),
+    overstyrInnsynsregler = overstyrInnsynsregler,
 )

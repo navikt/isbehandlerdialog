@@ -31,7 +31,7 @@ class JournalforMeldingTilBehandlerCronjob(
 
         ikkeJournalforteMeldingerTilBehandler.forEach { (meldingTilBehandler, pdf) ->
             try {
-                val journalpostRequest = meldingTilBehandler.toJournalpostRequest(pdf)
+                val journalpostRequest = meldingTilBehandler.toJournalpostRequest(pdf = pdf)
 
                 val journalpostId = dokarkivClient.journalfor(
                     journalpostRequest = journalpostRequest,

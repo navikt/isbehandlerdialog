@@ -84,28 +84,44 @@ private fun MeldingTilBehandler.getBrevKode(): BrevkodeType {
     }
 }
 
-fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) = JournalpostRequest(
-    avsenderMottaker = createAvsenderMottaker(behandlerPersonIdent, behandlerNavn),
-    tittel = "Dialogmelding til behandler",
-    bruker = Bruker.create(
-        id = arbeidstakerPersonIdent.value,
-        idType = BrukerIdType.PERSON_IDENT,
-    ),
-    dokumenter = listOf(
-        Dokument.create(
-            brevkode = this.getBrevKode(),
-            tittel = "Dialogmelding til behandler",
-            dokumentvarianter = listOf(
-                Dokumentvariant.create(
-                    filnavn = "Dialogmelding til behandler",
-                    filtype = FiltypeType.PDFA,
-                    fysiskDokument = pdf,
-                    variantformat = VariantformatType.ARKIV,
-                )
-            ),
-        )
-    ),
-)
+fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) =
+    JournalpostRequest(
+        avsenderMottaker = createAvsenderMottaker(behandlerPersonIdent, behandlerNavn),
+        tittel = this.createTittel(),
+        bruker = Bruker.create(
+            id = arbeidstakerPersonIdent.value,
+            idType = BrukerIdType.PERSON_IDENT,
+        ),
+        dokumenter = listOf(
+            Dokument.create(
+                brevkode = this.getBrevKode(),
+                tittel = this.createTittel(),
+                dokumentvarianter = listOf(
+                    Dokumentvariant.create(
+                        filnavn = this.createTittel(),
+                        filtype = FiltypeType.PDFA,
+                        fysiskDokument = pdf,
+                        variantformat = VariantformatType.ARKIV,
+                    )
+                ),
+            )
+        ),
+        overstyrInnsynsregler = this.createOverstyrInnsynsregler(),
+    )
+
+fun MeldingTilBehandler.createTittel(): String {
+    return when (this.type) {
+        MeldingType.FORESPORSEL_PASIENT -> MeldingTittel.DIALOGMELDING_DEFAULT.value
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> MeldingTittel.DIALOGMELDING_PAMINNELSE.value
+    }
+}
+
+fun MeldingTilBehandler.createOverstyrInnsynsregler(): String? {
+    return when (this.type) {
+        MeldingType.FORESPORSEL_PASIENT -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> null
+    }
+}
 
 fun MeldingTilBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(
     uuid = uuid.toString(),
