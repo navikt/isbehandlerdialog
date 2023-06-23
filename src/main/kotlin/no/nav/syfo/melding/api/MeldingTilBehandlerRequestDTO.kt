@@ -6,7 +6,7 @@ import java.time.OffsetDateTime
 import java.util.*
 
 data class MeldingTilBehandlerRequestDTO(
-    val type: MeldingType,
+    val type: MeldingType = MeldingType.FORESPORSEL_PASIENT, // TODO: Fjern defaultverdi når frontend er tilpasset
     val behandlerIdent: String?,
     val behandlerNavn: String?,
     val behandlerRef: UUID,
@@ -14,12 +14,15 @@ data class MeldingTilBehandlerRequestDTO(
     val document: List<DocumentComponentDTO> = emptyList(),
 )
 
-fun MeldingTilBehandlerRequestDTO.toMeldingTilBehandler(personIdent: PersonIdent, veilederIdent: String): MeldingTilBehandler {
+fun MeldingTilBehandlerRequestDTO.toMeldingTilBehandler(
+    personIdent: PersonIdent,
+    veilederIdent: String
+): MeldingTilBehandler {
     val now = OffsetDateTime.now()
     return MeldingTilBehandler(
         uuid = UUID.randomUUID(),
         createdAt = now,
-        type = MeldingType.FORESPORSEL_PASIENT,
+        type = type,
         conversationRef = UUID.randomUUID(),
         parentRef = null,
         tidspunkt = now,
