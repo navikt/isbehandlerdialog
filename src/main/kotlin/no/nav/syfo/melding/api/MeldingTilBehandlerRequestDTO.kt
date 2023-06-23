@@ -6,6 +6,7 @@ import java.time.OffsetDateTime
 import java.util.*
 
 data class MeldingTilBehandlerRequestDTO(
+    val type: MeldingType,
     val behandlerIdent: String?,
     val behandlerNavn: String?,
     val behandlerRef: UUID,
