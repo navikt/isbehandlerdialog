@@ -1,5 +1,6 @@
 package no.nav.syfo.client.padm2
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -12,8 +13,8 @@ import no.nav.syfo.util.*
 class Padm2Client(
     private val azureAdClient: AzureAdClient,
     private val clientEnvironment: ClientEnvironment,
+    private val httpClient: HttpClient = httpClientDefault(),
 ) {
-    private val httpClient = httpClientDefault()
     private val hentVedleggUrl = "${clientEnvironment.baseUrl}$HENT_VEDLEGG_PATH"
 
     suspend fun hentVedlegg(

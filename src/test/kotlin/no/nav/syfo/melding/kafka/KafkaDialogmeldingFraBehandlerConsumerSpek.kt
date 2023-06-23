@@ -23,12 +23,15 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
         start()
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val database = externalMockEnvironment.database
+        val mockHttpClient = externalMockEnvironment.mockHttpClient
         val azureAdClient = AzureAdClient(
             azureEnvironment = externalMockEnvironment.environment.azure,
+            httpClient = mockHttpClient,
         )
         val padm2Client = Padm2Client(
             azureAdClient = azureAdClient,
             clientEnvironment = externalMockEnvironment.environment.clients.padm2,
+            httpClient = mockHttpClient,
         )
 
         val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT

@@ -15,6 +15,7 @@ import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.pdfgen.PdfGenClient
+import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.getWellKnown
 import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.melding.kafka.*
@@ -35,6 +36,10 @@ fun main() {
     )
     val azureAdClient = AzureAdClient(
         azureEnvironment = environment.azure
+    )
+    val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
+        azureAdClient = azureAdClient,
+        clientEnvironment = environment.clients.syfotilgangskontroll
     )
     val padm2Client = Padm2Client(
         azureAdClient = azureAdClient,
@@ -72,7 +77,7 @@ fun main() {
                 database = applicationDatabase,
                 environment = environment,
                 wellKnownInternalAzureAD = wellKnownInternalAzureAD,
-                azureAdClient = azureAdClient,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
                 meldingService = meldingService,
             )
             cronjobModule(
