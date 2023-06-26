@@ -88,7 +88,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     }
 
                     val kafkaMeldingDTO = producerRecordSlot.captured.value()
-                    kafkaMeldingDTO.type shouldBeEqualTo "FORESPORSEL_PASIENT"
+                    kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
                     kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
                     kafkaMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
                 }
@@ -235,7 +235,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     }
 
                     val kafkaMeldingDTO = producerRecordSlot.captured.value()
-                    kafkaMeldingDTO.type shouldBeEqualTo "FORESPORSEL_PASIENT"
+                    kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
                     kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
                     kafkaMeldingDTO.uuid shouldBeEqualTo utgaendeMeldinger.last().uuid.toString()
                 }

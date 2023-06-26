@@ -92,7 +92,7 @@ class MeldingApiSpek : Spek({
                             val message = conversation.first()
                             message.tekst shouldBeEqualTo "${defaultMeldingTilBehandler.tekst}1"
                             message.document shouldBeEqualTo defaultMeldingTilBehandler.document
-                            message.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT
+                            message.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER
                             conversation.all { it.status == null } shouldBeEqualTo true
 
                             respons.conversations[secondConversation]?.size shouldBeEqualTo 1
@@ -384,7 +384,7 @@ class MeldingApiSpek : Spek({
                         pMeldinger.size shouldBeEqualTo 1
                         val pMelding = pMeldinger.first()
                         pMelding.tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
-                        pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT.name
+                        pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
                         pMelding.innkommende shouldBeEqualTo false
                         pMelding.veilederIdent shouldBeEqualTo veilederIdent
 
