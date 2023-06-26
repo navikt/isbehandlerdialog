@@ -13,7 +13,9 @@ import java.util.UUID
 fun generateMeldingTilBehandlerRequestDTO(
     behandlerRef: UUID = UUID.randomUUID(),
     tekst: String = "Melding til behandler",
+    type: MeldingType = MeldingType.FORESPORSEL_PASIENT,
 ) = MeldingTilBehandlerRequestDTO(
+    type = type,
     behandlerRef = behandlerRef,
     behandlerIdent = UserConstants.BEHANDLER_PERSONIDENT.value,
     behandlerNavn = UserConstants.BEHANDLER_NAVN,
@@ -60,6 +62,7 @@ fun generateMeldingTilBehandler(
 ) = generateMeldingTilBehandlerRequestDTO(
     behandlerRef = behandlerRef,
     tekst = tekst,
+    type = MeldingType.FORESPORSEL_PASIENT,
 ).toMeldingTilBehandler(personIdent, veilederIdent)
     .copy(
         type = type,
