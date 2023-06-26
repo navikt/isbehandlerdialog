@@ -13,7 +13,7 @@ import java.util.UUID
 fun generateMeldingTilBehandlerRequestDTO(
     behandlerRef: UUID = UUID.randomUUID(),
     tekst: String = "Melding til behandler",
-    type: MeldingType = MeldingType.FORESPORSEL_PASIENT,
+    type: MeldingType = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
 ) = MeldingTilBehandlerRequestDTO(
     type = type,
     behandlerRef = behandlerRef,
@@ -57,15 +57,12 @@ fun generateMeldingTilBehandler(
     personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
     behandlerRef: UUID = UUID.randomUUID(),
     tekst: String = "Melding til behandler",
-    type: MeldingType = MeldingType.FORESPORSEL_PASIENT,
+    type: MeldingType = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
     veilederIdent: String = UserConstants.VEILEDER_IDENT,
 ) = generateMeldingTilBehandlerRequestDTO(
     behandlerRef = behandlerRef,
     tekst = tekst,
-    type = MeldingType.FORESPORSEL_PASIENT,
+    type = type,
 ).toMeldingTilBehandler(personIdent, veilederIdent)
-    .copy(
-        type = type,
-    )
 
 val defaultMeldingTilBehandler = generateMeldingTilBehandler()

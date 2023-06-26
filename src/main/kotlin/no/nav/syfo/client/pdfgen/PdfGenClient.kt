@@ -85,7 +85,7 @@ class PdfGenClient(
 
     companion object {
         private const val API_BASE_PATH = "/api/v1/genpdf/isbehandlerdialog"
-        const val FORESPORSEL_OM_PASIENT_PATH = "$API_BASE_PATH/foresporselompasient"
+        const val FORESPORSEL_OM_PASIENT_PATH = "$API_BASE_PATH/foresporselompasient" // TODO: Spesifiser her også?
         const val FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH = "$API_BASE_PATH/foresporselompasient-paminnelse"
 
         private val log = LoggerFactory.getLogger(PdfGenClient::class.java)
