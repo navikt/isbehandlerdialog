@@ -119,6 +119,8 @@ fun DatabaseInterface.getPDFs(meldingUuid: UUID): List<PPdf> = this.connection.u
     }
 }
 
+fun DatabaseInterface.firstPdf(meldingUuid: UUID): PPdf = this.getPDFs(meldingUuid).first()
+
 fun DatabaseInterface.getMeldingStatus(): List<PMeldingStatus> = this.connection.use { connection ->
     connection.prepareStatement("SELECT * FROM MELDING_STATUS").use {
         it.executeQuery().toList { toPMeldingStatus() }
