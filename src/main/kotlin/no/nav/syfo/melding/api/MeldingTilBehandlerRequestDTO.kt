@@ -6,7 +6,7 @@ import java.time.OffsetDateTime
 import java.util.*
 
 data class MeldingTilBehandlerRequestDTO(
-    val type: MeldingType = MeldingType.FORESPORSEL_PASIENT, // TODO: Fjern defaultverdi når frontend er tilpasset
+    val type: MeldingType,
     val behandlerIdent: String?,
     val behandlerNavn: String?,
     val behandlerRef: UUID,
