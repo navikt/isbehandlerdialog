@@ -10,7 +10,7 @@ enum class DialogmeldingType {
 
 fun DialogmeldingType.getMeldingType(): MeldingType {
     return when (this) {
-        DialogmeldingType.DIALOG_SVAR -> MeldingType.FORESPORSEL_PASIENT
+        DialogmeldingType.DIALOG_SVAR -> MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER
         else -> throw IllegalArgumentException("Cannot get MeldingType for DialogmeldingType $this")
     }
 }
