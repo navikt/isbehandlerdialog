@@ -6,6 +6,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.melding.database.*
+import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.DialogmeldingType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
@@ -109,6 +110,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
                     pSvar.antallVedlegg shouldBeEqualTo 0
                     pSvar.veilederIdent shouldBeEqualTo null
+                    pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }
@@ -138,6 +140,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     pSvar.innkommende shouldBe true
                     pSvar.msgId shouldBeEqualTo UserConstants.MSG_ID_WITH_VEDLEGG.toString()
                     pSvar.antallVedlegg shouldBeEqualTo 1
+                    pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg!!.pdf shouldBeEqualTo UserConstants.VEDLEGG_BYTEARRAY
                 }
