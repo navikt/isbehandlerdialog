@@ -3,7 +3,7 @@ package no.nav.syfo.client.dokarkiv.domain
 enum class BrevkodeType(
     val value: String,
 ) {
-    FORESPORSEL_OM_PASIENT("OPPF_FORESP_OM_PAS"),
+    FORESPORSEL_OM_PASIENT("OPPF_FORESP_OM_PAS"), // TODO: Burde vi ha en egen brevkodetype for legeerklæring?
     FORESPORSEL_OM_PASIENT_PAMINNELSE("OPPF_FORESP_OM_PAS_PAM")
 }
 

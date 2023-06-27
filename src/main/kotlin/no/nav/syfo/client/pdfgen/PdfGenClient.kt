@@ -25,7 +25,7 @@ class PdfGenClient(
         this.foresporselOmPasientPaminnelseUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH"
     }
 
-    suspend fun generateForesporselOmPasient(
+    suspend fun generateForesporselOmPasientTilleggsopplysinger(
         callId: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? {
@@ -45,6 +45,14 @@ class PdfGenClient(
             documentComponentDTOList = documentComponentDTOList,
             pdfUrl = foresporselOmPasientPaminnelseUrl,
         )
+    }
+
+    fun generateForesporselOmPasientLegeerklaring(
+        callId: String,
+        documentComponentDTOList: List<DocumentComponentDTO>
+    ): ByteArray {
+        // TODO: Implement
+        return byteArrayOf(0x2E, 105)
     }
 
     private suspend fun getPdf(

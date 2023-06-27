@@ -240,6 +240,37 @@ class UbesvartMeldingCronjobSpek : Spek({
                     kafkaMeldingDTO.uuid shouldBeEqualTo utgaendeMeldinger.last().uuid.toString()
                 }
 
+                it("Will update ubesvart_published_at when melding is of type legeeklaring and cronjob has run") {
+                    val meldingTilBehandler = generateMeldingTilBehandler(personIdent = personIdent, type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
+                    val (_, idList) = database.createMeldingerTilBehandler(
+                        meldingTilBehandler = meldingTilBehandler,
+                    )
+                    database.updateMeldingCreatedAt(
+                        id = idList.first(),
+                        createdAt = OffsetDateTime.now().minusDays(14)
+                    )
+
+                    runBlocking {
+                        val result = ubesvartMeldingCronjob.runJob()
+
+                        result.failed shouldBeEqualTo 0
+                        result.updated shouldBeEqualTo 1
+                    }
+
+                    val melding = database.getMeldingerForArbeidstaker(personIdent).first()
+                    melding.ubesvartPublishedAt shouldNotBeEqualTo null
+
+                    val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
+                    verify(exactly = 1) {
+                        kafkaProducer.send(capture(producerRecordSlot))
+                    }
+
+                    val kafkaMeldingDTO = producerRecordSlot.captured.value()
+                    kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
+                    kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
+                    kafkaMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
+                }
+
                 it("Will not update ubesvart_published_at when melding is of type paminnelse") {
                     val meldingTilBehandler = generateMeldingTilBehandler(
                         personIdent = personIdent,

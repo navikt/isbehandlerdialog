@@ -60,26 +60,26 @@ fun MeldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf: ByteArray) = Di
 
 private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> DialogmeldingKode.FORESPORSEL
+        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingKode.FORESPORSEL
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingKode.PAMINNELSE_FORESPORSEL
     }
 }
 
 private fun MeldingTilBehandler.getDialogmeldingKodeverk(): DialogmeldingKodeverk {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingKodeverk.FORESPORSEL
+        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingKodeverk.FORESPORSEL
     }
 }
 
 private fun MeldingTilBehandler.getDialogmeldingType(): DialogmeldingType {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingType.DIALOG_FORESPORSEL
+        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingType.DIALOG_FORESPORSEL
     }
 }
 
 private fun MeldingTilBehandler.getBrevKode(): BrevkodeType {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> BrevkodeType.FORESPORSEL_OM_PASIENT
+        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> BrevkodeType.FORESPORSEL_OM_PASIENT
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> BrevkodeType.FORESPORSEL_OM_PASIENT_PAMINNELSE
     }
 }
@@ -111,14 +111,14 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) =
 
 fun MeldingTilBehandler.createTittel(): String {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> MeldingTittel.DIALOGMELDING_DEFAULT.value
+        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> MeldingTittel.DIALOGMELDING_DEFAULT.value
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> MeldingTittel.DIALOGMELDING_PAMINNELSE.value
     }
 }
 
 fun MeldingTilBehandler.createOverstyrInnsynsregler(): String? {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
+        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> null
     }
 }
