@@ -23,11 +23,7 @@ class MeldingService(
         callId: String,
         meldingTilBehandler: MeldingTilBehandler,
     ) {
-        val pdf = pdfgenClient.generateForesporselOmPasient(
-            callId = callId,
-            documentComponentDTOList = meldingTilBehandler.document
-        ) ?: throw RuntimeException("Failed to request PDF - Dialogmelding forespørsel om pasient")
-
+        val pdf = createPdf(callId, meldingTilBehandler)
         createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = meldingTilBehandler, pdf = pdf)
     }
 
@@ -82,12 +78,30 @@ class MeldingService(
     }
 
     internal suspend fun createPaminnelse(callId: String, paminnelse: MeldingTilBehandler) {
-        val pdf = pdfgenClient.generateForesporselOmPasientPaminnelse(
-            callId = callId,
-            documentComponentDTOList = paminnelse.document
-        ) ?: throw RuntimeException("Failed to request PDF - Dialogmelding forespørsel om pasient paminnelse")
-
+        val pdf = createPdf(callId = callId, meldingTilBehandler = paminnelse)
         createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = paminnelse, pdf = pdf)
+    }
+
+    private suspend fun createPdf(
+        callId: String,
+        meldingTilBehandler: MeldingTilBehandler
+    ): ByteArray {
+        return when (meldingTilBehandler.type) {
+            MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> pdfgenClient.generateForesporselOmPasientTilleggsopplysinger(
+                callId = callId,
+                documentComponentDTOList = meldingTilBehandler.document
+            )
+
+            MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> pdfgenClient.generateForesporselOmPasientPaminnelse(
+                callId = callId,
+                documentComponentDTOList = meldingTilBehandler.document
+            )
+
+            MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> pdfgenClient.generateForesporselOmPasientLegeerklaring(
+                callId = callId,
+                documentComponentDTOList = meldingTilBehandler.document
+            )
+        } ?: throw RuntimeException("Failed to request PDF - ${meldingTilBehandler.type}")
     }
 
     private fun createMeldingTilBehandlerAndSendDialogmeldingBestilling(

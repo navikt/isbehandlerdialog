@@ -107,7 +107,7 @@ class MeldingApiPostSpek : Spek({
                         }
                     }
                 }
-                describe("Unnhappy path") {
+                describe("Unhappy path") {
                     it("Returns status Unauthorized if no token is supplied") {
                         testMissingToken(paminnelseApiUrl, HttpMethod.Post)
                     }
@@ -163,62 +163,142 @@ class MeldingApiPostSpek : Spek({
             }
 
             describe("Create new melding to behandler") {
-                val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
+                describe("Happy path") {
+                    describe("Foresporsel pasient tilleggsopplysninger") {
+                        val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
 
-                it("Will create a new melding to behandler and produce dialogmelding-bestilling to kafka") {
-                    with(
-                        handleRequest(HttpMethod.Post, apiUrl) {
-                            addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                            addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
-                            setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
+                        it("Will create a new melding to behandler and produce dialogmelding-bestilling to kafka") {
+                            with(
+                                handleRequest(HttpMethod.Post, apiUrl) {
+                                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                    addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                    addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                                    setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
+                                }
+                            ) {
+                                response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                                val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                                pMeldinger.size shouldBeEqualTo 1
+                                val pMelding = pMeldinger.first()
+                                pMelding.tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
+                                pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
+                                pMelding.innkommende shouldBeEqualTo false
+                                pMelding.veilederIdent shouldBeEqualTo veilederIdent
+
+                                val brodtekst =
+                                    pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
+                                brodtekst.texts.first() shouldBeEqualTo meldingTilBehandlerDTO.tekst
+
+                                val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
+                                verify(exactly = 1) {
+                                    kafkaProducer.send(capture(producerRecordSlot))
+                                }
+
+                                val dialogmeldingBestillingDTO = producerRecordSlot.captured.value()
+                                dialogmeldingBestillingDTO.behandlerRef shouldBeEqualTo meldingTilBehandlerDTO.behandlerRef.toString()
+                                dialogmeldingBestillingDTO.dialogmeldingTekst shouldBeEqualTo meldingTilBehandlerDTO.document.serialize()
+                                dialogmeldingBestillingDTO.dialogmeldingType shouldBeEqualTo DialogmeldingType.DIALOG_FORESPORSEL.name
+                                dialogmeldingBestillingDTO.dialogmeldingKode shouldBeEqualTo DialogmeldingKode.FORESPORSEL.value
+                                dialogmeldingBestillingDTO.dialogmeldingKodeverk shouldBeEqualTo DialogmeldingKodeverk.FORESPORSEL.name
+                                dialogmeldingBestillingDTO.dialogmeldingUuid shouldBeEqualTo pMelding.uuid.toString()
+                                dialogmeldingBestillingDTO.personIdent shouldBeEqualTo pMelding.arbeidstakerPersonIdent
+                                dialogmeldingBestillingDTO.dialogmeldingRefConversation shouldBeEqualTo pMelding.conversationRef.toString()
+                                dialogmeldingBestillingDTO.dialogmeldingRefParent shouldBeEqualTo null
+                                dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldNotBeEqualTo null
+                            }
                         }
-                    ) {
-                        response.status() shouldBeEqualTo HttpStatusCode.OK
+                        it("Store a new dialogmelding as pdf") {
+                            with(
+                                handleRequest(HttpMethod.Post, apiUrl) {
+                                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                    addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                    addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                                    setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
+                                }
+                            ) {
+                                response.status() shouldBeEqualTo HttpStatusCode.OK
 
-                        val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
-                        pMeldinger.size shouldBeEqualTo 1
-                        val pMelding = pMeldinger.first()
-                        pMelding.tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
-                        pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
-                        pMelding.innkommende shouldBeEqualTo false
-                        pMelding.veilederIdent shouldBeEqualTo veilederIdent
-
-                        val brodtekst =
-                            pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
-                        brodtekst.texts.first() shouldBeEqualTo meldingTilBehandlerDTO.tekst
-
-                        val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
-                        verify(exactly = 1) {
-                            kafkaProducer.send(capture(producerRecordSlot))
+                                val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                                val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
+                                pPdf.pdf shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT
+                            }
                         }
+                    }
+                    describe("Foresporsel pasient legeerklæring") {
+                        val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO(type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
 
-                        val dialogmeldingBestillingDTO = producerRecordSlot.captured.value()
-                        dialogmeldingBestillingDTO.behandlerRef shouldBeEqualTo meldingTilBehandlerDTO.behandlerRef.toString()
-                        dialogmeldingBestillingDTO.dialogmeldingTekst shouldBeEqualTo meldingTilBehandlerDTO.document.serialize()
-                        dialogmeldingBestillingDTO.dialogmeldingType shouldBeEqualTo DialogmeldingType.DIALOG_FORESPORSEL.name
-                        dialogmeldingBestillingDTO.dialogmeldingKode shouldBeEqualTo DialogmeldingKode.FORESPORSEL.value
-                        dialogmeldingBestillingDTO.dialogmeldingKodeverk shouldBeEqualTo DialogmeldingKodeverk.FORESPORSEL.name
-                        dialogmeldingBestillingDTO.dialogmeldingUuid shouldBeEqualTo pMelding.uuid.toString()
-                        dialogmeldingBestillingDTO.personIdent shouldBeEqualTo pMelding.arbeidstakerPersonIdent
-                        dialogmeldingBestillingDTO.dialogmeldingRefConversation shouldBeEqualTo pMelding.conversationRef.toString()
-                        dialogmeldingBestillingDTO.dialogmeldingRefParent shouldBeEqualTo null
-                        dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldNotBeEqualTo null
+                        it("Will create a new melding to behandler and produce dialogmelding-bestilling to kafka") {
+                            with(
+                                handleRequest(HttpMethod.Post, apiUrl) {
+                                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                    addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                    addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                                    setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
+                                }
+                            ) {
+                                response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                                val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                                pMeldinger.size shouldBeEqualTo 1
+                                val pMelding = pMeldinger.first()
+                                pMelding.tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
+                                pMelding.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
+                                pMelding.innkommende shouldBeEqualTo false
+                                pMelding.veilederIdent shouldBeEqualTo veilederIdent
+
+                                val brodtekst =
+                                    pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
+                                brodtekst.texts.first() shouldBeEqualTo meldingTilBehandlerDTO.tekst
+
+                                val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
+                                verify(exactly = 1) {
+                                    kafkaProducer.send(capture(producerRecordSlot))
+                                }
+
+                                val dialogmeldingBestillingDTO = producerRecordSlot.captured.value()
+                                dialogmeldingBestillingDTO.behandlerRef shouldBeEqualTo meldingTilBehandlerDTO.behandlerRef.toString()
+                                dialogmeldingBestillingDTO.dialogmeldingTekst shouldBeEqualTo meldingTilBehandlerDTO.document.serialize()
+                                dialogmeldingBestillingDTO.dialogmeldingType shouldBeEqualTo DialogmeldingType.DIALOG_FORESPORSEL.name
+                                dialogmeldingBestillingDTO.dialogmeldingKode shouldBeEqualTo DialogmeldingKode.FORESPORSEL.value
+                                dialogmeldingBestillingDTO.dialogmeldingKodeverk shouldBeEqualTo DialogmeldingKodeverk.FORESPORSEL.name
+                                dialogmeldingBestillingDTO.dialogmeldingUuid shouldBeEqualTo pMelding.uuid.toString()
+                                dialogmeldingBestillingDTO.personIdent shouldBeEqualTo pMelding.arbeidstakerPersonIdent
+                                dialogmeldingBestillingDTO.dialogmeldingRefConversation shouldBeEqualTo pMelding.conversationRef.toString()
+                                dialogmeldingBestillingDTO.dialogmeldingRefParent shouldBeEqualTo null
+                                dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldNotBeEqualTo null
+                            }
+                        }
+                        it("Store a new dialogmelding as pdf") {
+                            with(
+                                handleRequest(HttpMethod.Post, apiUrl) {
+                                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                    addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                    addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                                    setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
+                                }
+                            ) {
+                                response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                                val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                                val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
+                                pPdf.pdf.shouldNotBeNull() // TODO: Fix test when pdfgen implemented
+                            }
+                        }
                     }
                 }
-
-                it("Store a new dialogmelding as pdf") {
-                    with(
-                        handleRequest(HttpMethod.Post, apiUrl) {
-                            addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                            addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
-                            addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
-                            setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
-                        }
-                    ) {
-                        val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
-                        val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
-                        pPdf.pdf shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT
+                describe("Unhappy path") {
+                    it("Returns status Unauthorized if no token is supplied") {
+                        testMissingToken(apiUrl, HttpMethod.Post)
+                    }
+                    it("returns status Forbidden if denied access to person") {
+                        testDeniedPersonAccess(apiUrl, validToken, HttpMethod.Post)
+                    }
+                    it("returns status BadRequest if no $NAV_PERSONIDENT_HEADER is supplied") {
+                        testMissingPersonIdent(apiUrl, validToken, HttpMethod.Post)
+                    }
+                    it("returns status BadRequest if $NAV_PERSONIDENT_HEADER with invalid PersonIdent is supplied") {
+                        testInvalidPersonIdent(apiUrl, validToken, HttpMethod.Post)
                     }
                 }
             }
