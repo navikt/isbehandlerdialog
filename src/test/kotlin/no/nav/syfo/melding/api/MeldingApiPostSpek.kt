@@ -107,7 +107,7 @@ class MeldingApiPostSpek : Spek({
                         }
                     }
                 }
-                describe("Unnhappy path") {
+                describe("Unhappy path") {
                     it("Returns status Unauthorized if no token is supplied") {
                         testMissingToken(paminnelseApiUrl, HttpMethod.Post)
                     }
@@ -287,7 +287,7 @@ class MeldingApiPostSpek : Spek({
                         }
                     }
                 }
-                describe("Unnhappy path") {
+                describe("Unhappy path") {
                     it("Returns status Unauthorized if no token is supplied") {
                         testMissingToken(apiUrl, HttpMethod.Post)
                     }
