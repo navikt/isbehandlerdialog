@@ -164,7 +164,7 @@ class MeldingApiGetSpek : Spek({
                                 meldingFraBehandler = meldingFraBehandler,
                                 fellesformat = null,
                             )
-                            it.createVedlegg(UserConstants.PDF_FORESPORSEL_OM_PASIENT, meldingId, vedleggNumber)
+                            it.createVedlegg(UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER, meldingId, vedleggNumber)
                             it.commit()
                         }
                         with(
@@ -175,7 +175,7 @@ class MeldingApiGetSpek : Spek({
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.OK
                             val pdfContent = response.byteContent!!
-                            pdfContent shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT
+                            pdfContent shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
                         }
                     }
                     it("Returns 204 when no vedlegg for melding") {
@@ -239,7 +239,7 @@ class MeldingApiGetSpek : Spek({
                                 meldingFraBehandler = meldingFraBehandler,
                                 fellesformat = null,
                             )
-                            it.createVedlegg(UserConstants.PDF_FORESPORSEL_OM_PASIENT, meldingId, vedleggNumber)
+                            it.createVedlegg(UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER, meldingId, vedleggNumber)
                             it.commit()
                         }
                         with(
