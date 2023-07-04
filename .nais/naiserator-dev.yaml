@@ -71,6 +71,8 @@ spec:
   env:
     - name: KTOR_ENV
       value: "production"
+    - name: TOGGLE_CONSUME_LEGEERKLARING
+      value: "false"
     - name: PADM2_CLIENT_ID
       value: "dev-gcp.teamsykefravr.padm2"
     - name: PADM2_URL
