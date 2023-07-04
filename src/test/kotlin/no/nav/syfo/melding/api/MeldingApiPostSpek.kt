@@ -221,7 +221,7 @@ class MeldingApiPostSpek : Spek({
 
                                 val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
                                 val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
-                                pPdf.pdf shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT
+                                pPdf.pdf shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
                             }
                         }
                     }
@@ -282,7 +282,7 @@ class MeldingApiPostSpek : Spek({
 
                                 val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
                                 val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
-                                pPdf.pdf.shouldNotBeNull() // TODO: Fix test when pdfgen implemented
+                                pPdf.pdf shouldBeEqualTo UserConstants.PDF_FORESPORSEL_OM_PASIENT_LEGEERKLARING
                             }
                         }
                     }

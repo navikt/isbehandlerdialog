@@ -8,10 +8,12 @@ import no.nav.syfo.testhelper.UserConstants
 fun MockRequestHandleScope.pdfGenClientMockResponse(request: HttpRequestData): HttpResponseData {
     val requestUrl = request.url.encodedPath
     return when {
-        requestUrl.endsWith(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_PATH) -> {
-            respond(content = UserConstants.PDF_FORESPORSEL_OM_PASIENT)
+        requestUrl.endsWith(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_PATH) -> {
+            respond(content = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER)
         }
-
+        requestUrl.endsWith(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_LEGEERKLARING_PATH) -> {
+            respond(content = UserConstants.PDF_FORESPORSEL_OM_PASIENT_LEGEERKLARING)
+        }
         requestUrl.endsWith(PdfGenClient.Companion.FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH) -> {
             respond(content = UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE)
         }

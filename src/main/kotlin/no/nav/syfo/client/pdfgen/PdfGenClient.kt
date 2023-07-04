@@ -17,43 +17,43 @@ class PdfGenClient(
     pdfGenBaseUrl: String,
     private val httpClient: HttpClient = httpClientDefault()
 ) {
-    private val foresporselOmPasientUrl: String
+    private val foresporselOmPasientTilleggsopplysningerUrl: String
+    private val foresporselOmPasientLegeerklaringUrl: String
     private val foresporselOmPasientPaminnelseUrl: String
 
     init {
-        this.foresporselOmPasientUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_PATH"
+        this.foresporselOmPasientTilleggsopplysningerUrl =
+            "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_PATH"
+        this.foresporselOmPasientLegeerklaringUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_LEGEERKLARING_PATH"
         this.foresporselOmPasientPaminnelseUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH"
     }
 
     suspend fun generateForesporselOmPasientTilleggsopplysinger(
         callId: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
-    ): ByteArray? {
-        return getPdf(
-            callId = callId,
-            documentComponentDTOList = documentComponentDTOList,
-            pdfUrl = foresporselOmPasientUrl,
-        )
-    }
+    ): ByteArray? = getPdf(
+        callId = callId,
+        documentComponentDTOList = documentComponentDTOList,
+        pdfUrl = foresporselOmPasientTilleggsopplysningerUrl,
+    )
 
     suspend fun generateForesporselOmPasientPaminnelse(
         callId: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
-    ): ByteArray? {
-        return getPdf(
-            callId = callId,
-            documentComponentDTOList = documentComponentDTOList,
-            pdfUrl = foresporselOmPasientPaminnelseUrl,
-        )
-    }
+    ): ByteArray? = getPdf(
+        callId = callId,
+        documentComponentDTOList = documentComponentDTOList,
+        pdfUrl = foresporselOmPasientPaminnelseUrl,
+    )
 
-    fun generateForesporselOmPasientLegeerklaring(
+    suspend fun generateForesporselOmPasientLegeerklaring(
         callId: String,
         documentComponentDTOList: List<DocumentComponentDTO>
-    ): ByteArray {
-        // TODO: Implement
-        return byteArrayOf(0x2E, 105)
-    }
+    ): ByteArray? = getPdf(
+        callId = callId,
+        documentComponentDTOList = documentComponentDTOList,
+        pdfUrl = foresporselOmPasientLegeerklaringUrl,
+    )
 
     private suspend fun getPdf(
         callId: String,
@@ -93,7 +93,9 @@ class PdfGenClient(
 
     companion object {
         private const val API_BASE_PATH = "/api/v1/genpdf/isbehandlerdialog"
-        const val FORESPORSEL_OM_PASIENT_PATH = "$API_BASE_PATH/foresporselompasient" // TODO: Spesifiser her også?
+        const val FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_PATH =
+            "$API_BASE_PATH/foresporselompasient-tilleggsopplysninger"
+        const val FORESPORSEL_OM_PASIENT_LEGEERKLARING_PATH = "$API_BASE_PATH/foresporselompasient-legeerklaring"
         const val FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH = "$API_BASE_PATH/foresporselompasient-paminnelse"
 
         private val log = LoggerFactory.getLogger(PdfGenClient::class.java)
