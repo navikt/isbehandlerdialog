@@ -20,6 +20,7 @@ import no.nav.syfo.client.wellknown.getWellKnown
 import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.melding.kafka.*
 import no.nav.syfo.melding.kafka.config.KafkaBehandlerDialogmeldingSerializer
+import no.nav.syfo.melding.kafka.legeerklaring.launchKafkaTaskLegeerklaring
 import no.nav.syfo.melding.status.kafka.launchKafkaTaskDialogmeldingStatus
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
@@ -105,6 +106,15 @@ fun main() {
             database = applicationDatabase,
             meldingService = meldingService,
         )
+
+        if (environment.toggleConsumeLegeerklaring) {
+            launchKafkaTaskLegeerklaring(
+                applicationState = applicationState,
+                kafkaEnvironment = environment.kafka,
+                database = applicationDatabase,
+                meldingService = meldingService,
+            )
+        }
     }
 
     val server = embeddedServer(

@@ -52,6 +52,7 @@ data class Environment(
     ),
     val cronjobUbesvartMeldingIntervalDelayMinutes: Long = getEnvVar("CRONJOB_UBESVART_MELDING_INTERVAL_DELAY_MINUTES").toLong(),
     val cronjobUbesvartMeldingFristHours: Long = getEnvVar("CRONJOB_UBESVART_MELDING_FRIST_HOURS").toLong(),
+    val toggleConsumeLegeerklaring: Boolean = getEnvVar("TOGGLE_CONSUME_LEGEERKLARING").toBoolean(),
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =
