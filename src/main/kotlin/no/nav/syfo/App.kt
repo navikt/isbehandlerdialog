@@ -112,7 +112,6 @@ fun main() {
                 applicationState = applicationState,
                 kafkaEnvironment = environment.kafka,
                 database = applicationDatabase,
-                meldingService = meldingService,
             )
         }
     }
