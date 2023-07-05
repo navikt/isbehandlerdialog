@@ -112,7 +112,6 @@ fun Connection.getUtgaendeMeldingerWithType(
     }
 }
 
-
 const val queryGetUnpublishedMeldingerFraBehandler =
     """
         SELECT *
