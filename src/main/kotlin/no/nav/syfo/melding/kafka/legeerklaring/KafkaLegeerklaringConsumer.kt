@@ -4,11 +4,12 @@ import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaConsumerService
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.database.*
-import no.nav.syfo.melding.kafka.domain.toMeldingFraBehandler
+import no.nav.syfo.melding.domain.MeldingType
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.time.OffsetDateTime
 import java.util.UUID
 
 class KafkaLegeerklaringConsumer(
@@ -31,22 +32,33 @@ class KafkaLegeerklaringConsumer(
                 COUNT_KAFKA_CONSUMER_LEGEERKLARING_READ.increment()
                 val kafkaLegeerklaring = it.value()
                 if (kafkaLegeerklaring != null) {
+                    val arbeidstakerPersonIdent = PersonIdent(kafkaLegeerklaring.personNrPasient)
                     val conversationRef = kafkaLegeerklaring.conversationRef?.refToConversation
                     if (conversationRef != null) {
                         if (
                             connection.hasSendtMeldingForConversationRefAndArbeidstakerIdent(
                                 conversationRef = UUID.fromString(conversationRef),
-                                arbeidstakerPersonIdent = PersonIdent(kafkaLegeerklaring.personNrPasient),
+                                arbeidstakerPersonIdent = arbeidstakerPersonIdent,
                             )
                         ) {
                             connection.createMeldingFraBehandler(
                                 meldingFraBehandler = kafkaLegeerklaring.toMeldingFraBehandler(),
-                                fellesformat = null,
-                                commit = false,
                             )
+                            COUNT_KAFKA_CONSUMER_LEGEERKLARING_STORED.increment()
                         }
                     } else {
-                        // TODO: Handle missing conversationRef
+                        val utgaaende = connection.getUtgaendeMeldingerWithType(
+                            meldingType = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                            arbeidstakerPersonIdent = arbeidstakerPersonIdent
+                        ).lastOrNull()
+                        if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
+                            connection.createMeldingFraBehandler(
+                                meldingFraBehandler = kafkaLegeerklaring.toMeldingFraBehandler().copy(
+                                    conversationRef = utgaaende.conversationRef,
+                                ),
+                            )
+                            COUNT_KAFKA_CONSUMER_LEGEERKLARING_STORED.increment()
+                        }
                     }
                 } else {
                     COUNT_KAFKA_CONSUMER_LEGEERKLARING_TOMBSTONE.increment()

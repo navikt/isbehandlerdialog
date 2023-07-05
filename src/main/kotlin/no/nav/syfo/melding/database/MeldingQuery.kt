@@ -93,6 +93,26 @@ fun Connection.getUtgaendeMeldingerInConversation(
     }
 }
 
+const val queryGetMeldingForTypeAndArbeidstakerident =
+    """
+        SELECT *
+        FROM MELDING
+        WHERE type = ? AND arbeidstaker_personident = ? AND NOT innkommende
+        ORDER BY tidspunkt ASC
+    """
+
+fun Connection.getUtgaendeMeldingerWithType(
+    meldingType: MeldingType,
+    arbeidstakerPersonIdent: PersonIdent,
+): List<PMelding> {
+    return this.prepareStatement(queryGetMeldingForTypeAndArbeidstakerident).use {
+        it.setString(1, meldingType.name)
+        it.setString(2, arbeidstakerPersonIdent.value)
+        it.executeQuery().toList { toPMelding() }
+    }
+}
+
+
 const val queryGetUnpublishedMeldingerFraBehandler =
     """
         SELECT *
@@ -229,8 +249,8 @@ fun Connection.createMeldingTilBehandler(
 
 fun Connection.createMeldingFraBehandler(
     meldingFraBehandler: MeldingFraBehandler,
-    fellesformat: String?,
-    commit: Boolean = true,
+    fellesformat: String? = null,
+    commit: Boolean = false,
 ): Int {
     return this.createMelding(
         melding = meldingFraBehandler,

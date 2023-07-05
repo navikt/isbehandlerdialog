@@ -104,7 +104,6 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         val meldingId = connection.createMeldingFraBehandler(
             meldingFraBehandler = kafkaForesporselSvarFraBehandler.toMeldingFraBehandler(),
             fellesformat = kafkaForesporselSvarFraBehandler.fellesformatXML,
-            commit = false,
         )
         if (kafkaForesporselSvarFraBehandler.antallVedlegg > 0) {
             val vedlegg = mutableListOf<VedleggDTO>()
