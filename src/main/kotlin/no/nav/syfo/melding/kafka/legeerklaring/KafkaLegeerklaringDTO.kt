@@ -1,6 +1,11 @@
 package no.nav.syfo.melding.kafka.legeerklaring
 
-import java.time.LocalDateTime
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.domain.MeldingFraBehandler
+import no.nav.syfo.melding.domain.MeldingType
+import no.nav.syfo.melding.kafka.domain.*
+import java.time.*
+import java.util.UUID
 
 data class KafkaLegeerklaringDTO(
     val legeerklaering: Legeerklaering,
@@ -12,7 +17,6 @@ data class KafkaLegeerklaringDTO(
     val legekontorHerId: String?,
     val legekontorOrgName: String,
     val mottattDato: LocalDateTime,
-    val fellesformat: String,
     val conversationRef: ConversationRef?,
 )
 
@@ -147,3 +151,32 @@ data class Signatur(
     val signatur: String?,
     val tlfNummer: String?,
 )
+
+fun KafkaLegeerklaringDTO.toMeldingFraBehandler() =
+    MeldingFraBehandler(
+        uuid = UUID.randomUUID(),
+        createdAt = OffsetDateTime.now(),
+        type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+        conversationRef = conversationRef?.let {
+            try {
+                UUID.fromString(it.refToConversation)
+            } catch (exc: IllegalArgumentException) {
+                UUID.randomUUID()
+            }
+        } ?: UUID.randomUUID(),
+        parentRef = conversationRef?.let {
+            try {
+                UUID.fromString(it.refToParent)
+            } catch (exc: IllegalArgumentException) {
+                null
+            }
+        },
+        msgId = msgId,
+        tidspunkt = mottattDato.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
+        arbeidstakerPersonIdent = PersonIdent(personNrPasient),
+        behandlerPersonIdent = PersonIdent(personNrLege),
+        behandlerNavn = legeerklaering.signatur.navn,
+        tekst = legeerklaering.forslagTilTiltak.tekst,
+        antallVedlegg = 0,
+        innkommendePublishedAt = null,
+    )
