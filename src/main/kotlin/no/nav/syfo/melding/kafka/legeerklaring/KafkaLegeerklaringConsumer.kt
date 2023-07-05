@@ -33,17 +33,20 @@ class KafkaLegeerklaringConsumer(
                 if (kafkaLegeerklaring != null) {
                     val conversationRef = kafkaLegeerklaring.conversationRef?.refToConversation
                     if (conversationRef != null) {
-                        val sendtMelding = connection.getUtgaendeMeldingerInConversation(
-                            conversationRef = UUID.fromString(conversationRef),
-                            arbeidstakerPersonIdent = PersonIdent(kafkaLegeerklaring.personNrPasient),
-                        )
-                        if (sendtMelding.isNotEmpty()) {
+                        if (
+                            connection.hasSendtMeldingForConversationRefAndArbeidstakerIdent(
+                                conversationRef = UUID.fromString(conversationRef),
+                                arbeidstakerPersonIdent = PersonIdent(kafkaLegeerklaring.personNrPasient),
+                            )
+                        ) {
                             connection.createMeldingFraBehandler(
                                 meldingFraBehandler = kafkaLegeerklaring.toMeldingFraBehandler(),
                                 fellesformat = null,
                                 commit = false,
                             )
                         }
+                    } else {
+                        // TODO: Handle missing conversationRef
                     }
                 } else {
                     COUNT_KAFKA_CONSUMER_LEGEERKLARING_TOMBSTONE.increment()

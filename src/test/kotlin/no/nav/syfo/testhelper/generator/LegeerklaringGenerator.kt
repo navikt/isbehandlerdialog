@@ -11,7 +11,7 @@ fun generateKafkaLegeerklaringFraBehandlerDTO(
     behandlerNavn: String,
     personIdent: PersonIdent,
     msgId: String = UUID.randomUUID().toString(),
-    conversationRef: String = UUID.randomUUID().toString(),
+    conversationRef: String? = UUID.randomUUID().toString(),
 ) = KafkaLegeerklaringDTO(
     legeerklaering = generateLegeerklaring(
         personIdent = personIdent.value,
@@ -25,10 +25,12 @@ fun generateKafkaLegeerklaringFraBehandlerDTO(
     legekontorHerId = "${UserConstants.HERID}",
     legekontorOrgName = "Legekontoret",
     mottattDato = LocalDateTime.now(),
-    conversationRef = ConversationRef(
-        refToParent = UUID.randomUUID().toString(),
-        refToConversation = conversationRef,
-    ),
+    conversationRef = conversationRef?.let {
+        ConversationRef(
+            refToParent = UUID.randomUUID().toString(),
+            refToConversation = conversationRef,
+        )
+    },
 )
 
 fun generateLegeerklaring(

@@ -37,7 +37,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
 
         describe("Read legeerklaring sent from behandler to NAV from Kafka Topic") {
             describe("Happy path") {
-                it("Receive legerklaring") {
+                it("Should not store legerklaring when no melding sendt (unknown conversationRef)") {
                     val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
                         behandlerPersonIdent = behandlerPersonIdent,
                         behandlerNavn = behandlerNavn,
@@ -55,7 +55,26 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
 
                     database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
                 }
-                it("Receive legeerklaring and known conversationRef") {
+                it("Should not store legerklaring when no melding sendt and no conversationRef") {
+                    val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
+                        behandlerPersonIdent = behandlerPersonIdent,
+                        behandlerNavn = behandlerNavn,
+                        personIdent = personIdent,
+                        conversationRef = null,
+                    )
+                    val mockConsumer = mockKafkaConsumer(legeerklaring, LEGEERKLARING_TOPIC)
+
+                    runBlocking {
+                        kafkaLegeerklaringConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
+
+                    database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
+                }
+                it("Should store legeerklaring and melding sent with same conversationRef") {
                     val msgId = UUID.randomUUID().toString()
                     val (conversationRef, _) = database.createMeldingerTilBehandler(
                         defaultMeldingTilBehandler.copy(
