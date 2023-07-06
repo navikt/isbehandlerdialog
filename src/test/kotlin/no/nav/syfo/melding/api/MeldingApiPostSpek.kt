@@ -6,7 +6,7 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.domain.*
-import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
+import no.nav.syfo.melding.kafka.producer.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.kafka.domain.*
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.*

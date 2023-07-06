@@ -10,10 +10,10 @@ import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
 import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
 import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
-import no.nav.syfo.melding.kafka.KafkaMeldingFraBehandlerProducer
-import no.nav.syfo.melding.kafka.KafkaUbesvartMeldingProducer
-import no.nav.syfo.melding.kafka.PublishMeldingFraBehandlerService
-import no.nav.syfo.melding.kafka.PublishUbesvartMeldingService
+import no.nav.syfo.melding.kafka.producer.KafkaMeldingFraBehandlerProducer
+import no.nav.syfo.melding.kafka.producer.KafkaUbesvartMeldingProducer
+import no.nav.syfo.melding.kafka.producer.PublishMeldingFraBehandlerService
+import no.nav.syfo.melding.kafka.producer.PublishUbesvartMeldingService
 import no.nav.syfo.melding.kafka.config.kafkaMeldingFraBehandlerProducerConfig
 import no.nav.syfo.melding.kafka.config.kafkaUbesvartMeldingProducerConfig
 

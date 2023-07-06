@@ -1,7 +1,7 @@
 package no.nav.syfo.testhelper.generator
 
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.melding.kafka.legeerklaring.*
+import no.nav.syfo.melding.kafka.domain.*
 import no.nav.syfo.testhelper.UserConstants
 import java.time.LocalDateTime
 import java.util.UUID

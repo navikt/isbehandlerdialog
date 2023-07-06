@@ -7,7 +7,7 @@ import no.nav.syfo.melding.api.*
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.database.domain.*
 import no.nav.syfo.melding.domain.*
-import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
+import no.nav.syfo.melding.kafka.producer.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.status.database.getMeldingStatus
 import no.nav.syfo.melding.status.database.toMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus

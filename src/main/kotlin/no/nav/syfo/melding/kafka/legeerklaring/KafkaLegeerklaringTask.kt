@@ -3,6 +3,7 @@ package no.nav.syfo.melding.kafka.legeerklaring
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.*
+import no.nav.syfo.melding.kafka.domain.KafkaLegeerklaringDTO
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Deserializer
