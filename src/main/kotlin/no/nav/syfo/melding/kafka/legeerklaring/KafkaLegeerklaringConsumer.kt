@@ -98,7 +98,7 @@ class KafkaLegeerklaringConsumer(
         ).lastOrNull()
         val incomingTidspunkt = kafkaLegeerklaring.legeerklaering.signaturDato.toOffsetDateTime()
         if (
-            utgaaende != null && utgaaende.tidspunkt < incomingTidspunkt &&
+            utgaaende != null && utgaaende.tidspunkt.toLocalDate() <= incomingTidspunkt.toLocalDate() &&
             utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)
         ) {
             connection.createMeldingFraBehandler(
