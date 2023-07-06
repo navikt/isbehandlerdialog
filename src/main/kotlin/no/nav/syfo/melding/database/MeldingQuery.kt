@@ -93,7 +93,7 @@ fun Connection.getUtgaendeMeldingerInConversation(
     }
 }
 
-const val queryGetMeldingForTypeAndArbeidstakerident =
+const val queryGetUtgaendeMeldingForTypeAndArbeidstakerident =
     """
         SELECT *
         FROM MELDING
@@ -105,7 +105,7 @@ fun Connection.getUtgaendeMeldingerWithType(
     meldingType: MeldingType,
     arbeidstakerPersonIdent: PersonIdent,
 ): List<PMelding> {
-    return this.prepareStatement(queryGetMeldingForTypeAndArbeidstakerident).use {
+    return this.prepareStatement(queryGetUtgaendeMeldingForTypeAndArbeidstakerident).use {
         it.setString(1, meldingType.name)
         it.setString(2, arbeidstakerPersonIdent.value)
         it.executeQuery().toList { toPMelding() }
