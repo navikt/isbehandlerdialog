@@ -75,7 +75,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
 
                     database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
                 }
-                it("Should store legeerklaring and melding sent with same conversationRef") {
+                it("Should store legeerklaring when melding sent with same conversationRef") {
                     val msgId = UUID.randomUUID().toString()
                     val (conversationRef, _) = database.createMeldingerTilBehandler(
                         defaultMeldingTilBehandler.copy(
@@ -113,12 +113,13 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.antallVedlegg shouldBeEqualTo 0
                     pSvar.veilederIdent shouldBeEqualTo null
                     pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
+                    pSvar.conversationRef shouldBeEqualTo conversationRef
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }
-                it("Should store legeerklaring and melding recently sent to behandler") {
+                it("Should store legeerklaring when melding recently sent to behandler") {
                     val msgId = UUID.randomUUID().toString()
-                    database.createMeldingerTilBehandler(
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(
                         defaultMeldingTilBehandler.copy(
                             arbeidstakerPersonIdent = personIdent,
                             behandlerPersonIdent = behandlerPersonIdent,
@@ -154,10 +155,11 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.antallVedlegg shouldBeEqualTo 0
                     pSvar.veilederIdent shouldBeEqualTo null
                     pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
+                    pSvar.conversationRef shouldBeEqualTo conversationRef
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }
-                it("Should not store legeerklaring and melding sent to behandler long time ago") {
+                it("Should not store legeerklaring when melding sent to behandler long time ago") {
                     val msgId = UUID.randomUUID().toString()
                     database.createMeldingerTilBehandler(
                         defaultMeldingTilBehandler.copy(
