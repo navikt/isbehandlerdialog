@@ -3,7 +3,6 @@ package no.nav.syfo.melding.kafka.legeerklaring
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.domain.MeldingFraBehandler
 import no.nav.syfo.melding.domain.MeldingType
-import no.nav.syfo.melding.kafka.domain.*
 import java.time.*
 import java.util.UUID
 

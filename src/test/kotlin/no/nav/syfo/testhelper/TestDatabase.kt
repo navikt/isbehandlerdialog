@@ -73,7 +73,6 @@ fun DatabaseInterface.createMeldingerFraBehandler(
                         tekst = "${meldingFraBehandler.tekst}$i"
                     ),
                 fellesformat = null,
-                commit = false,
             )
             idList.add(id)
         }
