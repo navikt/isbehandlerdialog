@@ -5,6 +5,8 @@ import no.nav.syfo.application.kafka.KafkaConsumerService
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.domain.MeldingType
+import no.nav.syfo.melding.kafka.domain.KafkaLegeerklaringDTO
+import no.nav.syfo.melding.kafka.domain.toMeldingFraBehandler
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.LoggerFactory

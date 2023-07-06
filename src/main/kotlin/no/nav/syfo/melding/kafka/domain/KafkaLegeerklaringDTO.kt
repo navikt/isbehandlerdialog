@@ -1,4 +1,4 @@
-package no.nav.syfo.melding.kafka.legeerklaring
+package no.nav.syfo.melding.kafka.domain
 
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.domain.MeldingFraBehandler

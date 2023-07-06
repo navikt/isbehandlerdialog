@@ -10,7 +10,7 @@ import no.nav.syfo.melding.database.createMeldingTilBehandler
 import no.nav.syfo.melding.database.createVedlegg
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.melding.domain.MeldingType
-import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
+import no.nav.syfo.melding.kafka.producer.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatusType

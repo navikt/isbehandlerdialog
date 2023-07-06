@@ -3,7 +3,7 @@ package no.nav.syfo.melding.cronjob
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.cronjob.Cronjob
 import no.nav.syfo.application.cronjob.CronjobResult
-import no.nav.syfo.melding.kafka.PublishUbesvartMeldingService
+import no.nav.syfo.melding.kafka.producer.PublishUbesvartMeldingService
 import org.slf4j.LoggerFactory
 
 class UbesvartMeldingCronjob(

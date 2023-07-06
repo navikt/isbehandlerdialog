@@ -5,8 +5,8 @@ import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.melding.domain.MeldingType
-import no.nav.syfo.melding.kafka.KafkaUbesvartMeldingProducer
-import no.nav.syfo.melding.kafka.PublishUbesvartMeldingService
+import no.nav.syfo.melding.kafka.producer.KafkaUbesvartMeldingProducer
+import no.nav.syfo.melding.kafka.producer.PublishUbesvartMeldingService
 import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus

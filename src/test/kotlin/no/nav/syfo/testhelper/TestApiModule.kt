@@ -6,7 +6,7 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.melding.MeldingService
-import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer
+import no.nav.syfo.melding.kafka.producer.DialogmeldingBestillingProducer
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,

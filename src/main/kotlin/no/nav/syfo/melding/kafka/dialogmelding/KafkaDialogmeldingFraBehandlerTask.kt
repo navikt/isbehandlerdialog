@@ -1,4 +1,4 @@
-package no.nav.syfo.melding.kafka
+package no.nav.syfo.melding.kafka.dialogmelding
 
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.database.DatabaseInterface

@@ -1,4 +1,4 @@
-package no.nav.syfo.melding.kafka
+package no.nav.syfo.melding.kafka.dialogmelding
 
 import io.micrometer.core.instrument.Counter
 import no.nav.syfo.application.metric.METRICS_NS

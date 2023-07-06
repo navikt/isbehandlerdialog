@@ -1,10 +1,10 @@
 
-package no.nav.syfo.melding.kafka
+package no.nav.syfo.melding.kafka.producer
 
 import io.micrometer.core.instrument.Counter
 import no.nav.syfo.application.metric.METRICS_NS
 import no.nav.syfo.application.metric.METRICS_REGISTRY
-import no.nav.syfo.melding.kafka.DialogmeldingBestillingProducer.Companion.BEHANDLER_DIALOGMELDING_BESTILLING_TOPIC
+import no.nav.syfo.melding.kafka.producer.DialogmeldingBestillingProducer.Companion.BEHANDLER_DIALOGMELDING_BESTILLING_TOPIC
 
 const val KAFKA_CONSUMER_MELDING_TIL_BEHANDLER_BESTILLING_BASE = "${METRICS_NS}_kafka_producer_melding_til_behandler_bestilling"
 const val KAFKA_CONSUMER_MELDING_TIL_BEHANDLER_BESTILLING_SENT =

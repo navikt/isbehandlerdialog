@@ -1,4 +1,4 @@
-package no.nav.syfo.melding.kafka
+package no.nav.syfo.melding.kafka.dialogmelding
 
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.database.DatabaseInterface

@@ -1,4 +1,4 @@
-package no.nav.syfo.melding.kafka
+package no.nav.syfo.melding.kafka.producer
 
 import no.nav.syfo.melding.domain.MeldingTilBehandler
 import no.nav.syfo.melding.domain.toKafkaMeldingDTO

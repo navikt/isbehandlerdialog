@@ -7,6 +7,8 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.domain.MeldingType
+import no.nav.syfo.melding.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
+import no.nav.syfo.melding.kafka.dialogmelding.KafkaDialogmeldingFraBehandlerConsumer
 import no.nav.syfo.melding.kafka.domain.DialogmeldingType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
