@@ -12,10 +12,12 @@ fun generateKafkaLegeerklaringFraBehandlerDTO(
     personIdent: PersonIdent,
     msgId: String = UUID.randomUUID().toString(),
     conversationRef: String? = UUID.randomUUID().toString(),
+    tidspunkt: LocalDateTime = LocalDateTime.now(),
 ) = KafkaLegeerklaringDTO(
     legeerklaering = generateLegeerklaring(
         personIdent = personIdent.value,
         behandlerNavn = behandlerNavn,
+        tidspunkt = tidspunkt,
     ),
     personNrPasient = personIdent.value,
     personNrLege = behandlerPersonIdent.value,
@@ -36,6 +38,7 @@ fun generateKafkaLegeerklaringFraBehandlerDTO(
 fun generateLegeerklaring(
     personIdent: String,
     behandlerNavn: String,
+    tidspunkt: LocalDateTime = LocalDateTime.now(),
 ) = Legeerklaering(
     id = UUID.randomUUID().toString(),
     arbeidsvurderingVedSykefravaer = false,
@@ -115,7 +118,7 @@ fun generateLegeerklaring(
     pasientenBurdeIkkeVite = null,
     tilbakeholdInnhold = false,
     signatur = Signatur(
-        dato = LocalDateTime.now(),
+        dato = tidspunkt,
         navn = behandlerNavn,
         adresse = null,
         postnummer = null,
@@ -123,5 +126,5 @@ fun generateLegeerklaring(
         signatur = null,
         tlfNummer = null,
     ),
-    signaturDato = LocalDateTime.now(),
+    signaturDato = tidspunkt,
 )

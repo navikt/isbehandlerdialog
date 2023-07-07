@@ -7,6 +7,7 @@ import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.KafkaLegeerklaringDTO
 import no.nav.syfo.melding.kafka.domain.toMeldingFraBehandler
+import no.nav.syfo.util.toOffsetDateTime
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.LoggerFactory
@@ -95,7 +96,11 @@ class KafkaLegeerklaringConsumer(
             meldingType = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
             arbeidstakerPersonIdent = arbeidstakerPersonIdent
         ).lastOrNull()
-        if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
+        val incomingTidspunkt = kafkaLegeerklaring.legeerklaering.signaturDato.toOffsetDateTime()
+        if (
+            utgaaende != null && utgaaende.tidspunkt.toLocalDate() <= incomingTidspunkt.toLocalDate() &&
+            utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)
+        ) {
             connection.createMeldingFraBehandler(
                 meldingFraBehandler = kafkaLegeerklaring.toMeldingFraBehandler().copy(
                     conversationRef = utgaaende.conversationRef,

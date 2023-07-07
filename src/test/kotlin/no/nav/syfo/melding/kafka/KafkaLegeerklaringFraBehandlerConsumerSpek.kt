@@ -14,6 +14,7 @@ import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -176,6 +177,37 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                         personIdent = personIdent,
                         msgId = msgId,
                         conversationRef = null,
+                    )
+                    val mockConsumer = mockKafkaConsumer(legeerklaring, LEGEERKLARING_TOPIC)
+
+                    runBlocking {
+                        kafkaLegeerklaringConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
+
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                    pMeldingListAfter.size shouldBeEqualTo 1
+                }
+                it("Should not store legeerklaring sent before melding to behandler") {
+                    val msgId = UUID.randomUUID().toString()
+                    database.createMeldingerTilBehandler(
+                        defaultMeldingTilBehandler.copy(
+                            arbeidstakerPersonIdent = personIdent,
+                            behandlerPersonIdent = behandlerPersonIdent,
+                            behandlerNavn = behandlerNavn,
+                            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                        )
+                    )
+                    val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
+                        behandlerPersonIdent = behandlerPersonIdent,
+                        behandlerNavn = behandlerNavn,
+                        personIdent = personIdent,
+                        msgId = msgId,
+                        conversationRef = null,
+                        tidspunkt = LocalDateTime.now().minusDays(7),
                     )
                     val mockConsumer = mockKafkaConsumer(legeerklaring, LEGEERKLARING_TOPIC)
 
