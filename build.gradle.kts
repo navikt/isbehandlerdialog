@@ -11,7 +11,7 @@ object Versions {
     const val jacksonDataType = "2.15.2"
     const val kafka = "3.3.2"
     const val kluent = "1.73"
-    const val ktor = "2.3.1"
+    const val ktor = "2.3.2"
     const val logback = "1.4.7"
     const val logstashEncoder = "7.3"
     const val micrometerRegistry = "1.11.0"
@@ -26,7 +26,7 @@ object Versions {
 plugins {
     kotlin("jvm") version "1.9.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("org.jlleitschuh.gradle.ktlint") version "11.4.2"
+    id("org.jlleitschuh.gradle.ktlint") version "11.5.0"
 }
 
 repositories {
