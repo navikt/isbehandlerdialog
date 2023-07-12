@@ -1,7 +1,7 @@
 package no.nav.syfo.testhelper.generator
 
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.melding.kafka.domain.*
+import no.nav.syfo.melding.kafka.legeerklaring.*
 import no.nav.syfo.testhelper.UserConstants
 import java.time.LocalDateTime
 import java.util.UUID
@@ -13,7 +13,7 @@ fun generateKafkaLegeerklaringFraBehandlerDTO(
     msgId: String = UUID.randomUUID().toString(),
     conversationRef: String? = UUID.randomUUID().toString(),
     tidspunkt: LocalDateTime = LocalDateTime.now(),
-) = KafkaLegeerklaringDTO(
+) = LegeerklaringDTO(
     legeerklaering = generateLegeerklaring(
         personIdent = personIdent.value,
         behandlerNavn = behandlerNavn,

@@ -7,6 +7,7 @@ version = "0.0.1"
 object Versions {
     const val confluent = "7.4.0"
     const val flyway = "9.20.0"
+    const val googleCloudStorage = "2.23.0"
     const val hikari = "5.0.1"
     const val jacksonDataType = "2.15.2"
     const val kafka = "3.3.2"
@@ -83,6 +84,7 @@ dependencies {
             strictly(Versions.scala)
         }
     }
+    implementation("com.google.cloud:google-cloud-storage:${Versions.googleCloudStorage}")
 
     // Tests
     testImplementation("io.ktor:ktor-server-tests:${Versions.ktor}")

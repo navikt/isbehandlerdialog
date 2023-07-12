@@ -112,6 +112,7 @@ fun main() {
             launchKafkaTaskLegeerklaring(
                 applicationState = applicationState,
                 kafkaEnvironment = environment.kafka,
+                bucketName = environment.legeerklaringBucketName,
                 database = applicationDatabase,
             )
         }
