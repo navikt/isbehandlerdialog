@@ -88,3 +88,7 @@ spec:
       value: "240" # Hver fjerde time, 60*4
     - name: CRONJOB_UBESVART_MELDING_FRIST_HOURS
       value: "336" # Etter to uker, 14*24
+    - name: TOGGLE_CRONJOB_AVVIST_MELDING_STATUS
+      value: "false"
+    - name: CRONJOB_AVVIST_MELDING_STATUS_INTERVAL_DELAY_MINUTES
+      value: "240" # Hver fjerde time, 60*4

@@ -7,6 +7,7 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.leaderelection.LeaderPodClient
 import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
+import no.nav.syfo.melding.cronjob.AvvistMeldingStatusCronjob
 import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
 import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
@@ -77,11 +78,18 @@ fun Application.cronjobModule(
         intervalDelayMinutes = environment.cronjobUbesvartMeldingIntervalDelayMinutes,
     )
 
-    val allCronjobs = listOf(
+    val allCronjobs = mutableListOf(
         journalforMeldingTilBehandlerCronjob,
         meldingFraBehandlerCronjob,
         ubesvartMeldingCronjob,
     )
+
+    if (environment.toggleCronjobAvvistMeldingStatus) {
+        val avvistMeldingStatusCronjob = AvvistMeldingStatusCronjob(
+            intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
+        )
+        allCronjobs.add(avvistMeldingStatusCronjob)
+    }
 
     allCronjobs.forEach {
         launchBackgroundTask(
