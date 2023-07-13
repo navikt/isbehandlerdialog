@@ -338,9 +338,25 @@ fun DatabaseInterface.updateMeldingJournalpostId(melding: MeldingTilBehandler, j
     }
 }
 
+const val queryGetMeldingByIds = """
+    SELECT *
+    FROM Melding
+    WHERE id IN (?)
+"""
+
+fun DatabaseInterface.getMeldingerByIds(meldingIds: List<PMelding.Id>): List<PMelding> {
+    val ids = meldingIds.joinToString(",") { "'" + it.id.toString() + "'" }
+    return connection.use { connection ->
+        connection.prepareStatement(queryGetMeldingByIds).use {
+            it.setString(1, ids)
+            it.executeQuery().toList { toPMelding() }
+        }
+    }
+}
+
 fun ResultSet.toPMelding() =
     PMelding(
-        id = getInt("id"),
+        id = PMelding.Id(getInt("id")),
         uuid = UUID.fromString(getString("uuid")),
         createdAt = getObject("created_at", OffsetDateTime::class.java),
         innkommende = getBoolean("innkommende"),

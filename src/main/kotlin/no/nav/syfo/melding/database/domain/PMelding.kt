@@ -6,7 +6,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 data class PMelding(
-    val id: Int,
+    val id: Id,
     val uuid: UUID,
     val createdAt: OffsetDateTime,
     val innkommende: Boolean,
@@ -26,7 +26,10 @@ data class PMelding(
     val journalpostId: String?,
     val ubesvartPublishedAt: OffsetDateTime?,
     val veilederIdent: String?,
-)
+) {
+    @JvmInline
+    value class Id(val id: Int)
+}
 
 fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
     uuid = uuid,
