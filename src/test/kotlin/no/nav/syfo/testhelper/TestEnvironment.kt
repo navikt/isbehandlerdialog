@@ -51,7 +51,6 @@ fun testEnvironment() = Environment(
     electorPath = "electorPath",
     cronjobUbesvartMeldingIntervalDelayMinutes = 60L * 4,
     cronjobUbesvartMeldingFristHours = 24L * 14,
-    toggleConsumeLegeerklaring = true,
     legeerklaringBucketName = "test_bucket",
 )
 
