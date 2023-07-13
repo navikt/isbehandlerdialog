@@ -70,8 +70,6 @@ spec:
   env:
     - name: KTOR_ENV
       value: "production"
-    - name: TOGGLE_CONSUME_LEGEERKLARING
-      value: "false"
     - name: LEGEERKLARING_BUCKET_NAME
       value: teamsykmelding-pale2-legeerklaring-bucket-prod
     - name: PADM2_CLIENT_ID

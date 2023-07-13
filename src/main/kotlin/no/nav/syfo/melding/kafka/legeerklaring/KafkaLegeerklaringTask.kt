@@ -25,8 +25,8 @@ fun launchKafkaTaskLegeerklaring(
     )
     val consumerProperties =
         kafkaConsumerConfig<KafkaLegeerklaringDeserializer>(kafkaEnvironment = kafkaEnvironment).apply {
-            this[ConsumerConfig.GROUP_ID_CONFIG] = "isbehandlerdialog-v0"
-            this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
+            this[ConsumerConfig.GROUP_ID_CONFIG] = "isbehandlerdialog-v1"
+            this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
         }
 
     launchKafkaTask(

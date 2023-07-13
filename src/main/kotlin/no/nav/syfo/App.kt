@@ -108,14 +108,12 @@ fun main() {
             meldingService = meldingService,
         )
 
-        if (environment.toggleConsumeLegeerklaring) {
-            launchKafkaTaskLegeerklaring(
-                applicationState = applicationState,
-                kafkaEnvironment = environment.kafka,
-                bucketName = environment.legeerklaringBucketName,
-                database = applicationDatabase,
-            )
-        }
+        launchKafkaTaskLegeerklaring(
+            applicationState = applicationState,
+            kafkaEnvironment = environment.kafka,
+            bucketName = environment.legeerklaringBucketName,
+            database = applicationDatabase,
+        )
     }
 
     val server = embeddedServer(
