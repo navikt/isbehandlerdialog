@@ -3,6 +3,7 @@ package no.nav.syfo.melding.status.kafka
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaConsumerService
 import no.nav.syfo.melding.MeldingService
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.database.getMelding
 import no.nav.syfo.melding.status.database.*
 import no.nav.syfo.melding.status.domain.MeldingStatusType
@@ -67,7 +68,7 @@ class KafkaDialogmeldingStatusConsumer(
 
     private fun createOrUpdateMeldingStatus(
         connection: Connection,
-        meldingId: Int,
+        meldingId: PMelding.Id,
         kafkaDialogmeldingStatus: KafkaDialogmeldingStatusDTO,
     ) {
         val existingMeldingStatus = meldingService.getMeldingStatus(meldingId = meldingId, connection = connection)

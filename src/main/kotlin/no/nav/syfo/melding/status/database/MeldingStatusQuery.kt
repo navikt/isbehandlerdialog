@@ -22,11 +22,11 @@ const val queryCreateMeldingStatus =
         ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?)
     """
 
-fun Connection.createMeldingStatus(meldingStatus: MeldingStatus, meldingId: Int) {
+fun Connection.createMeldingStatus(meldingStatus: MeldingStatus, meldingId: PMelding.Id) {
     val now = OffsetDateTime.now()
     val rowCount = this.prepareStatement(queryCreateMeldingStatus).use {
         it.setString(1, meldingStatus.uuid.toString())
-        it.setInt(2, meldingId)
+        it.setInt(2, meldingId.id)
         it.setObject(3, now)
         it.setObject(4, now)
         it.setString(5, meldingStatus.status.name)
@@ -65,7 +65,7 @@ const val queryGetMeldingStatusForMeldingId =
         WHERE melding_id = ?
     """
 
-fun DatabaseInterface.getMeldingStatus(meldingId: Int, connection: Connection? = null): PMeldingStatus? {
+fun DatabaseInterface.getMeldingStatus(meldingId: PMelding.Id, connection: Connection? = null): PMeldingStatus? {
     return connection?.getMeldingStatus(
         meldingId = meldingId,
     )
@@ -78,9 +78,9 @@ fun DatabaseInterface.getMeldingStatus(meldingId: Int, connection: Connection? =
 
 const val queryGetUnpublishedAvvistMeldingStatus =
     """
-        SELECT id
+        SELECT melding_id
         FROM MELDING_STATUS
-        WHERE type = 'AVVIST' AND avvist_published_at IS NULL
+        WHERE status = 'AVVIST' AND avvist_published_at IS NULL
     """
 
 fun DatabaseInterface.getUnpublishedAvvistMeldingStatus(): List<PMelding.Id> =
@@ -110,9 +110,9 @@ fun DatabaseInterface.updateAvvistMeldingPublishedAt(meldingId: PMelding.Id) =
         connection.commit()
     }
 
-fun Connection.getMeldingStatus(meldingId: Int): PMeldingStatus? {
+fun Connection.getMeldingStatus(meldingId: PMelding.Id): PMeldingStatus? {
     return this.prepareStatement(queryGetMeldingStatusForMeldingId).use {
-        it.setInt(1, meldingId)
+        it.setInt(1, meldingId.id)
         it.executeQuery().toList { toPMeldingStatus() }.firstOrNull()
     }
 }
@@ -130,4 +130,4 @@ fun ResultSet.toPMeldingStatus() =
     )
 
 fun ResultSet.toPMeldingId() =
-    PMelding.Id(id = getInt("id"))
+    PMelding.Id(id = getInt("melding_id"))

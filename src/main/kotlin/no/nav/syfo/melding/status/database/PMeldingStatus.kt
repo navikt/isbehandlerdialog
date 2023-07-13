@@ -14,7 +14,7 @@ data class PMeldingStatus(
     val updatedAt: OffsetDateTime,
     val status: String,
     val tekst: String?,
-    val avvistPublishedAt: OffsetDateTime,
+    val avvistPublishedAt: OffsetDateTime?,
 )
 
 fun PMeldingStatus.toMeldingStatus(): MeldingStatus = MeldingStatus(

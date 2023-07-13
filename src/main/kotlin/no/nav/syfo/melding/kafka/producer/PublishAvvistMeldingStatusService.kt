@@ -1,6 +1,7 @@
 package no.nav.syfo.melding.kafka.producer
 
 import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.database.domain.toMeldingTilBehandler
 import no.nav.syfo.melding.database.getMeldingerByIds
 import no.nav.syfo.melding.domain.Melding
@@ -11,16 +12,15 @@ class PublishAvvistMeldingStatusService(
     private val database: DatabaseInterface,
 ) {
 
-    fun getUnpublishedAvvisteMeldinger(): List<Melding> {
+    fun getUnpublishedAvvisteMeldinger(): List<Pair<PMelding.Id, Melding>> {
         val unpublishedAvvisteMeldingerIds = database.getUnpublishedAvvistMeldingStatus()
         return database.getMeldingerByIds(unpublishedAvvisteMeldingerIds)
-            .map { it.toMeldingTilBehandler() }
+            .map { Pair(it.id, it.toMeldingTilBehandler()) }
     }
 
-    fun publishAvvistMelding(melding: Melding) {
-        // TODO:
-        // - Publiser på kafka
-        // - Oppdater avvist_published_at i MeldingStatus tabell
-        database.updateAvvistMeldingPublishedAt(meldingId = melding.id)
+    fun publishAvvistMelding(id: PMelding.Id, melding: Melding) {
+        // TODO: Publiser på kafka
+
+        database.updateAvvistMeldingPublishedAt(meldingId = id)
     }
 }

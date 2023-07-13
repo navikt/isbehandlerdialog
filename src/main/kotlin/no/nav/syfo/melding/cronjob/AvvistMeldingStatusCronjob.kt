@@ -24,15 +24,14 @@ class AvvistMeldingStatusCronjob(
     fun runJob(): CronjobResult {
         val result = CronjobResult()
 
-        // TODO: Implement logic
-        // 1. Utvide eksisterende queries på melding_status med det nye feltet
-        // 2. Hente ut unpublished avviste statuser fra db
         val unpublishedAvvisteMeldinger = publishAvvistMeldingStatusService.getUnpublishedAvvisteMeldinger()
 
-        // 3. Loope gjennom og "publisere" og oppdatere avvist_published_at
-        unpublishedAvvisteMeldinger.forEach { avvistMeldingTilBehandler ->
+        unpublishedAvvisteMeldinger.forEach { (id, avvistMeldingTilBehandler) ->
             try {
-                publishAvvistMeldingStatusService.publishAvvistMelding(avvistMeldingTilBehandler)
+                publishAvvistMeldingStatusService.publishAvvistMelding(
+                    id = id,
+                    melding = avvistMeldingTilBehandler,
+                )
                 result.updated++
             } catch (e: Exception) {
                 log.error("Caught exception in publish avvist melding", e)

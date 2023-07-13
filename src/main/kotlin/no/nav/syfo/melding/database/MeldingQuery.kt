@@ -239,7 +239,7 @@ const val queryCreateMeldingFellesformat =
 fun Connection.createMeldingTilBehandler(
     meldingTilBehandler: MeldingTilBehandler,
     commit: Boolean = true,
-): Int {
+): PMelding.Id {
     return this.createMelding(
         melding = meldingTilBehandler,
         commit = commit,
@@ -250,7 +250,7 @@ fun Connection.createMeldingFraBehandler(
     meldingFraBehandler: MeldingFraBehandler,
     fellesformat: String? = null,
     commit: Boolean = false,
-): Int {
+): PMelding.Id {
     return this.createMelding(
         melding = meldingFraBehandler,
         fellesformat = fellesformat,
@@ -262,7 +262,7 @@ private fun Connection.createMelding(
     melding: Melding,
     fellesformat: String? = null,
     commit: Boolean = true,
-): Int {
+): PMelding.Id {
     val idList = this.prepareStatement(queryCreateMelding).use {
         it.setString(1, melding.uuid.toString())
         it.setObject(2, OffsetDateTime.now())
@@ -299,7 +299,7 @@ private fun Connection.createMelding(
     if (commit) {
         this.commit()
     }
-    return id
+    return PMelding.Id(id)
 }
 
 const val queryGetMeldingerTilBehandlerWithoutJournalpostId = """
@@ -341,17 +341,22 @@ fun DatabaseInterface.updateMeldingJournalpostId(melding: MeldingTilBehandler, j
 const val queryGetMeldingByIds = """
     SELECT *
     FROM Melding
-    WHERE id IN (?)
+    WHERE id = ?
 """
 
 fun DatabaseInterface.getMeldingerByIds(meldingIds: List<PMelding.Id>): List<PMelding> {
-    val ids = meldingIds.joinToString(",") { "'" + it.id.toString() + "'" }
-    return connection.use { connection ->
+    val meldinger = mutableListOf<PMelding>()
+    connection.use { connection ->
         connection.prepareStatement(queryGetMeldingByIds).use {
-            it.setString(1, ids)
-            it.executeQuery().toList { toPMelding() }
+            meldingIds.forEach { id ->
+                it.setInt(1, id.id)
+                val melding = it.executeQuery().toList { toPMelding() }.first()
+                meldinger.add(melding)
+            }
         }
     }
+
+    return meldinger
 }
 
 fun ResultSet.toPMelding() =
