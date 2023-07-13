@@ -23,6 +23,8 @@ class KafkaLegeerklaringConsumer(
     private val bucketName: String,
 ) : KafkaConsumerService<KafkaLegeerklaeringMessage> {
     override val pollDurationInMillis: Long = 1000
+    private val mapper = configuredJacksonMapper()
+
     override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KafkaLegeerklaeringMessage>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
@@ -120,7 +122,7 @@ class KafkaLegeerklaringConsumer(
 
     fun getLegeerklaring(objectId: String): LegeerklaringDTO =
         storage.get(bucketName, objectId)?.let { blob ->
-            configuredJacksonMapper().readValue(blob.getContent())
+            mapper.readValue(blob.getContent())
         } ?: throw RuntimeException("Fant ikke legeerklaring i gcp bucket: $objectId")
 
     companion object {
