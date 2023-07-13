@@ -1,4 +1,4 @@
-package no.nav.syfo.melding.kafka.domain
+package no.nav.syfo.melding.kafka.legeerklaring
 
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.domain.MeldingFraBehandler
@@ -6,7 +6,7 @@ import no.nav.syfo.melding.domain.MeldingType
 import java.time.*
 import java.util.UUID
 
-data class KafkaLegeerklaringDTO(
+data class LegeerklaringDTO(
     val legeerklaering: Legeerklaering,
     val personNrPasient: String,
     val personNrLege: String,
@@ -151,7 +151,7 @@ data class Signatur(
     val tlfNummer: String?,
 )
 
-fun KafkaLegeerklaringDTO.toMeldingFraBehandler() =
+fun LegeerklaringDTO.toMeldingFraBehandler() =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),

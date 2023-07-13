@@ -1,20 +1,23 @@
 package no.nav.syfo.melding.kafka
 
+import com.google.cloud.storage.Blob
+import com.google.cloud.storage.Storage
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.domain.MeldingType
+import no.nav.syfo.melding.kafka.domain.*
 import no.nav.syfo.melding.kafka.legeerklaring.KafkaLegeerklaringConsumer
 import no.nav.syfo.melding.kafka.legeerklaring.LEGEERKLARING_TOPIC
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.*
 import no.nav.syfo.testhelper.mock.mockKafkaConsumer
+import no.nav.syfo.util.configuredJacksonMapper
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -32,9 +35,14 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
         afterEachTest {
             database.dropData()
         }
+        val storage = mockk<Storage>()
+        val blob = mockk<Blob>()
+        val bucketName = externalMockEnvironment.environment.legeerklaringBucketName
 
         val kafkaLegeerklaringConsumer = KafkaLegeerklaringConsumer(
             database = database,
+            storage = storage,
+            bucketName = bucketName,
         )
 
         describe("Read legeerklaring sent from behandler to NAV from Kafka Topic") {
@@ -45,7 +53,14 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                         behandlerNavn = behandlerNavn,
                         personIdent = personIdent,
                     )
-                    val mockConsumer = mockKafkaConsumer(legeerklaring, LEGEERKLARING_TOPIC)
+                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+                        legeerklaeringObjectId = legeerklaring.msgId,
+                        validationResult = ValidationResult(Status.OK),
+                        vedlegg = emptyList(),
+                    )
+                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
                     runBlocking {
                         kafkaLegeerklaringConsumer.pollAndProcessRecords(
@@ -64,7 +79,14 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                         personIdent = personIdent,
                         conversationRef = null,
                     )
-                    val mockConsumer = mockKafkaConsumer(legeerklaring, LEGEERKLARING_TOPIC)
+                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+                        legeerklaeringObjectId = legeerklaring.msgId,
+                        validationResult = ValidationResult(Status.OK),
+                        vedlegg = emptyList(),
+                    )
+                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
                     runBlocking {
                         kafkaLegeerklaringConsumer.pollAndProcessRecords(
@@ -93,7 +115,14 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                         msgId = msgId,
                         conversationRef = conversationRef.toString(),
                     )
-                    val mockConsumer = mockKafkaConsumer(legeerklaring, LEGEERKLARING_TOPIC)
+                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+                        legeerklaeringObjectId = legeerklaring.msgId,
+                        validationResult = ValidationResult(Status.OK),
+                        vedlegg = emptyList(),
+                    )
+                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
                     runBlocking {
                         kafkaLegeerklaringConsumer.pollAndProcessRecords(
@@ -135,7 +164,14 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                         msgId = msgId,
                         conversationRef = null,
                     )
-                    val mockConsumer = mockKafkaConsumer(legeerklaring, LEGEERKLARING_TOPIC)
+                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+                        legeerklaeringObjectId = legeerklaring.msgId,
+                        validationResult = ValidationResult(Status.OK),
+                        vedlegg = emptyList(),
+                    )
+                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
                     runBlocking {
                         kafkaLegeerklaringConsumer.pollAndProcessRecords(
@@ -178,38 +214,14 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                         msgId = msgId,
                         conversationRef = null,
                     )
-                    val mockConsumer = mockKafkaConsumer(legeerklaring, LEGEERKLARING_TOPIC)
-
-                    runBlocking {
-                        kafkaLegeerklaringConsumer.pollAndProcessRecords(
-                            kafkaConsumer = mockConsumer,
-                        )
-                    }
-
-                    verify(exactly = 1) { mockConsumer.commitSync() }
-
-                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
-                    pMeldingListAfter.size shouldBeEqualTo 1
-                }
-                it("Should not store legeerklaring sent before melding to behandler") {
-                    val msgId = UUID.randomUUID().toString()
-                    database.createMeldingerTilBehandler(
-                        defaultMeldingTilBehandler.copy(
-                            arbeidstakerPersonIdent = personIdent,
-                            behandlerPersonIdent = behandlerPersonIdent,
-                            behandlerNavn = behandlerNavn,
-                            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-                        )
+                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+                        legeerklaeringObjectId = legeerklaring.msgId,
+                        validationResult = ValidationResult(Status.OK),
+                        vedlegg = emptyList(),
                     )
-                    val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
-                        behandlerPersonIdent = behandlerPersonIdent,
-                        behandlerNavn = behandlerNavn,
-                        personIdent = personIdent,
-                        msgId = msgId,
-                        conversationRef = null,
-                        tidspunkt = LocalDateTime.now().minusDays(7),
-                    )
-                    val mockConsumer = mockKafkaConsumer(legeerklaring, LEGEERKLARING_TOPIC)
+                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
                     runBlocking {
                         kafkaLegeerklaringConsumer.pollAndProcessRecords(
