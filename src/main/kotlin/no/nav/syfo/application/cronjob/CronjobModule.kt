@@ -3,6 +3,7 @@ package no.nav.syfo.application.cronjob
 import io.ktor.server.application.*
 import no.nav.syfo.application.*
 import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.leaderelection.LeaderPodClient
@@ -11,6 +12,7 @@ import no.nav.syfo.melding.cronjob.AvvistMeldingStatusCronjob
 import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
 import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
+import no.nav.syfo.melding.kafka.config.KafkaMeldingDTOSerializer
 import no.nav.syfo.melding.kafka.config.kafkaMeldingFraBehandlerProducerConfig
 import no.nav.syfo.melding.kafka.config.kafkaUbesvartMeldingProducerConfig
 import no.nav.syfo.melding.kafka.producer.*
@@ -82,8 +84,14 @@ fun Application.cronjobModule(
     )
 
     if (environment.toggleCronjobAvvistMeldingStatus) {
+        val avvistMeldingProducer = AvvistMeldingProducer(
+            kafkaAivenProducerConfig<KafkaMeldingDTOSerializer>(kafkaEnvironment = environment.kafka)
+        )
         val avvistMeldingStatusCronjob = AvvistMeldingStatusCronjob(
-            publishAvvistMeldingStatusService = PublishAvvistMeldingStatusService(database),
+            publishAvvistMeldingStatusService = PublishAvvistMeldingStatusService(
+                database,
+                avvistMeldingProducer
+            ),
             intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
         )
         allCronjobs.add(avvistMeldingStatusCronjob)
