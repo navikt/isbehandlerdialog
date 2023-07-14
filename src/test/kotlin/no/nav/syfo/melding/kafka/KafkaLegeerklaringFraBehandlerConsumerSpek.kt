@@ -38,11 +38,13 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
         val storage = mockk<Storage>()
         val blob = mockk<Blob>()
         val bucketName = externalMockEnvironment.environment.legeerklaringBucketName
+        val bucketNameVedlegg = externalMockEnvironment.environment.legeerklaringVedleggBucketName
 
         val kafkaLegeerklaringConsumer = KafkaLegeerklaringConsumer(
             database = database,
             storage = storage,
             bucketName = bucketName,
+            bucketNameVedlegg = bucketNameVedlegg,
         )
 
         describe("Read legeerklaring sent from behandler to NAV from Kafka Topic") {

@@ -112,6 +112,7 @@ fun main() {
             applicationState = applicationState,
             kafkaEnvironment = environment.kafka,
             bucketName = environment.legeerklaringBucketName,
+            bucketNameVedlegg = environment.legeerklaringVedleggBucketName,
             database = applicationDatabase,
         )
     }

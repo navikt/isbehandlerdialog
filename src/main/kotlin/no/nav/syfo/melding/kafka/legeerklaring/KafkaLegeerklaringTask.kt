@@ -15,6 +15,7 @@ fun launchKafkaTaskLegeerklaring(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
     bucketName: String,
+    bucketNameVedlegg: String,
     database: DatabaseInterface,
 ) {
     val storage = StorageOptions.newBuilder().build().service
@@ -22,11 +23,12 @@ fun launchKafkaTaskLegeerklaring(
         database = database,
         storage = storage,
         bucketName = bucketName,
+        bucketNameVedlegg = bucketNameVedlegg,
     )
     val consumerProperties =
         kafkaConsumerConfig<KafkaLegeerklaringDeserializer>(kafkaEnvironment = kafkaEnvironment).apply {
             this[ConsumerConfig.GROUP_ID_CONFIG] = "isbehandlerdialog-v1"
-            this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
+            this[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "none"
         }
 
     launchKafkaTask(

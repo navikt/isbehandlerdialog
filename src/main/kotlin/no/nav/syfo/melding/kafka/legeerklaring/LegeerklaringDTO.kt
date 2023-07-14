@@ -151,7 +151,10 @@ data class Signatur(
     val tlfNummer: String?,
 )
 
-fun LegeerklaringDTO.toMeldingFraBehandler(parentRef: UUID) =
+fun LegeerklaringDTO.toMeldingFraBehandler(
+    parentRef: UUID,
+    antallVedlegg: Int,
+) =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
@@ -176,6 +179,6 @@ fun LegeerklaringDTO.toMeldingFraBehandler(parentRef: UUID) =
         behandlerPersonIdent = PersonIdent(personNrLege),
         behandlerNavn = legeerklaering.signatur.navn,
         tekst = legeerklaering.forslagTilTiltak.tekst,
-        antallVedlegg = 0,
+        antallVedlegg = antallVedlegg,
         innkommendePublishedAt = null,
     )

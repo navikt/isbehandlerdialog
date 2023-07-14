@@ -21,6 +21,7 @@ class KafkaLegeerklaringConsumer(
     private val database: DatabaseInterface,
     private val storage: Storage,
     private val bucketName: String,
+    private val bucketNameVedlegg: String,
 ) : KafkaConsumerService<KafkaLegeerklaeringMessage> {
     override val pollDurationInMillis: Long = 1000
     private val mapper = configuredJacksonMapper()
@@ -50,6 +51,7 @@ class KafkaLegeerklaringConsumer(
                         val legeerklaring = getLegeerklaring(kafkaLegeerklaring.legeerklaeringObjectId)
                         handleIncomingLegeerklaring(
                             legeerklaring = legeerklaring,
+                            vedlegg = kafkaLegeerklaring.vedlegg ?: emptyList(),
                             connection = connection,
                         )
                     }
@@ -64,18 +66,21 @@ class KafkaLegeerklaringConsumer(
 
     private fun handleIncomingLegeerklaring(
         legeerklaring: LegeerklaringDTO,
+        vedlegg: List<String>,
         connection: Connection,
     ) {
         val conversationRef = legeerklaring.conversationRef?.refToConversation
         if (conversationRef != null) {
             handleIncomingLegeerklaringWithConversationRef(
                 legeerklaring = legeerklaring,
+                vedlegg = vedlegg,
                 connection = connection,
                 conversationRef = conversationRef,
             )
         } else {
             handleIncomingLegeerklaringWithoutConversationRef(
                 legeerklaring = legeerklaring,
+                vedlegg = vedlegg,
                 connection = connection,
             )
         }
@@ -83,6 +88,7 @@ class KafkaLegeerklaringConsumer(
 
     private fun handleIncomingLegeerklaringWithConversationRef(
         legeerklaring: LegeerklaringDTO,
+        vedlegg: List<String>,
         connection: Connection,
         conversationRef: String,
     ) {
@@ -92,8 +98,14 @@ class KafkaLegeerklaringConsumer(
             arbeidstakerPersonIdent = arbeidstakerPersonIdent,
         ).lastOrNull()
         if (utgaaende != null) {
-            connection.createMeldingFraBehandler(
-                meldingFraBehandler = legeerklaring.toMeldingFraBehandler(parentRef = utgaaende.uuid),
+            val pdfVedlegg = getPDFVedlegg(vedlegg)
+            val meldingId = connection.createMeldingFraBehandler(
+                meldingFraBehandler = legeerklaring.toMeldingFraBehandler(pdfVedlegg.size),
+            )
+            handleVedlegg(
+                meldingId = meldingId,
+                vedlegg = pdfVedlegg,
+                connection = connection,
             )
             COUNT_KAFKA_CONSUMER_LEGEERKLARING_STORED.increment()
         }
@@ -101,6 +113,7 @@ class KafkaLegeerklaringConsumer(
 
     private fun handleIncomingLegeerklaringWithoutConversationRef(
         legeerklaring: LegeerklaringDTO,
+        vedlegg: List<String>,
         connection: Connection,
     ) {
         val arbeidstakerPersonIdent = PersonIdent(legeerklaring.personNrPasient)
@@ -110,14 +123,43 @@ class KafkaLegeerklaringConsumer(
         ).lastOrNull()
 
         if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
+            val pdfVedlegg = getPDFVedlegg(vedlegg)
             connection.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
+                    antallVedlegg = pdfVedlegg.size,
                 ).copy(
                     conversationRef = utgaaende.conversationRef,
                 ),
             )
+            handleVedlegg(
+                meldingId = meldingId,
+                vedlegg = pdfVedlegg,
+                connection = connection,
+            )
             COUNT_KAFKA_CONSUMER_LEGEERKLARING_STORED.increment()
+        }
+    }
+
+    fun getPDFVedlegg(vedlegg: List<String>) =
+        vedlegg.map { id ->
+            getVedlegg(id)
+        }.filter {
+            it.vedlegg.type == "application/pdf"
+        }
+
+    fun handleVedlegg(
+        meldingId: Int,
+        vedlegg: List<LegeerklaringVedleggDTO>,
+        connection: Connection,
+    ) {
+        vedlegg.forEachIndexed { index, legeerklaringVedleggDTO ->
+            connection.createVedlegg(
+                pdf = legeerklaringVedleggDTO.getBytes(),
+                meldingId = meldingId,
+                number = index,
+                commit = false,
+            )
         }
     }
 
@@ -125,6 +167,11 @@ class KafkaLegeerklaringConsumer(
         storage.get(bucketName, objectId)?.let { blob ->
             mapper.readValue(blob.getContent())
         } ?: throw RuntimeException("Fant ikke legeerklaring i gcp bucket: $objectId")
+
+    fun getVedlegg(objectId: String): LegeerklaringVedleggDTO =
+        storage.get(bucketNameVedlegg, objectId)?.let { blob ->
+            mapper.readValue(blob.getContent())
+        } ?: throw RuntimeException("Fant ikke vedlegg for legeerklaring i gcp bucket: $objectId")
 
     companion object {
         private val log = LoggerFactory.getLogger(KafkaLegeerklaringConsumer::class.java)
