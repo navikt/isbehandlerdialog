@@ -106,6 +106,26 @@ fun DatabaseInterface.updateMeldingCreatedAt(
     }
 }
 
+const val queryUpdateAvvistMeldingPublishedAt =
+    """
+        UPDATE MELDING
+        SET avvist_published_at = ?
+        WHERE id = ?
+    """
+
+fun DatabaseInterface.updateAvvistMeldingPublishedAt(id: PMelding.Id) =
+    connection.use { connection ->
+        connection.prepareStatement(queryUpdateAvvistMeldingPublishedAt).use {
+            it.setObject(1, OffsetDateTime.now())
+            it.setInt(2, id.id)
+            val updated = it.executeUpdate()
+            if (updated != 1) {
+                throw SQLException("Expected a single row to be updated, got update count $updated")
+            }
+        }
+        connection.commit()
+    }
+
 const val queryGetPDFs = """
     SELECT p.*
     FROM pdf AS p INNER JOIN melding m on p.melding_id = m.id

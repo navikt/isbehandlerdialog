@@ -17,9 +17,8 @@ const val queryCreateMeldingStatus =
             created_at,
             updated_at,
             status,
-            tekst,
-            avvist_published_at
-        ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?)
+            tekst
+        ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?)
     """
 
 fun Connection.createMeldingStatus(meldingStatus: MeldingStatus, meldingId: PMelding.Id) {
@@ -31,7 +30,6 @@ fun Connection.createMeldingStatus(meldingStatus: MeldingStatus, meldingId: PMel
         it.setObject(4, now)
         it.setString(5, meldingStatus.status.name)
         it.setString(6, meldingStatus.tekst)
-        it.setNull(7, Types.TIMESTAMP_WITH_TIMEZONE)
         it.executeUpdate()
     }
     if (rowCount != 1) {
@@ -76,40 +74,6 @@ fun DatabaseInterface.getMeldingStatus(meldingId: PMelding.Id, connection: Conne
         }
 }
 
-const val queryGetUnpublishedAvvistMeldingStatus =
-    """
-        SELECT melding_id
-        FROM MELDING_STATUS
-        WHERE status = 'AVVIST' AND avvist_published_at IS NULL
-    """
-
-fun DatabaseInterface.getUnpublishedAvvistMeldingStatus(): List<PMelding.Id> =
-    connection.use { connection ->
-        connection.prepareStatement(queryGetUnpublishedAvvistMeldingStatus).use {
-            it.executeQuery().toList { toPMeldingId() }
-        }
-    }
-
-const val queryUpdateAvvistMeldingPublishedAt =
-    """
-        UPDATE MELDING_STATUS
-        SET avvist_published_at = ?
-        WHERE melding_id = ?
-    """
-
-fun DatabaseInterface.updateAvvistMeldingPublishedAt(meldingId: PMelding.Id) =
-    connection.use { connection ->
-        connection.prepareStatement(queryUpdateAvvistMeldingPublishedAt).use {
-            it.setObject(1, OffsetDateTime.now())
-            it.setInt(2, meldingId.id)
-            val updated = it.executeUpdate()
-            if (updated != 1) {
-                throw SQLException("Expected a single row to be updated, got update count $updated")
-            }
-        }
-        connection.commit()
-    }
-
 fun Connection.getMeldingStatus(meldingId: PMelding.Id): PMeldingStatus? {
     return this.prepareStatement(queryGetMeldingStatusForMeldingId).use {
         it.setInt(1, meldingId.id)
@@ -126,8 +90,4 @@ fun ResultSet.toPMeldingStatus() =
         updatedAt = getObject("updated_at", OffsetDateTime::class.java),
         status = getString("status"),
         tekst = getString("tekst"),
-        avvistPublishedAt = getObject("avvist_published_at", OffsetDateTime::class.java),
     )
-
-fun ResultSet.toPMeldingId() =
-    PMelding.Id(id = getInt("melding_id"))

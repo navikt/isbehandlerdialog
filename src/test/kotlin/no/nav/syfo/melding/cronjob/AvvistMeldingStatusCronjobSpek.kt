@@ -4,10 +4,9 @@ import io.ktor.server.testing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.melding.database.createMeldingTilBehandler
 import no.nav.syfo.melding.database.domain.PMelding
+import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.melding.kafka.producer.PublishAvvistMeldingStatusService
 import no.nav.syfo.melding.status.database.createMeldingStatus
-import no.nav.syfo.melding.status.database.getMeldingStatus
-import no.nav.syfo.melding.status.database.updateAvvistMeldingPublishedAt
 import no.nav.syfo.melding.status.domain.MeldingStatusType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateMeldingStatus
@@ -62,8 +61,8 @@ class AvvistMeldingStatusCronjobSpek : Spek({
                         result.updated shouldBeEqualTo 1
                     }
 
-                    val meldingStatus = database.getMeldingStatus(meldingId = meldingId)
-                    meldingStatus?.avvistPublishedAt shouldNotBeEqualTo null
+                    val meldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    meldinger.first().avvistPublishedAt shouldNotBeEqualTo null
                 }
 
                 it("Will not be picked up by cronjob if no unpublished avviste meldinger") {
@@ -115,6 +114,9 @@ class AvvistMeldingStatusCronjobSpek : Spek({
                         result.failed shouldBeEqualTo 0
                         result.updated shouldBeEqualTo 0
                     }
+
+                    val meldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    meldinger.first().avvistPublishedAt shouldBeEqualTo null
                 }
             }
         }

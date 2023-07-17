@@ -26,6 +26,7 @@ data class PMelding(
     val journalpostId: String?,
     val ubesvartPublishedAt: OffsetDateTime?,
     val veilederIdent: String?,
+    val avvistPublishedAt: OffsetDateTime?,
 ) {
     @JvmInline
     value class Id(val id: Int)
