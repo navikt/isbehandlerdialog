@@ -8,7 +8,7 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.leaderelection.LeaderPodClient
 import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
-import no.nav.syfo.melding.cronjob.AvvistMeldingStatusCronjob
+import no.nav.syfo.melding.cronjob.AvvistMeldingCronjob
 import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
 import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
@@ -89,8 +89,8 @@ fun Application.cronjobModule(
         val producerConfig = kafkaAivenProducerConfig<KafkaMeldingDTOSerializer>(kafkaEnvironment = environment.kafka)
         val kafkaProducer = KafkaProducer<String, KafkaMeldingDTO>(producerConfig)
         val avvistMeldingProducer = AvvistMeldingProducer(kafkaProducer)
-        val avvistMeldingStatusCronjob = AvvistMeldingStatusCronjob(
-            publishAvvistMeldingStatusService = PublishAvvistMeldingStatusService(
+        val avvistMeldingStatusCronjob = AvvistMeldingCronjob(
+            publishAvvistMeldingService = PublishAvvistMeldingService(
                 database,
                 avvistMeldingProducer
             ),
