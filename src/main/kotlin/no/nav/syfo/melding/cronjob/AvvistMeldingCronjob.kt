@@ -3,11 +3,11 @@ package no.nav.syfo.melding.cronjob
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.cronjob.Cronjob
 import no.nav.syfo.application.cronjob.CronjobResult
-import no.nav.syfo.melding.kafka.producer.PublishAvvistMeldingStatusService
+import no.nav.syfo.melding.kafka.producer.PublishAvvistMeldingService
 import org.slf4j.LoggerFactory
 
-class AvvistMeldingStatusCronjob(
-    val publishAvvistMeldingStatusService: PublishAvvistMeldingStatusService,
+class AvvistMeldingCronjob(
+    val publishAvvistMeldingService: PublishAvvistMeldingService,
     override val intervalDelayMinutes: Long,
 ) : Cronjob {
     override val initialDelayMinutes: Long = 2
@@ -24,11 +24,11 @@ class AvvistMeldingStatusCronjob(
     fun runJob(): CronjobResult {
         val result = CronjobResult()
 
-        val unpublishedAvvisteMeldinger = publishAvvistMeldingStatusService.getUnpublishedAvvisteMeldinger()
+        val unpublishedAvvisteMeldinger = publishAvvistMeldingService.getUnpublishedAvvisteMeldinger()
 
         unpublishedAvvisteMeldinger.forEach { avvistMeldingTilBehandler ->
             try {
-                publishAvvistMeldingStatusService.publishAvvistMelding(
+                publishAvvistMeldingService.publishAvvistMelding(
                     avvistMeldingTilBehandler = avvistMeldingTilBehandler,
                 )
                 result.updated++
@@ -42,6 +42,6 @@ class AvvistMeldingStatusCronjob(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(AvvistMeldingStatusCronjob::class.java)
+        private val log = LoggerFactory.getLogger(AvvistMeldingCronjob::class.java)
     }
 }

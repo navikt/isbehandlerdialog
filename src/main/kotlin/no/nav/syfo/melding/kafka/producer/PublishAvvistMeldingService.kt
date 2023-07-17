@@ -6,7 +6,7 @@ import no.nav.syfo.melding.database.getUnpublishedAvvisteMeldinger
 import no.nav.syfo.melding.database.updateAvvistMeldingPublishedAt
 import no.nav.syfo.melding.domain.Melding
 
-class PublishAvvistMeldingStatusService(
+class PublishAvvistMeldingService(
     private val database: DatabaseInterface,
 ) {
 

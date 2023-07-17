@@ -7,7 +7,7 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.leaderelection.LeaderPodClient
 import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
-import no.nav.syfo.melding.cronjob.AvvistMeldingStatusCronjob
+import no.nav.syfo.melding.cronjob.AvvistMeldingCronjob
 import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
 import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
@@ -82,11 +82,11 @@ fun Application.cronjobModule(
     )
 
     if (environment.toggleCronjobAvvistMeldingStatus) {
-        val avvistMeldingStatusCronjob = AvvistMeldingStatusCronjob(
-            publishAvvistMeldingStatusService = PublishAvvistMeldingStatusService(database),
+        val avvistMeldingCronjob = AvvistMeldingCronjob(
+            publishAvvistMeldingService = PublishAvvistMeldingService(database),
             intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
         )
-        allCronjobs.add(avvistMeldingStatusCronjob)
+        allCronjobs.add(avvistMeldingCronjob)
     }
 
     allCronjobs.forEach {
