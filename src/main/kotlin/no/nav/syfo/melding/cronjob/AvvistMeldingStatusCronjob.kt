@@ -26,12 +26,9 @@ class AvvistMeldingStatusCronjob(
 
         val unpublishedAvvisteMeldinger = publishAvvistMeldingStatusService.getUnpublishedAvvisteMeldinger()
 
-        unpublishedAvvisteMeldinger.forEach { (id, avvistMeldingTilBehandler) ->
+        unpublishedAvvisteMeldinger.forEach { avvistMeldingTilBehandler ->
             try {
-                publishAvvistMeldingStatusService.publishAvvistMelding(
-                    id = id,
-                    melding = avvistMeldingTilBehandler,
-                )
+                publishAvvistMeldingStatusService.publishAvvistMelding(melding = avvistMeldingTilBehandler)
                 result.updated++
             } catch (e: Exception) {
                 log.error("Caught exception in publish avvist melding", e)

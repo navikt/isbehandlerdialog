@@ -5,13 +5,12 @@ import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.melding.database.createMeldingTilBehandler
 import no.nav.syfo.melding.database.domain.PMelding
+import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.melding.kafka.producer.AvvistMeldingProducer
 import no.nav.syfo.melding.kafka.producer.PublishAvvistMeldingStatusService
 import no.nav.syfo.melding.status.database.createMeldingStatus
-import no.nav.syfo.melding.status.database.getMeldingStatus
-import no.nav.syfo.melding.status.database.updateAvvistMeldingPublishedAt
 import no.nav.syfo.melding.status.domain.MeldingStatusType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateMeldingStatus
@@ -93,13 +92,13 @@ class AvvistMeldingStatusCronjobSpek : Spek({
                         kafkaProducer.send(capture(producerRecordSlot))
                     }
 
-                    val kafkaMeldingDTO = producerRecordSlot.captured.value()
+                    producerRecordSlot.captured.value().run {
+                        personIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_PERSONIDENT.value
+                        type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
+                    }
 
-                    kafkaMeldingDTO.personIdent shouldBeEqualTo UserConstants.ARBEIDSTAKER_PERSONIDENT.value
-                    kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
-
-                    val meldingStatus = database.getMeldingStatus(meldingId = meldingId)
-                    meldingStatus?.avvistPublishedAt shouldNotBeEqualTo null
+                    val meldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    meldinger.first().avvistPublishedAt shouldNotBeEqualTo null
                 }
 
                 it("Will not be picked up by cronjob if no unpublished avviste meldinger") {
@@ -149,6 +148,9 @@ class AvvistMeldingStatusCronjobSpek : Spek({
                         result.failed shouldBeEqualTo 0
                         result.updated shouldBeEqualTo 0
                     }
+
+                    val meldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    meldinger.first().avvistPublishedAt shouldBeEqualTo null
                 }
             }
         }

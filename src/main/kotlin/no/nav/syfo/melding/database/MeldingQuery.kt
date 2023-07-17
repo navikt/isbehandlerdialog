@@ -128,6 +128,21 @@ fun DatabaseInterface.getUnpublishedMeldingerFraBehandler(): List<PMelding> {
     }
 }
 
+const val queryGetUnpublishedAvvisteMeldinger =
+    """
+        SELECT *
+        FROM melding m
+        INNER JOIN melding_status ms on (m.id = ms.melding_id)
+        WHERE ms.status = 'AVVIST' AND m.avvist_published_at IS NULL
+    """
+
+fun DatabaseInterface.getUnpublishedAvvisteMeldinger(): List<PMelding> =
+    connection.use { connection ->
+        connection.prepareStatement(queryGetUnpublishedAvvisteMeldinger).use {
+            it.executeQuery().toList { toPMelding() }
+        }
+    }
+
 const val queryUpdateInnkommendePublishedAt =
     """
         UPDATE MELDING
@@ -148,6 +163,26 @@ fun DatabaseInterface.updateInnkommendePublishedAt(uuid: UUID) {
         connection.commit()
     }
 }
+
+const val queryUpdateAvvistMeldingPublishedAt =
+    """
+        UPDATE MELDING
+        SET avvist_published_at = ?
+        WHERE uuid = ?
+    """
+
+fun DatabaseInterface.updateAvvistMeldingPublishedAt(uuid: UUID) =
+    connection.use { connection ->
+        connection.prepareStatement(queryUpdateAvvistMeldingPublishedAt).use {
+            it.setObject(1, OffsetDateTime.now())
+            it.setString(2, uuid.toString())
+            val updated = it.executeUpdate()
+            if (updated != 1) {
+                throw SQLException("Expected a single row to be updated, got update count $updated")
+            }
+        }
+        connection.commit()
+    }
 
 const val queryGetUbesvarteMeldinger =
     """
@@ -223,8 +258,9 @@ const val queryCreateMelding =
             innkommende_published_at,
             journalpost_id,
             ubesvart_published_at,
-            veileder_ident
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?) RETURNING id
+            veileder_ident,
+            avvist_published_at
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     """
 
 const val queryCreateMeldingFellesformat =
@@ -283,6 +319,7 @@ private fun Connection.createMelding(
         it.setString(17, melding.journalpostId)
         it.setNull(18, Types.TIMESTAMP_WITH_TIMEZONE)
         it.setString(19, melding.veilederIdent)
+        it.setNull(20, Types.TIMESTAMP_WITH_TIMEZONE)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -338,27 +375,6 @@ fun DatabaseInterface.updateMeldingJournalpostId(melding: MeldingTilBehandler, j
     }
 }
 
-const val queryGetMeldingByIds = """
-    SELECT *
-    FROM Melding
-    WHERE id = ?
-"""
-
-fun DatabaseInterface.getMeldingerByIds(meldingIds: List<PMelding.Id>): List<PMelding> {
-    val meldinger = mutableListOf<PMelding>()
-    connection.use { connection ->
-        connection.prepareStatement(queryGetMeldingByIds).use {
-            meldingIds.forEach { id ->
-                it.setInt(1, id.id)
-                val melding = it.executeQuery().toList { toPMelding() }.first()
-                meldinger.add(melding)
-            }
-        }
-    }
-
-    return meldinger
-}
-
 fun ResultSet.toPMelding() =
     PMelding(
         id = PMelding.Id(getInt("id")),
@@ -381,4 +397,5 @@ fun ResultSet.toPMelding() =
         journalpostId = getString("journalpost_id"),
         ubesvartPublishedAt = getObject("ubesvart_published_at", OffsetDateTime::class.java),
         veilederIdent = getString("veileder_ident"),
+        avvistPublishedAt = getObject("avvist_published_at", OffsetDateTime::class.java),
     )
