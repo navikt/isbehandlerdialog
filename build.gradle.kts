@@ -11,7 +11,6 @@ object Versions {
     const val hikari = "5.0.1"
     const val jacksonDataType = "2.15.2"
     const val kafka = "3.3.2"
-    const val kafkaEmbedded = "3.2.3"
     const val kluent = "1.73"
     const val ktor = "2.3.2"
     const val logback = "1.4.7"
@@ -88,7 +87,6 @@ dependencies {
     implementation("com.google.cloud:google-cloud-storage:${Versions.googleCloudStorage}")
 
     // Tests
-    testImplementation("no.nav:kafka-embedded-env:${Versions.kafkaEmbedded}", excludeLog4j)
     testImplementation("io.ktor:ktor-server-tests:${Versions.ktor}")
     testImplementation("io.mockk:mockk:${Versions.mockk}")
     testImplementation("com.nimbusds:nimbus-jose-jwt:${Versions.nimbusJoseJwt}")
