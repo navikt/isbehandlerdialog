@@ -69,7 +69,7 @@ class MeldingService(
     }
 
     internal fun getMeldingStatus(
-        meldingId: Int,
+        meldingId: PMelding.Id,
         connection: Connection? = null,
     ): MeldingStatus? = database.getMeldingStatus(meldingId = meldingId, connection = connection)?.toMeldingStatus()
 

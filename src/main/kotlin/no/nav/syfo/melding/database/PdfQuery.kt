@@ -1,6 +1,7 @@
 package no.nav.syfo.melding.database
 
 import no.nav.syfo.application.database.toList
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.database.domain.PPdf
 import java.sql.*
 import java.time.OffsetDateTime
@@ -19,13 +20,13 @@ const val queryCreatePdf =
 
 fun Connection.createPdf(
     pdf: ByteArray,
-    meldingId: Int,
+    meldingId: PMelding.Id,
     commit: Boolean = true,
 ): Int {
     val now = OffsetDateTime.now()
     val pdfUuid = UUID.randomUUID()
     val idList = this.prepareStatement(queryCreatePdf).use {
-        it.setInt(1, meldingId)
+        it.setInt(1, meldingId.id)
         it.setString(2, pdfUuid.toString())
         it.setObject(3, now)
         it.setObject(4, now)

@@ -7,15 +7,13 @@ import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.leaderelection.LeaderPodClient
 import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
+import no.nav.syfo.melding.cronjob.AvvistMeldingCronjob
 import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
 import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
-import no.nav.syfo.melding.kafka.producer.KafkaMeldingFraBehandlerProducer
-import no.nav.syfo.melding.kafka.producer.KafkaUbesvartMeldingProducer
-import no.nav.syfo.melding.kafka.producer.PublishMeldingFraBehandlerService
-import no.nav.syfo.melding.kafka.producer.PublishUbesvartMeldingService
 import no.nav.syfo.melding.kafka.config.kafkaMeldingFraBehandlerProducerConfig
 import no.nav.syfo.melding.kafka.config.kafkaUbesvartMeldingProducerConfig
+import no.nav.syfo.melding.kafka.producer.*
 
 fun Application.cronjobModule(
     applicationState: ApplicationState,
@@ -77,11 +75,19 @@ fun Application.cronjobModule(
         intervalDelayMinutes = environment.cronjobUbesvartMeldingIntervalDelayMinutes,
     )
 
-    val allCronjobs = listOf(
+    val allCronjobs = mutableListOf(
         journalforMeldingTilBehandlerCronjob,
         meldingFraBehandlerCronjob,
         ubesvartMeldingCronjob,
     )
+
+    if (environment.toggleCronjobAvvistMeldingStatus) {
+        val avvistMeldingCronjob = AvvistMeldingCronjob(
+            publishAvvistMeldingService = PublishAvvistMeldingService(database),
+            intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
+        )
+        allCronjobs.add(avvistMeldingCronjob)
+    }
 
     allCronjobs.forEach {
         launchBackgroundTask(

@@ -4,6 +4,7 @@ import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
 import no.nav.syfo.melding.database.*
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.database.domain.PPdf
 import no.nav.syfo.melding.domain.MeldingFraBehandler
 import no.nav.syfo.melding.domain.MeldingTilBehandler
@@ -40,8 +41,8 @@ class TestDatabase : DatabaseInterface {
 fun DatabaseInterface.createMeldingerTilBehandler(
     meldingTilBehandler: MeldingTilBehandler,
     numberOfMeldinger: Int = 1,
-): Pair<UUID, List<Int>> {
-    val idList = mutableListOf<Int>()
+): Pair<UUID, List<PMelding.Id>> {
+    val idList = mutableListOf<PMelding.Id>()
     this.connection.use { connection ->
         for (i in 1..numberOfMeldinger) {
             val id = connection.createMeldingTilBehandler(
@@ -62,8 +63,8 @@ fun DatabaseInterface.createMeldingerTilBehandler(
 fun DatabaseInterface.createMeldingerFraBehandler(
     meldingFraBehandler: MeldingFraBehandler,
     numberOfMeldinger: Int = 1,
-): Pair<UUID, List<Int>> {
-    val idList = mutableListOf<Int>()
+): Pair<UUID, List<PMelding.Id>> {
+    val idList = mutableListOf<PMelding.Id>()
     this.connection.use { connection ->
         for (i in 1..numberOfMeldinger) {
             val id = connection.createMeldingFraBehandler(
@@ -89,13 +90,13 @@ const val queryUpdateCreatedAt =
     """
 
 fun DatabaseInterface.updateMeldingCreatedAt(
-    id: Int,
+    id: PMelding.Id,
     createdAt: OffsetDateTime,
 ) {
     this.connection.use { connection ->
         val rowCount = connection.prepareStatement(queryUpdateCreatedAt).use {
             it.setObject(1, createdAt)
-            it.setInt(2, id)
+            it.setInt(2, id.id)
             it.executeUpdate()
         }
         if (rowCount != 1) {
@@ -104,6 +105,26 @@ fun DatabaseInterface.updateMeldingCreatedAt(
         connection.commit()
     }
 }
+
+const val queryUpdateAvvistMeldingPublishedAt =
+    """
+        UPDATE MELDING
+        SET avvist_published_at = ?
+        WHERE id = ?
+    """
+
+fun DatabaseInterface.updateAvvistMeldingPublishedAt(id: PMelding.Id) =
+    connection.use { connection ->
+        connection.prepareStatement(queryUpdateAvvistMeldingPublishedAt).use {
+            it.setObject(1, OffsetDateTime.now())
+            it.setInt(2, id.id)
+            val updated = it.executeUpdate()
+            if (updated != 1) {
+                throw SQLException("Expected a single row to be updated, got update count $updated")
+            }
+        }
+        connection.commit()
+    }
 
 const val queryGetPDFs = """
     SELECT p.*

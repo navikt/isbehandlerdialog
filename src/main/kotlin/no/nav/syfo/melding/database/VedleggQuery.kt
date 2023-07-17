@@ -2,6 +2,7 @@ package no.nav.syfo.melding.database
 
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.database.domain.PVedlegg
 import java.sql.*
 import java.time.OffsetDateTime
@@ -21,14 +22,14 @@ const val queryCreateVedlegg =
 
 fun Connection.createVedlegg(
     pdf: ByteArray,
-    meldingId: Int,
+    meldingId: PMelding.Id,
     number: Int,
     commit: Boolean = true,
 ): Int {
     val now = OffsetDateTime.now()
     val vedleggUuid = UUID.randomUUID()
     val idList = this.prepareStatement(queryCreateVedlegg).use {
-        it.setInt(1, meldingId)
+        it.setInt(1, meldingId.id)
         it.setString(2, vedleggUuid.toString())
         it.setObject(3, now)
         it.setObject(4, now)

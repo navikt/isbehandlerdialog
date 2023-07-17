@@ -2,6 +2,7 @@ package no.nav.syfo.melding.status.database
 
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.database.toList
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import java.sql.*
 import java.time.OffsetDateTime
@@ -20,11 +21,11 @@ const val queryCreateMeldingStatus =
         ) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?)
     """
 
-fun Connection.createMeldingStatus(meldingStatus: MeldingStatus, meldingId: Int) {
+fun Connection.createMeldingStatus(meldingStatus: MeldingStatus, meldingId: PMelding.Id) {
     val now = OffsetDateTime.now()
     val rowCount = this.prepareStatement(queryCreateMeldingStatus).use {
         it.setString(1, meldingStatus.uuid.toString())
-        it.setInt(2, meldingId)
+        it.setInt(2, meldingId.id)
         it.setObject(3, now)
         it.setObject(4, now)
         it.setString(5, meldingStatus.status.name)
@@ -62,7 +63,7 @@ const val queryGetMeldingStatusForMeldingId =
         WHERE melding_id = ?
     """
 
-fun DatabaseInterface.getMeldingStatus(meldingId: Int, connection: Connection? = null): PMeldingStatus? {
+fun DatabaseInterface.getMeldingStatus(meldingId: PMelding.Id, connection: Connection? = null): PMeldingStatus? {
     return connection?.getMeldingStatus(
         meldingId = meldingId,
     )
@@ -73,9 +74,9 @@ fun DatabaseInterface.getMeldingStatus(meldingId: Int, connection: Connection? =
         }
 }
 
-fun Connection.getMeldingStatus(meldingId: Int): PMeldingStatus? {
+fun Connection.getMeldingStatus(meldingId: PMelding.Id): PMeldingStatus? {
     return this.prepareStatement(queryGetMeldingStatusForMeldingId).use {
-        it.setInt(1, meldingId)
+        it.setInt(1, meldingId.id)
         it.executeQuery().toList { toPMeldingStatus() }.firstOrNull()
     }
 }
@@ -84,7 +85,7 @@ fun ResultSet.toPMeldingStatus() =
     PMeldingStatus(
         id = getInt("id"),
         uuid = UUID.fromString(getString("uuid")),
-        meldingId = getInt("melding_id"),
+        meldingId = PMelding.Id(getInt("melding_id")),
         createdAt = getObject("created_at", OffsetDateTime::class.java),
         updatedAt = getObject("updated_at", OffsetDateTime::class.java),
         status = getString("status"),

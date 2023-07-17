@@ -1,5 +1,6 @@
 package no.nav.syfo.testhelper.generator
 
+import no.nav.syfo.melding.status.domain.MeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatusType
 import no.nav.syfo.melding.status.kafka.KafkaDialogmeldingStatusDTO
 import java.time.OffsetDateTime
@@ -15,4 +16,14 @@ fun generateKafkaDialogmeldingStatusDTO(
     status = status.name,
     tekst = tekst,
     bestillingUuid = meldingUUID.toString()
+)
+
+fun generateMeldingStatus(
+    meldingUUID: UUID = UUID.randomUUID(),
+    status: MeldingStatusType,
+    tekst: String? = null,
+) = MeldingStatus(
+    uuid = meldingUUID,
+    status = status,
+    tekst = tekst,
 )

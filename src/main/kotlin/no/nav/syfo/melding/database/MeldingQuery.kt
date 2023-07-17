@@ -128,6 +128,21 @@ fun DatabaseInterface.getUnpublishedMeldingerFraBehandler(): List<PMelding> {
     }
 }
 
+const val queryGetUnpublishedAvvisteMeldinger =
+    """
+        SELECT *
+        FROM melding m
+        INNER JOIN melding_status ms on (m.id = ms.melding_id)
+        WHERE ms.status = 'AVVIST' AND m.avvist_published_at IS NULL
+    """
+
+fun DatabaseInterface.getUnpublishedAvvisteMeldinger(): List<PMelding> =
+    connection.use { connection ->
+        connection.prepareStatement(queryGetUnpublishedAvvisteMeldinger).use {
+            it.executeQuery().toList { toPMelding() }
+        }
+    }
+
 const val queryUpdateInnkommendePublishedAt =
     """
         UPDATE MELDING
@@ -148,6 +163,26 @@ fun DatabaseInterface.updateInnkommendePublishedAt(uuid: UUID) {
         connection.commit()
     }
 }
+
+const val queryUpdateAvvistMeldingPublishedAt =
+    """
+        UPDATE MELDING
+        SET avvist_published_at = ?
+        WHERE uuid = ?
+    """
+
+fun DatabaseInterface.updateAvvistMeldingPublishedAt(uuid: UUID) =
+    connection.use { connection ->
+        connection.prepareStatement(queryUpdateAvvistMeldingPublishedAt).use {
+            it.setObject(1, OffsetDateTime.now())
+            it.setString(2, uuid.toString())
+            val updated = it.executeUpdate()
+            if (updated != 1) {
+                throw SQLException("Expected a single row to be updated, got update count $updated")
+            }
+        }
+        connection.commit()
+    }
 
 const val queryGetUbesvarteMeldinger =
     """
@@ -223,8 +258,9 @@ const val queryCreateMelding =
             innkommende_published_at,
             journalpost_id,
             ubesvart_published_at,
-            veileder_ident
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?) RETURNING id
+            veileder_ident,
+            avvist_published_at
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     """
 
 const val queryCreateMeldingFellesformat =
@@ -239,7 +275,7 @@ const val queryCreateMeldingFellesformat =
 fun Connection.createMeldingTilBehandler(
     meldingTilBehandler: MeldingTilBehandler,
     commit: Boolean = true,
-): Int {
+): PMelding.Id {
     return this.createMelding(
         melding = meldingTilBehandler,
         commit = commit,
@@ -250,7 +286,7 @@ fun Connection.createMeldingFraBehandler(
     meldingFraBehandler: MeldingFraBehandler,
     fellesformat: String? = null,
     commit: Boolean = false,
-): Int {
+): PMelding.Id {
     return this.createMelding(
         melding = meldingFraBehandler,
         fellesformat = fellesformat,
@@ -262,7 +298,7 @@ private fun Connection.createMelding(
     melding: Melding,
     fellesformat: String? = null,
     commit: Boolean = true,
-): Int {
+): PMelding.Id {
     val idList = this.prepareStatement(queryCreateMelding).use {
         it.setString(1, melding.uuid.toString())
         it.setObject(2, OffsetDateTime.now())
@@ -283,6 +319,7 @@ private fun Connection.createMelding(
         it.setString(17, melding.journalpostId)
         it.setNull(18, Types.TIMESTAMP_WITH_TIMEZONE)
         it.setString(19, melding.veilederIdent)
+        it.setNull(20, Types.TIMESTAMP_WITH_TIMEZONE)
         it.executeQuery().toList { getInt("id") }
     }
     if (idList.size != 1) {
@@ -299,7 +336,7 @@ private fun Connection.createMelding(
     if (commit) {
         this.commit()
     }
-    return id
+    return PMelding.Id(id)
 }
 
 const val queryGetMeldingerTilBehandlerWithoutJournalpostId = """
@@ -340,7 +377,7 @@ fun DatabaseInterface.updateMeldingJournalpostId(melding: MeldingTilBehandler, j
 
 fun ResultSet.toPMelding() =
     PMelding(
-        id = getInt("id"),
+        id = PMelding.Id(getInt("id")),
         uuid = UUID.fromString(getString("uuid")),
         createdAt = getObject("created_at", OffsetDateTime::class.java),
         innkommende = getBoolean("innkommende"),
@@ -360,4 +397,5 @@ fun ResultSet.toPMelding() =
         journalpostId = getString("journalpost_id"),
         ubesvartPublishedAt = getObject("ubesvart_published_at", OffsetDateTime::class.java),
         veilederIdent = getString("veileder_ident"),
+        avvistPublishedAt = getObject("avvist_published_at", OffsetDateTime::class.java),
     )
