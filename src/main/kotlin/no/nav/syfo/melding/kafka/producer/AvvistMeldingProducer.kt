@@ -8,13 +8,12 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class AvvistMeldingProducer(producerConfig: Properties) :
-    KafkaProducer<String, KafkaMeldingDTO>(producerConfig) {
+class AvvistMeldingProducer(val kafkaProducer: KafkaProducer<String, KafkaMeldingDTO>) {
 
     fun sendAvvistMelding(meldingTilBehandler: MeldingTilBehandler) {
         val key = UUID.nameUUIDFromBytes(meldingTilBehandler.arbeidstakerPersonIdent.value.toByteArray())
         try {
-            send(
+            kafkaProducer.send(
                 ProducerRecord(
                     AVVIST_MELDING_TOPIC,
                     key.toString(),

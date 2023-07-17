@@ -7,6 +7,7 @@ import no.nav.syfo.melding.database.createMeldingTilBehandler
 import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
+import no.nav.syfo.melding.kafka.producer.AvvistMeldingProducer
 import no.nav.syfo.melding.kafka.producer.PublishAvvistMeldingStatusService
 import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.database.getMeldingStatus
@@ -18,11 +19,14 @@ import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
 import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.config.SaslConfigs
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.util.*
+import java.util.concurrent.Future
 
 class AvvistMeldingStatusCronjobSpek : Spek({
 
@@ -35,7 +39,8 @@ class AvvistMeldingStatusCronjobSpek : Spek({
         start()
         val externalMockEnvironment = ExternalMockEnvironment.instance
         val database = externalMockEnvironment.database
-        val avvistMeldingProducer = testAvvistMeldingProducer(externalMockEnvironment.environment)
+        val kafkaProducer = mockk<KafkaProducer<String, KafkaMeldingDTO>>()
+        val avvistMeldingProducer = AvvistMeldingProducer(kafkaProducer = kafkaProducer)
 
         val publishAvvistMeldingStatusService = PublishAvvistMeldingStatusService(
             database = database,
@@ -48,15 +53,13 @@ class AvvistMeldingStatusCronjobSpek : Spek({
         )
 
         describe(AvvistMeldingStatusCronjob::class.java.simpleName) {
-            beforeGroup {
-                externalMockEnvironment.startExternalMocks()
-            }
-
-            afterGroup {
-                externalMockEnvironment.stopExternalMocks()
-            }
-
             describe("Test cronjob") {
+                beforeEachTest {
+                    clearMocks(kafkaProducer)
+                    coEvery {
+                        kafkaProducer.send(any())
+                    } returns mockk<Future<RecordMetadata>>(relaxed = true)
+                }
                 afterEachTest {
                     database.dropData()
                 }
@@ -87,7 +90,7 @@ class AvvistMeldingStatusCronjobSpek : Spek({
 
                     val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
                     verify(exactly = 1) {
-                        avvistMeldingProducer.send(capture(producerRecordSlot))
+                        kafkaProducer.send(capture(producerRecordSlot))
                     }
 
                     val kafkaMeldingDTO = producerRecordSlot.captured.value()
@@ -126,9 +129,7 @@ class AvvistMeldingStatusCronjobSpek : Spek({
                 }
 
                 it("Will not pick up other meldingstyper than AVVIST for cronjob") {
-                    val avvistMeldingStatus = generateMeldingStatus(
-                        status = MeldingStatusType.OK,
-                    )
+                    val avvistMeldingStatus = generateMeldingStatus(status = MeldingStatusType.OK)
                     var meldingId: PMelding.Id
 
                     database.connection.use {

@@ -7,7 +7,7 @@ import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.client.*
 import no.nav.syfo.client.azuread.AzureEnvironment
 
-fun testEnvironment(kafkaBootstrapServers: String) = Environment(
+fun testEnvironment() = Environment(
     database = DatabaseEnvironment(
         host = "localhost",
         port = "5432",
@@ -22,7 +22,7 @@ fun testEnvironment(kafkaBootstrapServers: String) = Environment(
         openidConfigTokenEndpoint = "azureOpenIdTokenEndpoint",
     ),
     kafka = KafkaEnvironment(
-        aivenBootstrapServers = kafkaBootstrapServers,
+        aivenBootstrapServers = "kafkaBootstrapServers",
         aivenCredstorePassword = "credstorepassord",
         aivenKeystoreLocation = "keystore",
         aivenSecurityProtocol = "SSL",
