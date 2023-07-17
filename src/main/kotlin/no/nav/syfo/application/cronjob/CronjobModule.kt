@@ -3,6 +3,7 @@ package no.nav.syfo.application.cronjob
 import io.ktor.server.application.*
 import no.nav.syfo.application.*
 import no.nav.syfo.application.database.DatabaseInterface
+import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.leaderelection.LeaderPodClient
@@ -11,9 +12,12 @@ import no.nav.syfo.melding.cronjob.AvvistMeldingCronjob
 import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
 import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
+import no.nav.syfo.melding.kafka.config.KafkaMeldingDTOSerializer
 import no.nav.syfo.melding.kafka.config.kafkaMeldingFraBehandlerProducerConfig
 import no.nav.syfo.melding.kafka.config.kafkaUbesvartMeldingProducerConfig
+import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.melding.kafka.producer.*
+import org.apache.kafka.clients.producer.KafkaProducer
 
 fun Application.cronjobModule(
     applicationState: ApplicationState,
@@ -82,11 +86,17 @@ fun Application.cronjobModule(
     )
 
     if (environment.toggleCronjobAvvistMeldingStatus) {
-        val avvistMeldingCronjob = AvvistMeldingCronjob(
-            publishAvvistMeldingService = PublishAvvistMeldingService(database),
+        val producerConfig = kafkaAivenProducerConfig<KafkaMeldingDTOSerializer>(kafkaEnvironment = environment.kafka)
+        val kafkaProducer = KafkaProducer<String, KafkaMeldingDTO>(producerConfig)
+        val avvistMeldingProducer = AvvistMeldingProducer(kafkaProducer)
+        val avvistMeldingStatusCronjob = AvvistMeldingCronjob(
+            publishAvvistMeldingService = PublishAvvistMeldingService(
+                database,
+                avvistMeldingProducer
+            ),
             intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
         )
-        allCronjobs.add(avvistMeldingCronjob)
+        allCronjobs.add(avvistMeldingStatusCronjob)
     }
 
     allCronjobs.forEach {

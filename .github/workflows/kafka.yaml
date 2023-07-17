@@ -31,6 +31,14 @@ jobs:
           RESOURCE: .nais/kafka/ubesvartmelding.yaml
           VARS: .nais/kafka/dev.json
 
+      - name: Deploy avvistmelding topic to dev-gcp
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/kafka/avvistmelding.yaml
+          VARS: .nais/kafka/dev.json
+
   deploy-kafka-prod:
     name: Deploy Kafka topic to NAIS prod-gcp
     needs: deploy-kafka-dev
@@ -52,4 +60,12 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: .nais/kafka/ubesvartmelding.yaml
+          VARS: .nais/kafka/prod.json
+
+      - name: Deploy avvistmelding to prod-gcp
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: prod-gcp
+          RESOURCE: .nais/kafka/avvistmelding.yaml
           VARS: .nais/kafka/prod.json

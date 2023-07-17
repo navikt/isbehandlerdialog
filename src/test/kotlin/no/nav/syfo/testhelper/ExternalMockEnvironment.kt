@@ -2,7 +2,7 @@ package no.nav.syfo.testhelper
 
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.client.wellknown.WellKnown
-import no.nav.syfo.testhelper.mock.*
+import no.nav.syfo.testhelper.mock.mockHttpClient
 import java.nio.file.Paths
 
 fun wellKnownInternalAzureAD(): WellKnown {
@@ -19,6 +19,7 @@ class ExternalMockEnvironment private constructor() {
     val database = TestDatabase()
 
     val environment = testEnvironment()
+
     val mockHttpClient = mockHttpClient(environment = environment)
 
     val wellKnownInternalAzureAD = wellKnownInternalAzureAD()
