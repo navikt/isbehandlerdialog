@@ -13,6 +13,7 @@ fun generateKafkaLegeerklaringFraBehandlerDTO(
     msgId: String = UUID.randomUUID().toString(),
     conversationRef: String? = UUID.randomUUID().toString(),
     tidspunkt: LocalDateTime = LocalDateTime.now(),
+    parentRef: String? = UUID.randomUUID().toString(),
 ) = LegeerklaringDTO(
     legeerklaering = generateLegeerklaring(
         personIdent = personIdent.value,
@@ -29,7 +30,7 @@ fun generateKafkaLegeerklaringFraBehandlerDTO(
     mottattDato = LocalDateTime.now(),
     conversationRef = conversationRef?.let {
         ConversationRef(
-            refToParent = UUID.randomUUID().toString(),
+            refToParent = parentRef,
             refToConversation = conversationRef,
         )
     },

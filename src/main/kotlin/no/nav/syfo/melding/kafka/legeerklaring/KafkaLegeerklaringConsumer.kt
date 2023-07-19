@@ -87,14 +87,14 @@ class KafkaLegeerklaringConsumer(
         conversationRef: String,
     ) {
         val arbeidstakerPersonIdent = PersonIdent(legeerklaring.personNrPasient)
-        if (
-            connection.hasSendtMeldingForConversationRefAndArbeidstakerIdent(
-                conversationRef = UUID.fromString(conversationRef),
-                arbeidstakerPersonIdent = arbeidstakerPersonIdent,
-            )
-        ) {
+        val utgaendeMeldinger = connection.getUtgaendeMeldingerInConversation(
+            conversationRef = UUID.fromString(conversationRef),
+            arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+        )
+        if (utgaendeMeldinger.isNotEmpty()) {
+            val parentRef = utgaendeMeldinger.last().uuid
             connection.createMeldingFraBehandler(
-                meldingFraBehandler = legeerklaring.toMeldingFraBehandler(),
+                meldingFraBehandler = legeerklaring.toMeldingFraBehandler(parentRef),
             )
             COUNT_KAFKA_CONSUMER_LEGEERKLARING_STORED.increment()
         }
@@ -112,7 +112,9 @@ class KafkaLegeerklaringConsumer(
 
         if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
             connection.createMeldingFraBehandler(
-                meldingFraBehandler = legeerklaring.toMeldingFraBehandler().copy(
+                meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
+                    parentRef = utgaaende.uuid,
+                ).copy(
                     conversationRef = utgaaende.conversationRef,
                 ),
             )

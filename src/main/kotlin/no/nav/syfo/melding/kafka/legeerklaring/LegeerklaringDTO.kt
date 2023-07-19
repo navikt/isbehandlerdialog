@@ -151,7 +151,7 @@ data class Signatur(
     val tlfNummer: String?,
 )
 
-fun LegeerklaringDTO.toMeldingFraBehandler() =
+fun LegeerklaringDTO.toMeldingFraBehandler(parentRef: UUID) =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
@@ -159,17 +159,17 @@ fun LegeerklaringDTO.toMeldingFraBehandler() =
         conversationRef = conversationRef?.let {
             try {
                 UUID.fromString(it.refToConversation)
-            } catch (exc: IllegalArgumentException) {
+            } catch (exc: Exception) {
                 UUID.randomUUID()
             }
         } ?: UUID.randomUUID(),
         parentRef = conversationRef?.let {
             try {
                 UUID.fromString(it.refToParent)
-            } catch (exc: IllegalArgumentException) {
-                null
+            } catch (exc: Exception) {
+                parentRef
             }
-        },
+        } ?: parentRef,
         msgId = msgId,
         tidspunkt = mottattDato.atZone(ZoneId.of("Europe/Oslo")).toOffsetDateTime(),
         arbeidstakerPersonIdent = PersonIdent(personNrPasient),

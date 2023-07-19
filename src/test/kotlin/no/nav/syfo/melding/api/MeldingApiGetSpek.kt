@@ -72,7 +72,8 @@ class MeldingApiGetSpek : Spek({
                         )
                         val (secondConversation, _) = database.createMeldingerTilBehandler(
                             meldingTilBehandler = defaultMeldingTilBehandler.copy(
-                                conversationRef = UUID.randomUUID()
+                                uuid = UUID.randomUUID(),
+                                conversationRef = UUID.randomUUID(),
                             ),
                         )
                         with(
