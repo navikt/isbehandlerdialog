@@ -9,6 +9,7 @@ enum class DialogmeldingType {
 }
 
 fun DialogmeldingType.getMeldingType(): MeldingType {
+    // TODO: Her må vi også håndtere legeerklæring
     return when (this) {
         DialogmeldingType.DIALOG_SVAR -> MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER
         else -> throw IllegalArgumentException("Cannot get MeldingType for DialogmeldingType $this")
@@ -26,5 +27,6 @@ enum class DialogmeldingKode(
 ) {
     FORESPORSEL(1),
     PAMINNELSE_FORESPORSEL(2),
+    RETUR_LEGEERKLARING(3),
     SVAR_FORESPORSEL(5),
 }

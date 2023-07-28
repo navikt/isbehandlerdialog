@@ -80,6 +80,7 @@ fun Route.registerMeldingApi(
 
             call.respond(HttpStatusCode.OK)
         }
+
         post("/{$uuid}/paminnelse") {
             val personIdent = call.personIdent()
             val veilederIdent = call.getNAVIdent()
@@ -100,6 +101,38 @@ fun Route.registerMeldingApi(
                     opprinneligMelding = opprinneligMelding,
                     veilederIdent = veilederIdent,
                 ),
+            )
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/{$uuid}/retur") {
+            val personIdent = call.personIdent()
+            val veilederIdent = call.getNAVIdent()
+            call.checkVeilederTilgang(
+                action = API_ACTION,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+                personIdent = personIdent
+            )
+
+            val meldingUuid = call.meldingUuid()
+            val innkommendeLegeerklaringMelding = meldingService.getMeldingFraBehandler(meldingUuid)
+                ?: throw IllegalArgumentException("Failed to create retur av legeerklæring: Melding with uuid $meldingUuid does not exist")
+            val opprinneligUtgaendeForesporsel = meldingService.getUtgaendeMeldingerInConversation(
+                conversationRef = innkommendeLegeerklaringMelding.conversationRef,
+                personIdent = innkommendeLegeerklaringMelding.arbeidstakerPersonIdent,
+            ).first()
+
+            val requestDTO = call.receive<ReturAvLegeerklaringRequestDTO>()
+            val returAvLegeerklaring = requestDTO.toMeldingTilBehandler(
+                opprinneligUtgaendeForesporsel = opprinneligUtgaendeForesporsel,
+                innkommendeLegeerklaringMelding = innkommendeLegeerklaringMelding,
+                veilederIdent = veilederIdent,
+            )
+
+            meldingService.createReturAvLegeerklaring(
+                callId = getCallId(),
+                returAvLegeerklaring = returAvLegeerklaring,
             )
 
             call.respond(HttpStatusCode.OK)

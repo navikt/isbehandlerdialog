@@ -64,6 +64,14 @@ class PdfGenClient(
         pdfUrl = foresporselOmPasientLegeerklaringUrl,
     )
 
+    suspend fun generateReturAvLegeerklaring(
+        callId: String,
+        documentComponentDTOList: List<DocumentComponentDTO>
+    ): ByteArray? {
+        // TODO: Implement
+        return byteArrayOf(0x2E, 0x28)
+    }
+
     suspend fun generateLegeerklaring(
         legeerklaringDTO: LegeerklaringDTO,
     ): ByteArray? = getPdf(
