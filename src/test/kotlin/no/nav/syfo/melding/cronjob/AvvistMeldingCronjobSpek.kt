@@ -81,6 +81,7 @@ class AvvistMeldingCronjobSpek : Spek({
 
                     val meldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
                     meldinger.first().avvistPublishedAt shouldNotBeEqualTo null
+                    // TODO: Test produce
                 }
 
                 it("Will not be picked up by cronjob if no unpublished avviste meldinger") {
@@ -108,39 +109,33 @@ class AvvistMeldingCronjobSpek : Spek({
                         result.updated shouldBeEqualTo 0
                     }
                 }
+                it("Will not pick up other meldingstyper than AVVIST for cronjob") {
+                    val okMeldingStatus = generateMeldingStatus(
+                        status = MeldingStatusType.OK,
+                    )
+                    var meldingId: PMelding.Id
 
-                // TODO: Vi vet ikke hvorfor JournalforingMeldingTilBehandlerCronjobSpek ikke fungerer når denne testen er med
-                // Se PR: https://github.com/navikt/isbehandlerdialog/pull/95
-                // Se slack: https://nav-it.slack.com/archives/G01ABN2E885/p1689594207035479
-                // Se Trello: https://nav-it.slack.com/archives/G01ABN2E885/p1689594207035479
+                    database.connection.use {
+                        meldingId = it.createMeldingTilBehandler(
+                            meldingTilBehandler = generateMeldingTilBehandler(tekst = "Ikke avvist melding"),
+                        )
+                        it.createMeldingStatus(
+                            meldingStatus = okMeldingStatus,
+                            meldingId = meldingId,
+                        )
+                        it.commit()
+                    }
 
-//                it("Will not pick up other meldingstyper than AVVIST for cronjob") {
-//                    val avvistMeldingStatus = generateMeldingStatus(
-//                        status = MeldingStatusType.OK,
-//                    )
-//                    var meldingId: PMelding.Id
-//
-//                    database.connection.use {
-//                        meldingId = it.createMeldingTilBehandler(
-//                            meldingTilBehandler = generateMeldingTilBehandler(),
-//                        )
-//                        it.createMeldingStatus(
-//                            meldingStatus = avvistMeldingStatus,
-//                            meldingId = meldingId,
-//                        )
-//                        it.commit()
-//                    }
-//
-//                    runBlocking {
-//                        val result = avvistMeldingStatusCronjob.runJob()
-//
-//                        result.failed shouldBeEqualTo 0
-//                        result.updated shouldBeEqualTo 0
-//                    }
-//
-//                    val meldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
-//                    meldinger.first().avvistPublishedAt shouldBeEqualTo null
-//                }
+                    runBlocking {
+                        val result = avvistMeldingCronjob.runJob()
+
+                        result.failed shouldBeEqualTo 0
+                        result.updated shouldBeEqualTo 0
+                    }
+
+                    val meldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+                    meldinger.first().avvistPublishedAt shouldBeEqualTo null
+                }
             }
         }
     }
