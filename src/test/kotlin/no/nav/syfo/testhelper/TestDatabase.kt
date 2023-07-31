@@ -48,7 +48,7 @@ fun DatabaseInterface.createMeldingerTilBehandler(
             val id = connection.createMeldingTilBehandler(
                 meldingTilBehandler = meldingTilBehandler
                     .copy(
-                        uuid = UUID.randomUUID(),
+                        uuid = if (i == 1) meldingTilBehandler.uuid else UUID.randomUUID(),
                         tekst = "${meldingTilBehandler.tekst}$i",
                     ),
                 commit = false,

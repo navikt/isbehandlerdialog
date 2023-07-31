@@ -100,8 +100,114 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                 }
                 it("Should store legeerklaring when melding sent with same conversationRef") {
                     val msgId = UUID.randomUUID().toString()
+                    val meldingTilBehandler = defaultMeldingTilBehandler
                     val (conversationRef, _) = database.createMeldingerTilBehandler(
-                        defaultMeldingTilBehandler.copy(
+                        meldingTilBehandler.copy(
+                            arbeidstakerPersonIdent = personIdent,
+                            behandlerPersonIdent = behandlerPersonIdent,
+                            behandlerNavn = behandlerNavn,
+                            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                        )
+                    )
+                    val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
+                        behandlerPersonIdent = behandlerPersonIdent,
+                        behandlerNavn = behandlerNavn,
+                        personIdent = personIdent,
+                        msgId = msgId,
+                        conversationRef = conversationRef.toString(),
+                        parentRef = null,
+                    )
+                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+                        legeerklaeringObjectId = legeerklaring.msgId,
+                        validationResult = ValidationResult(Status.OK),
+                        vedlegg = emptyList(),
+                    )
+                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
+
+                    runBlocking {
+                        kafkaLegeerklaringConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
+
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                    pMeldingListAfter.size shouldBeEqualTo 2
+                    val pSvar = pMeldingListAfter.last()
+                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                    pSvar.innkommende shouldBe true
+                    pSvar.msgId shouldBeEqualTo msgId
+                    pSvar.behandlerPersonIdent shouldBeEqualTo behandlerPersonIdent.value
+                    pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
+                    pSvar.antallVedlegg shouldBeEqualTo 0
+                    pSvar.veilederIdent shouldBeEqualTo null
+                    pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
+                    pSvar.conversationRef shouldBeEqualTo conversationRef
+                    pSvar.parentRef shouldBeEqualTo meldingTilBehandler.uuid
+                    val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                    vedlegg shouldBe null
+                }
+                it("Should store legeerklaring when melding recently sent to behandler") {
+                    val msgId = UUID.randomUUID().toString()
+                    val meldingTilBehandler = defaultMeldingTilBehandler
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(
+                        meldingTilBehandler.copy(
+                            arbeidstakerPersonIdent = personIdent,
+                            behandlerPersonIdent = behandlerPersonIdent,
+                            behandlerNavn = behandlerNavn,
+                            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                        )
+                    )
+                    val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
+                        behandlerPersonIdent = behandlerPersonIdent,
+                        behandlerNavn = behandlerNavn,
+                        personIdent = personIdent,
+                        msgId = msgId,
+                        conversationRef = null,
+                        parentRef = null,
+                    )
+                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+                        legeerklaeringObjectId = legeerklaring.msgId,
+                        validationResult = ValidationResult(Status.OK),
+                        vedlegg = emptyList(),
+                    )
+                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
+
+                    runBlocking {
+                        kafkaLegeerklaringConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
+
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                    pMeldingListAfter.size shouldBeEqualTo 2
+                    val pSvar = pMeldingListAfter.last()
+                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                    pSvar.innkommende shouldBe true
+                    pSvar.msgId shouldBeEqualTo msgId
+                    pSvar.behandlerPersonIdent shouldBeEqualTo behandlerPersonIdent.value
+                    pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
+                    pSvar.antallVedlegg shouldBeEqualTo 0
+                    pSvar.veilederIdent shouldBeEqualTo null
+                    pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
+                    pSvar.conversationRef shouldBeEqualTo conversationRef
+                    pSvar.parentRef shouldBeEqualTo meldingTilBehandler.uuid
+                    val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                    vedlegg shouldBe null
+                }
+
+                it("Should store legeerklaring when melding sent with same conversationRef and includes parentRef") {
+                    val msgId = UUID.randomUUID().toString()
+                    val meldingTilBehandler = defaultMeldingTilBehandler
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(
+                        meldingTilBehandler.copy(
                             arbeidstakerPersonIdent = personIdent,
                             behandlerPersonIdent = behandlerPersonIdent,
                             behandlerNavn = behandlerNavn,
@@ -144,58 +250,11 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.veilederIdent shouldBeEqualTo null
                     pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
                     pSvar.conversationRef shouldBeEqualTo conversationRef
+                    pSvar.parentRef.toString() shouldBeEqualTo legeerklaring.conversationRef?.refToParent
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }
-                it("Should store legeerklaring when melding recently sent to behandler") {
-                    val msgId = UUID.randomUUID().toString()
-                    val (conversationRef, _) = database.createMeldingerTilBehandler(
-                        defaultMeldingTilBehandler.copy(
-                            arbeidstakerPersonIdent = personIdent,
-                            behandlerPersonIdent = behandlerPersonIdent,
-                            behandlerNavn = behandlerNavn,
-                            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-                        )
-                    )
-                    val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
-                        behandlerPersonIdent = behandlerPersonIdent,
-                        behandlerNavn = behandlerNavn,
-                        personIdent = personIdent,
-                        msgId = msgId,
-                        conversationRef = null,
-                    )
-                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
-                        legeerklaeringObjectId = legeerklaring.msgId,
-                        validationResult = ValidationResult(Status.OK),
-                        vedlegg = emptyList(),
-                    )
-                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
-                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
-                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
-                    runBlocking {
-                        kafkaLegeerklaringConsumer.pollAndProcessRecords(
-                            kafkaConsumer = mockConsumer,
-                        )
-                    }
-
-                    verify(exactly = 1) { mockConsumer.commitSync() }
-
-                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
-                    pMeldingListAfter.size shouldBeEqualTo 2
-                    val pSvar = pMeldingListAfter.last()
-                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
-                    pSvar.innkommende shouldBe true
-                    pSvar.msgId shouldBeEqualTo msgId
-                    pSvar.behandlerPersonIdent shouldBeEqualTo behandlerPersonIdent.value
-                    pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
-                    pSvar.antallVedlegg shouldBeEqualTo 0
-                    pSvar.veilederIdent shouldBeEqualTo null
-                    pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
-                    pSvar.conversationRef shouldBeEqualTo conversationRef
-                    val vedlegg = database.getVedlegg(pSvar.uuid, 0)
-                    vedlegg shouldBe null
-                }
                 it("Should not store legeerklaring when melding sent to behandler long time ago") {
                     val msgId = UUID.randomUUID().toString()
                     database.createMeldingerTilBehandler(
