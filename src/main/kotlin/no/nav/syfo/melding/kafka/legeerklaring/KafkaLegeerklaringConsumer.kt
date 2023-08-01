@@ -87,14 +87,13 @@ class KafkaLegeerklaringConsumer(
         conversationRef: String,
     ) {
         val arbeidstakerPersonIdent = PersonIdent(legeerklaring.personNrPasient)
-        val utgaendeMeldinger = connection.getUtgaendeMeldingerInConversation(
+        val utgaaende = connection.getUtgaendeMeldingerInConversation(
             conversationRef = UUID.fromString(conversationRef),
             arbeidstakerPersonIdent = arbeidstakerPersonIdent,
-        )
-        if (utgaendeMeldinger.isNotEmpty()) {
-            val parentRef = utgaendeMeldinger.last().uuid
+        ).lastOrNull()
+        if (utgaaende != null) {
             connection.createMeldingFraBehandler(
-                meldingFraBehandler = legeerklaring.toMeldingFraBehandler(parentRef),
+                meldingFraBehandler = legeerklaring.toMeldingFraBehandler(parentRef = utgaaende.uuid),
             )
             COUNT_KAFKA_CONSUMER_LEGEERKLARING_STORED.increment()
         }

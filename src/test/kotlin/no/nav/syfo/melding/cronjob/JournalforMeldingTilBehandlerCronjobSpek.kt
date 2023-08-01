@@ -103,7 +103,7 @@ class JournalforDialogmeldingCronjobSpek : Spek({
                     it.journalpostId shouldBeEqualTo journalpostId.toString()
                 }
 
-                coVerifyOrder {
+                coVerifyAll {
                     dokarkivClient.journalfor(expectedJournalpostRequestMeldingTilBehandler)
                     dokarkivClient.journalfor(expectedJournalpostRequestMeldingTilBehandler)
                     dokarkivClient.journalfor(expectedJournalpostRequestPaminnelse)
