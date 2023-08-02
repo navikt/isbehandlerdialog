@@ -9,8 +9,8 @@ data class ReturAvLegeerklaringRequestDTO(
 )
 
 fun ReturAvLegeerklaringRequestDTO.toMeldingTilBehandler(
-    opprinneligUtgaendeForesporsel: MeldingTilBehandler,
-    innkommendeLegeerklaringMelding: MeldingFraBehandler,
+    opprinneligForesporselLegeerklaring: MeldingTilBehandler,
+    innkommendeLegeerklaring: MeldingFraBehandler,
     veilederIdent: String,
 ): MeldingTilBehandler {
     val now = OffsetDateTime.now()
@@ -18,13 +18,13 @@ fun ReturAvLegeerklaringRequestDTO.toMeldingTilBehandler(
         uuid = UUID.randomUUID(),
         createdAt = now,
         type = MeldingType.HENVENDELSE_RETUR_LEGEERKLARING,
-        conversationRef = opprinneligUtgaendeForesporsel.conversationRef,
-        parentRef = innkommendeLegeerklaringMelding.uuid,
+        conversationRef = opprinneligForesporselLegeerklaring.conversationRef,
+        parentRef = innkommendeLegeerklaring.uuid,
         tidspunkt = now,
-        arbeidstakerPersonIdent = opprinneligUtgaendeForesporsel.arbeidstakerPersonIdent,
-        behandlerPersonIdent = opprinneligUtgaendeForesporsel.behandlerPersonIdent,
-        behandlerNavn = opprinneligUtgaendeForesporsel.behandlerNavn,
-        behandlerRef = opprinneligUtgaendeForesporsel.behandlerRef,
+        arbeidstakerPersonIdent = opprinneligForesporselLegeerklaring.arbeidstakerPersonIdent,
+        behandlerPersonIdent = opprinneligForesporselLegeerklaring.behandlerPersonIdent,
+        behandlerNavn = opprinneligForesporselLegeerklaring.behandlerNavn,
+        behandlerRef = opprinneligForesporselLegeerklaring.behandlerRef,
         tekst = "",
         document = document,
         antallVedlegg = 0, // TODO: Eventuell opprinnelig melding pdf som vedlegg?

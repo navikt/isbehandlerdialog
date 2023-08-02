@@ -404,6 +404,35 @@ class MeldingApiPostSpek : Spek({
                             response.status() shouldBeEqualTo HttpStatusCode.BadRequest
                         }
                     }
+                    it("returns status BadRequest if meldingFraBehandler (not legeerklaring) exists for given uuid") {
+                        val foresporselTilleggsopplysninger = generateMeldingTilBehandler(
+                            type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+                        )
+                        val foresporselSvar = generateMeldingFraBehandler().copy(
+                            conversationRef = foresporselTilleggsopplysninger.conversationRef,
+                            type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+                        )
+
+                        database.connection.use {
+                            it.createMeldingTilBehandler(foresporselTilleggsopplysninger)
+                            it.createMeldingFraBehandler(
+                                meldingFraBehandler = foresporselSvar,
+                                commit = true,
+                            )
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Post, "$apiUrl/${foresporselSvar.uuid}/retur") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(
+                                    NAV_PERSONIDENT_HEADER,
+                                    personIdent.value
+                                )
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.BadRequest
+                        }
+                    }
                 }
             }
         }
