@@ -19,3 +19,11 @@ spec:
           labels:
             namespace: teamsykefravr
             severity: danger
+        - alert: ISBEHANDLERDIALOG IS UP
+          expr: kube_deployment_status_replicas_available{deployment="isbehandlerdialog"} > 0
+          for: 30s
+          annotations:
+            summary: "Appen kjører"
+          labels:
+            namespace: teamsykefravr
+            severity: notice
