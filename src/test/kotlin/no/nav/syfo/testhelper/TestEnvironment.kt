@@ -52,7 +52,6 @@ fun testEnvironment() = Environment(
     cronjobUbesvartMeldingIntervalDelayMinutes = 60L * 4,
     cronjobUbesvartMeldingFristHours = 24L * 14,
     legeerklaringBucketName = "test_bucket",
-    toggleCronjobAvvistMeldingStatus = true,
     cronjobAvvistMeldingStatusIntervalDelayMinutes = 60L * 4,
 )
 
