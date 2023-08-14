@@ -15,7 +15,6 @@ import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
 import no.nav.syfo.melding.kafka.config.KafkaMeldingDTOSerializer
 import no.nav.syfo.melding.kafka.config.kafkaMeldingFraBehandlerProducerConfig
 import no.nav.syfo.melding.kafka.config.kafkaUbesvartMeldingProducerConfig
-import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.melding.kafka.producer.*
 import org.apache.kafka.clients.producer.KafkaProducer
 
@@ -79,25 +78,26 @@ fun Application.cronjobModule(
         intervalDelayMinutes = environment.cronjobUbesvartMeldingIntervalDelayMinutes,
     )
 
+    val avvistMeldingProducer = AvvistMeldingProducer(
+        kafkaProducer = KafkaProducer(
+            kafkaAivenProducerConfig<KafkaMeldingDTOSerializer>(kafkaEnvironment = environment.kafka)
+        )
+    )
+    val publishAvvistMeldingService = PublishAvvistMeldingService(
+        database = database,
+        avvistMeldingProducer = avvistMeldingProducer
+    )
+    val avvistMeldingStatusCronjob = AvvistMeldingCronjob(
+        publishAvvistMeldingService = publishAvvistMeldingService,
+        intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
+    )
+
     val allCronjobs = mutableListOf(
         journalforMeldingTilBehandlerCronjob,
         meldingFraBehandlerCronjob,
         ubesvartMeldingCronjob,
+        avvistMeldingStatusCronjob,
     )
-
-    if (environment.toggleCronjobAvvistMeldingStatus) {
-        val producerConfig = kafkaAivenProducerConfig<KafkaMeldingDTOSerializer>(kafkaEnvironment = environment.kafka)
-        val kafkaProducer = KafkaProducer<String, KafkaMeldingDTO>(producerConfig)
-        val avvistMeldingProducer = AvvistMeldingProducer(kafkaProducer)
-        val avvistMeldingStatusCronjob = AvvistMeldingCronjob(
-            publishAvvistMeldingService = PublishAvvistMeldingService(
-                database,
-                avvistMeldingProducer
-            ),
-            intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
-        )
-        allCronjobs.add(avvistMeldingStatusCronjob)
-    }
 
     allCronjobs.forEach {
         launchBackgroundTask(
