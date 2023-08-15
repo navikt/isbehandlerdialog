@@ -52,7 +52,7 @@ class KafkaLegeerklaringConsumer(
                         val legeerklaring = getLegeerklaring(kafkaLegeerklaring.legeerklaeringObjectId)
                         handleIncomingLegeerklaring(
                             legeerklaring = legeerklaring,
-                            vedlegg = kafkaLegeerklaring.vedlegg ?: emptyList(),
+                            vedleggIds = kafkaLegeerklaring.vedlegg ?: emptyList(),
                             connection = connection,
                         )
                     }
@@ -67,21 +67,21 @@ class KafkaLegeerklaringConsumer(
 
     private fun handleIncomingLegeerklaring(
         legeerklaring: LegeerklaringDTO,
-        vedlegg: List<String>,
+        vedleggIds: List<String>,
         connection: Connection,
     ) {
         val conversationRef = legeerklaring.conversationRef?.refToConversation
         if (conversationRef != null) {
             handleIncomingLegeerklaringWithConversationRef(
                 legeerklaring = legeerklaring,
-                vedlegg = vedlegg,
+                vedleggIds = vedleggIds,
                 connection = connection,
                 conversationRef = conversationRef,
             )
         } else {
             handleIncomingLegeerklaringWithoutConversationRef(
                 legeerklaring = legeerklaring,
-                vedlegg = vedlegg,
+                vedleggIds = vedleggIds,
                 connection = connection,
             )
         }
@@ -89,7 +89,7 @@ class KafkaLegeerklaringConsumer(
 
     private fun handleIncomingLegeerklaringWithConversationRef(
         legeerklaring: LegeerklaringDTO,
-        vedlegg: List<String>,
+        vedleggIds: List<String>,
         connection: Connection,
         conversationRef: String,
     ) {
@@ -99,7 +99,7 @@ class KafkaLegeerklaringConsumer(
             arbeidstakerPersonIdent = arbeidstakerPersonIdent,
         ).lastOrNull()
         if (utgaaende != null) {
-            val pdfVedlegg = getPDFVedlegg(vedlegg)
+            val pdfVedlegg = getPDFVedlegg(vedleggIds)
             val meldingId = connection.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
@@ -117,7 +117,7 @@ class KafkaLegeerklaringConsumer(
 
     private fun handleIncomingLegeerklaringWithoutConversationRef(
         legeerklaring: LegeerklaringDTO,
-        vedlegg: List<String>,
+        vedleggIds: List<String>,
         connection: Connection,
     ) {
         val arbeidstakerPersonIdent = PersonIdent(legeerklaring.personNrPasient)
@@ -127,7 +127,7 @@ class KafkaLegeerklaringConsumer(
         ).lastOrNull()
 
         if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
-            val pdfVedlegg = getPDFVedlegg(vedlegg)
+            val pdfVedlegg = getPDFVedlegg(vedleggIds)
             val meldingId = connection.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
@@ -145,14 +145,14 @@ class KafkaLegeerklaringConsumer(
         }
     }
 
-    fun getPDFVedlegg(vedlegg: List<String>) =
+    private fun getPDFVedlegg(vedlegg: List<String>) =
         vedlegg.map { id ->
             getVedlegg(id)
         }.filter {
             it.vedlegg.type == "application/pdf"
         }
 
-    fun handleVedlegg(
+    private fun handleVedlegg(
         meldingId: PMelding.Id,
         vedlegg: List<LegeerklaringVedleggDTO>,
         connection: Connection,
@@ -167,12 +167,12 @@ class KafkaLegeerklaringConsumer(
         }
     }
 
-    fun getLegeerklaring(objectId: String): LegeerklaringDTO =
+    private fun getLegeerklaring(objectId: String): LegeerklaringDTO =
         storage.get(bucketName, objectId)?.let { blob ->
             mapper.readValue(blob.getContent())
         } ?: throw RuntimeException("Fant ikke legeerklaring i gcp bucket: $objectId")
 
-    fun getVedlegg(objectId: String): LegeerklaringVedleggDTO =
+    private fun getVedlegg(objectId: String): LegeerklaringVedleggDTO =
         storage.get(bucketNameVedlegg, objectId)?.let { blob ->
             mapper.readValue(blob.getContent())
         } ?: throw RuntimeException("Fant ikke vedlegg for legeerklaring i gcp bucket: $objectId")
