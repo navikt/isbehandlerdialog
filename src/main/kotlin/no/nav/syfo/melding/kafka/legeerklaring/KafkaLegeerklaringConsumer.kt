@@ -6,6 +6,7 @@ import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaConsumerService
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.database.*
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.*
 import no.nav.syfo.util.configuredJacksonMapper
@@ -100,7 +101,10 @@ class KafkaLegeerklaringConsumer(
         if (utgaaende != null) {
             val pdfVedlegg = getPDFVedlegg(vedlegg)
             val meldingId = connection.createMeldingFraBehandler(
-                meldingFraBehandler = legeerklaring.toMeldingFraBehandler(pdfVedlegg.size),
+                meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
+                    parentRef = utgaaende.uuid,
+                    antallVedlegg = pdfVedlegg.size,
+                ),
             )
             handleVedlegg(
                 meldingId = meldingId,
@@ -124,7 +128,7 @@ class KafkaLegeerklaringConsumer(
 
         if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
             val pdfVedlegg = getPDFVedlegg(vedlegg)
-            connection.createMeldingFraBehandler(
+            val meldingId = connection.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
                     antallVedlegg = pdfVedlegg.size,
@@ -149,7 +153,7 @@ class KafkaLegeerklaringConsumer(
         }
 
     fun handleVedlegg(
-        meldingId: Int,
+        meldingId: PMelding.Id,
         vedlegg: List<LegeerklaringVedleggDTO>,
         connection: Connection,
     ) {
