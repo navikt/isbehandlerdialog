@@ -20,6 +20,8 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.OffsetDateTime
 import java.util.*
 
+private const val expectedMeldingTekst = "Mottatt legeerklæring"
+
 class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
 
     with(TestApplicationEngine()) {
@@ -151,6 +153,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
                     pSvar.conversationRef shouldBeEqualTo conversationRef
                     pSvar.parentRef shouldBeEqualTo meldingTilBehandler.uuid
+                    pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }
@@ -203,6 +206,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
                     pSvar.conversationRef shouldBeEqualTo conversationRef
                     pSvar.parentRef shouldBeEqualTo meldingTilBehandler.uuid
+                    pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }
@@ -269,6 +273,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
                     pSvar.conversationRef shouldBeEqualTo conversationRef
                     pSvar.parentRef shouldBeEqualTo meldingTilBehandler.uuid
+                    pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldNotBe null
                     vedlegg!!.pdf shouldBeEqualTo vedleggPdf
@@ -335,6 +340,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
                     pSvar.conversationRef shouldBeEqualTo conversationRef
                     pSvar.parentRef.toString() shouldBeEqualTo legeerklaring.conversationRef?.refToParent
+                    pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldNotBe null
                     vedlegg!!.pdf shouldBeEqualTo vedleggPdf
@@ -388,6 +394,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
                     pSvar.conversationRef shouldBeEqualTo conversationRef
                     pSvar.parentRef.toString() shouldBeEqualTo legeerklaring.conversationRef?.refToParent
+                    pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                     vedlegg shouldBe null
                 }

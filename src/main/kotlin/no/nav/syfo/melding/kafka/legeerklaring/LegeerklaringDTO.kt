@@ -178,7 +178,7 @@ fun LegeerklaringDTO.toMeldingFraBehandler(
         arbeidstakerPersonIdent = PersonIdent(personNrPasient),
         behandlerPersonIdent = PersonIdent(personNrLege),
         behandlerNavn = legeerklaering.signatur.navn,
-        tekst = legeerklaering.forslagTilTiltak.tekst,
+        tekst = "Mottatt legeerklæring",
         antallVedlegg = antallVedlegg,
         innkommendePublishedAt = null,
     )
