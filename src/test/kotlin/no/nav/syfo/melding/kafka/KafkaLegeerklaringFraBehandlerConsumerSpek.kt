@@ -47,7 +47,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
         val pdfgenClient = PdfGenClient(
             pdfGenBaseUrl = externalMockEnvironment.environment.clients.dialogmeldingpdfgen.baseUrl,
             legeerklaringPdfGenBaseUrl = externalMockEnvironment.environment.clients.dialogmeldingpdfgen.baseUrl,
-            httpClient =  externalMockEnvironment.mockHttpClient,
+            httpClient = externalMockEnvironment.mockHttpClient,
         )
         val kafkaLegeerklaringConsumer = KafkaLegeerklaringConsumer(
             database = database,
