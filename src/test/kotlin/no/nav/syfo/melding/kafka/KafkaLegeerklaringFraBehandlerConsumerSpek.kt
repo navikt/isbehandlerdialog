@@ -276,7 +276,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.msgId shouldBeEqualTo msgId
                     pSvar.behandlerPersonIdent shouldBeEqualTo behandlerPersonIdent.value
                     pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
-                    pSvar.antallVedlegg shouldBeEqualTo 1
+                    pSvar.antallVedlegg shouldBeEqualTo 2
                     pSvar.veilederIdent shouldBeEqualTo null
                     pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
                     pSvar.conversationRef shouldBeEqualTo conversationRef
