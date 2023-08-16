@@ -72,6 +72,8 @@ spec:
       value: "production"
     - name: LEGEERKLARING_BUCKET_NAME
       value: teamsykmelding-pale2-legeerklaring-bucket-dev
+    - name: LEGEERKLARING_VEDLEGG_BUCKET_NAME
+      value: teamsykmelding-pale2-vedlegg-bucket-dev
     - name: PADM2_CLIENT_ID
       value: "dev-gcp.teamsykefravr.padm2"
     - name: PADM2_URL

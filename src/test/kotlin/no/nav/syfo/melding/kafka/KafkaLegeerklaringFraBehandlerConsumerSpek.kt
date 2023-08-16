@@ -8,13 +8,12 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.*
-import no.nav.syfo.melding.kafka.legeerklaring.KafkaLegeerklaringConsumer
-import no.nav.syfo.melding.kafka.legeerklaring.LEGEERKLARING_TOPIC
+import no.nav.syfo.melding.kafka.legeerklaring.*
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.*
 import no.nav.syfo.testhelper.mock.mockKafkaConsumer
 import no.nav.syfo.util.configuredJacksonMapper
-import org.amshove.kluent.shouldBe
+import org.amshove.kluent.*
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -37,12 +36,17 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
         }
         val storage = mockk<Storage>()
         val blob = mockk<Blob>()
+        val vedleggBlob = mockk<Blob>()
+        val vedleggPdf = byteArrayOf(0x2E, 0x28)
+
         val bucketName = externalMockEnvironment.environment.legeerklaringBucketName
+        val bucketNameVedlegg = externalMockEnvironment.environment.legeerklaringVedleggBucketName
 
         val kafkaLegeerklaringConsumer = KafkaLegeerklaringConsumer(
             database = database,
             storage = storage,
             bucketName = bucketName,
+            bucketNameVedlegg = bucketNameVedlegg,
         )
 
         describe("Read legeerklaring sent from behandler to NAV from Kafka Topic") {
@@ -203,7 +207,140 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     vedlegg shouldBe null
                 }
 
+                it("Should store legeerklaring with vedlegg when melding recently sent to behandler") {
+                    val msgId = UUID.randomUUID().toString()
+                    val meldingTilBehandler = defaultMeldingTilBehandler
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(
+                        meldingTilBehandler.copy(
+                            arbeidstakerPersonIdent = personIdent,
+                            behandlerPersonIdent = behandlerPersonIdent,
+                            behandlerNavn = behandlerNavn,
+                            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                        )
+                    )
+                    val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
+                        behandlerPersonIdent = behandlerPersonIdent,
+                        behandlerNavn = behandlerNavn,
+                        personIdent = personIdent,
+                        msgId = msgId,
+                        conversationRef = null,
+                        parentRef = null,
+                    )
+                    val vedleggId = UUID.randomUUID().toString()
+                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+                        legeerklaeringObjectId = legeerklaring.msgId,
+                        validationResult = ValidationResult(Status.OK),
+                        vedlegg = listOf(vedleggId),
+                    )
+                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
+                    val legeerklaringVedlegg = LegeerklaringVedleggDTO(
+                        vedlegg = Vedlegg(
+                            content = Content(
+                                contentType = "application/pdf",
+                                content = String(Base64.getMimeEncoder().encode(vedleggPdf)),
+                            ),
+                            type = "application/pdf",
+                            description = "",
+                        ),
+                    )
+                    every { vedleggBlob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaringVedlegg)
+                    every { storage.get(bucketNameVedlegg, vedleggId) } returns vedleggBlob
+
+                    runBlocking {
+                        kafkaLegeerklaringConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
+
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                    pMeldingListAfter.size shouldBeEqualTo 2
+                    val pSvar = pMeldingListAfter.last()
+                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                    pSvar.innkommende shouldBe true
+                    pSvar.msgId shouldBeEqualTo msgId
+                    pSvar.behandlerPersonIdent shouldBeEqualTo behandlerPersonIdent.value
+                    pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
+                    pSvar.antallVedlegg shouldBeEqualTo 1
+                    pSvar.veilederIdent shouldBeEqualTo null
+                    pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
+                    pSvar.conversationRef shouldBeEqualTo conversationRef
+                    pSvar.parentRef shouldBeEqualTo meldingTilBehandler.uuid
+                    val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                    vedlegg shouldNotBe null
+                    vedlegg!!.pdf shouldBeEqualTo vedleggPdf
+                }
+
                 it("Should store legeerklaring when melding sent with same conversationRef and includes parentRef") {
+                    val msgId = UUID.randomUUID().toString()
+                    val meldingTilBehandler = defaultMeldingTilBehandler
+                    val (conversationRef, _) = database.createMeldingerTilBehandler(
+                        meldingTilBehandler.copy(
+                            arbeidstakerPersonIdent = personIdent,
+                            behandlerPersonIdent = behandlerPersonIdent,
+                            behandlerNavn = behandlerNavn,
+                            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                        )
+                    )
+                    val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
+                        behandlerPersonIdent = behandlerPersonIdent,
+                        behandlerNavn = behandlerNavn,
+                        personIdent = personIdent,
+                        msgId = msgId,
+                        conversationRef = conversationRef.toString(),
+                    )
+                    val vedleggId = UUID.randomUUID().toString()
+                    val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+                        legeerklaeringObjectId = legeerklaring.msgId,
+                        validationResult = ValidationResult(Status.OK),
+                        vedlegg = listOf(vedleggId),
+                    )
+                    val legeerklaringVedlegg = LegeerklaringVedleggDTO(
+                        vedlegg = Vedlegg(
+                            content = Content(
+                                contentType = "application/pdf",
+                                content = String(Base64.getMimeEncoder().encode(vedleggPdf)),
+                            ),
+                            type = "application/pdf",
+                            description = "",
+                        ),
+                    )
+                    every { vedleggBlob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaringVedlegg)
+                    every { storage.get(bucketNameVedlegg, vedleggId) } returns vedleggBlob
+                    every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+                    every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+                    val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
+
+                    runBlocking {
+                        kafkaLegeerklaringConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
+
+                    val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                    pMeldingListAfter.size shouldBeEqualTo 2
+                    val pSvar = pMeldingListAfter.last()
+                    pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                    pSvar.innkommende shouldBe true
+                    pSvar.msgId shouldBeEqualTo msgId
+                    pSvar.behandlerPersonIdent shouldBeEqualTo behandlerPersonIdent.value
+                    pSvar.behandlerNavn shouldBeEqualTo UserConstants.BEHANDLER_NAVN
+                    pSvar.antallVedlegg shouldBeEqualTo 1
+                    pSvar.veilederIdent shouldBeEqualTo null
+                    pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
+                    pSvar.conversationRef shouldBeEqualTo conversationRef
+                    pSvar.parentRef.toString() shouldBeEqualTo legeerklaring.conversationRef?.refToParent
+                    val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                    vedlegg shouldNotBe null
+                    vedlegg!!.pdf shouldBeEqualTo vedleggPdf
+                }
+
+                it("Should store legeerklaring with vedlegg when melding sent with same conversationRef and includes parentRef") {
                     val msgId = UUID.randomUUID().toString()
                     val meldingTilBehandler = defaultMeldingTilBehandler
                     val (conversationRef, _) = database.createMeldingerTilBehandler(
