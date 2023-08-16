@@ -55,7 +55,8 @@ fun main() {
         ),
     )
     val pdfgenClient = PdfGenClient(
-        pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl
+        pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,
+        legeerklaringPdfGenBaseUrl = environment.clients.legeerklaringpdfgen.baseUrl,
     )
     lateinit var meldingService: MeldingService
 
@@ -114,6 +115,7 @@ fun main() {
             bucketName = environment.legeerklaringBucketName,
             bucketNameVedlegg = environment.legeerklaringVedleggBucketName,
             database = applicationDatabase,
+            pdfgenClient = pdfgenClient,
         )
     }
 

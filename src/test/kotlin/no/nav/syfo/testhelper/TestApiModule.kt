@@ -19,6 +19,7 @@ fun Application.testApiModule(
     )
     val pdfgenClient = PdfGenClient(
         pdfGenBaseUrl = externalMockEnvironment.environment.clients.dialogmeldingpdfgen.baseUrl,
+        legeerklaringPdfGenBaseUrl = externalMockEnvironment.environment.clients.dialogmeldingpdfgen.baseUrl,
         httpClient = mockHttpClient,
     )
     val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
