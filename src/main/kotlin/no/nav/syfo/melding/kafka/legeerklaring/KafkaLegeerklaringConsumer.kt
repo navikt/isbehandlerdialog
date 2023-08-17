@@ -155,8 +155,8 @@ class KafkaLegeerklaringConsumer(
         val legeerklaringPdf = runBlocking {
             pdfgenClient.generateLegeerklaring(legeerklaring)
         }
-        return mutableListOf(legeerklaringPdf!!).also {
-            it.addAll(
+        return mutableListOf(legeerklaringPdf!!).apply {
+            addAll(
                 vedlegg.map { id ->
                     getVedlegg(id)
                 }.filter {
