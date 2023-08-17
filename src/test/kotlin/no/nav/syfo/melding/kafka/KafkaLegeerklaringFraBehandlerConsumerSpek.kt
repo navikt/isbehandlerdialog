@@ -161,8 +161,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.parentRef shouldBeEqualTo meldingTilBehandler.uuid
                     pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
-                    vedlegg shouldNotBe null
-                    vedlegg!!.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
+                    vedlegg?.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
                 }
                 it("Should store legeerklaring when melding recently sent to behandler") {
                     val msgId = UUID.randomUUID().toString()
@@ -215,8 +214,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.parentRef shouldBeEqualTo meldingTilBehandler.uuid
                     pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg = database.getVedlegg(pSvar.uuid, 0)
-                    vedlegg shouldNotBe null
-                    vedlegg!!.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
+                    vedlegg?.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
                 }
 
                 it("Should store legeerklaring with vedlegg when melding recently sent to behandler") {
@@ -283,11 +281,9 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.parentRef shouldBeEqualTo meldingTilBehandler.uuid
                     pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg1 = database.getVedlegg(pSvar.uuid, 0)
-                    vedlegg1 shouldNotBe null
-                    vedlegg1!!.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
+                    vedlegg1?.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
                     val vedlegg2 = database.getVedlegg(pSvar.uuid, 1)
-                    vedlegg2 shouldNotBe null
-                    vedlegg2!!.pdf shouldBeEqualTo vedleggPdf
+                    vedlegg2?.pdf shouldBeEqualTo vedleggPdf
                 }
 
                 it("Should store legeerklaring when melding sent with same conversationRef and includes parentRef") {
@@ -353,11 +349,9 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.parentRef.toString() shouldBeEqualTo legeerklaring.conversationRef?.refToParent
                     pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg1 = database.getVedlegg(pSvar.uuid, 0)
-                    vedlegg1 shouldNotBe null
-                    vedlegg1!!.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
+                    vedlegg1?.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
                     val vedlegg2 = database.getVedlegg(pSvar.uuid, 1)
-                    vedlegg2 shouldNotBe null
-                    vedlegg2!!.pdf shouldBeEqualTo vedleggPdf
+                    vedlegg2?.pdf shouldBeEqualTo vedleggPdf
                 }
 
                 it("Should store legeerklaring with vedlegg when melding sent with same conversationRef and includes parentRef") {
@@ -410,8 +404,7 @@ class KafkaLegeerklaringFraBehandlerConsumerSpek : Spek({
                     pSvar.parentRef.toString() shouldBeEqualTo legeerklaring.conversationRef?.refToParent
                     pSvar.tekst shouldBeEqualTo expectedMeldingTekst
                     val vedlegg1 = database.getVedlegg(pSvar.uuid, 0)
-                    vedlegg1 shouldNotBe null
-                    vedlegg1!!.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
+                    vedlegg1?.pdf shouldBeEqualTo UserConstants.PDF_LEGEERKLARING
                 }
 
                 it("Should not store legeerklaring when melding sent to behandler long time ago") {

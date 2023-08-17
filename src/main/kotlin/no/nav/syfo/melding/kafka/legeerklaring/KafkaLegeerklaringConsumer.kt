@@ -109,7 +109,7 @@ class KafkaLegeerklaringConsumer(
                     antallVedlegg = pdfVedlegg.size,
                 ),
             )
-            handleVedlegg(
+            storeVedlegg(
                 meldingId = meldingId,
                 vedlegg = pdfVedlegg,
                 connection = connection,
@@ -139,7 +139,7 @@ class KafkaLegeerklaringConsumer(
                     conversationRef = utgaaende.conversationRef,
                 ),
             )
-            handleVedlegg(
+            storeVedlegg(
                 meldingId = meldingId,
                 vedlegg = pdfVedlegg,
                 connection = connection,
@@ -152,23 +152,23 @@ class KafkaLegeerklaringConsumer(
         legeerklaring: LegeerklaringDTO,
         vedlegg: List<String>,
     ): List<ByteArray> {
-        val pdf = runBlocking {
+        val legeerklaringPdf = runBlocking {
             pdfgenClient.generateLegeerklaring(legeerklaring)
         }
-        val list = mutableListOf(pdf!!)
-        list.addAll(
-            vedlegg.map { id ->
-                getVedlegg(id)
-            }.filter {
-                it.vedlegg.type == "application/pdf"
-            }.map {
-                it.getBytes()
-            }
-        )
-        return list
+        return mutableListOf(legeerklaringPdf!!).also {
+            it.addAll(
+                vedlegg.map { id ->
+                    getVedlegg(id)
+                }.filter {
+                    it.vedlegg.type == "application/pdf"
+                }.map {
+                    it.getBytes()
+                }
+            )
+        }
     }
 
-    private fun handleVedlegg(
+    private fun storeVedlegg(
         meldingId: PMelding.Id,
         vedlegg: List<ByteArray>,
         connection: Connection,
