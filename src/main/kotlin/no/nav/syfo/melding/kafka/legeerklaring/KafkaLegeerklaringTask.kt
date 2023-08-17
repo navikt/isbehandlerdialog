@@ -4,6 +4,7 @@ import com.google.cloud.storage.StorageOptions
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.*
+import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.melding.kafka.domain.KafkaLegeerklaeringMessage
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -17,6 +18,7 @@ fun launchKafkaTaskLegeerklaring(
     bucketName: String,
     bucketNameVedlegg: String,
     database: DatabaseInterface,
+    pdfgenClient: PdfGenClient,
 ) {
     val storage = StorageOptions.newBuilder().build().service
     val kafkaLegeerklaringConsumer = KafkaLegeerklaringConsumer(
@@ -24,6 +26,7 @@ fun launchKafkaTaskLegeerklaring(
         storage = storage,
         bucketName = bucketName,
         bucketNameVedlegg = bucketNameVedlegg,
+        pdfgenClient = pdfgenClient,
     )
     val consumerProperties =
         kafkaConsumerConfig<KafkaLegeerklaringDeserializer>(kafkaEnvironment = kafkaEnvironment).apply {

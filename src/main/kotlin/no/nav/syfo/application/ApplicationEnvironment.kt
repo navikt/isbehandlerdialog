@@ -45,10 +45,13 @@ data class Environment(
         dialogmeldingpdfgen = OpenClientEnvironment(
             baseUrl = "http://dialogmeldingpdfgen",
         ),
+        legeerklaringpdfgen = OpenClientEnvironment(
+            baseUrl = "http://pale-2-pdfgen.teamsykmelding",
+        ),
         dokarkiv = ClientEnvironment(
             baseUrl = getEnvVar("DOKARKIV_URL"),
             clientId = getEnvVar("DOKARKIV_CLIENT_ID"),
-        )
+        ),
     ),
     val cronjobUbesvartMeldingIntervalDelayMinutes: Long = getEnvVar("CRONJOB_UBESVART_MELDING_INTERVAL_DELAY_MINUTES").toLong(),
     val cronjobUbesvartMeldingFristHours: Long = getEnvVar("CRONJOB_UBESVART_MELDING_FRIST_HOURS").toLong(),

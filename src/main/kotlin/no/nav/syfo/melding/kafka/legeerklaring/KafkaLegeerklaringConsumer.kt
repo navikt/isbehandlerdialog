@@ -2,8 +2,10 @@ package no.nav.syfo.melding.kafka.legeerklaring
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.cloud.storage.Storage
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.KafkaConsumerService
+import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.database.domain.PMelding
@@ -23,6 +25,7 @@ class KafkaLegeerklaringConsumer(
     private val storage: Storage,
     private val bucketName: String,
     private val bucketNameVedlegg: String,
+    private val pdfgenClient: PdfGenClient,
 ) : KafkaConsumerService<KafkaLegeerklaeringMessage> {
     override val pollDurationInMillis: Long = 1000
     private val mapper = configuredJacksonMapper()
@@ -99,14 +102,14 @@ class KafkaLegeerklaringConsumer(
             arbeidstakerPersonIdent = arbeidstakerPersonIdent,
         ).lastOrNull()
         if (utgaaende != null) {
-            val pdfVedlegg = getPDFVedlegg(vedleggIds)
+            val pdfVedlegg = getPDFVedlegg(legeerklaring, vedleggIds)
             val meldingId = connection.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
                     antallVedlegg = pdfVedlegg.size,
                 ),
             )
-            handleVedlegg(
+            storeVedlegg(
                 meldingId = meldingId,
                 vedlegg = pdfVedlegg,
                 connection = connection,
@@ -127,7 +130,7 @@ class KafkaLegeerklaringConsumer(
         ).lastOrNull()
 
         if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
-            val pdfVedlegg = getPDFVedlegg(vedleggIds)
+            val pdfVedlegg = getPDFVedlegg(legeerklaring, vedleggIds)
             val meldingId = connection.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
@@ -136,7 +139,7 @@ class KafkaLegeerklaringConsumer(
                     conversationRef = utgaaende.conversationRef,
                 ),
             )
-            handleVedlegg(
+            storeVedlegg(
                 meldingId = meldingId,
                 vedlegg = pdfVedlegg,
                 connection = connection,
@@ -145,21 +148,34 @@ class KafkaLegeerklaringConsumer(
         }
     }
 
-    private fun getPDFVedlegg(vedlegg: List<String>) =
-        vedlegg.map { id ->
-            getVedlegg(id)
-        }.filter {
-            it.vedlegg.type == "application/pdf"
+    private fun getPDFVedlegg(
+        legeerklaring: LegeerklaringDTO,
+        vedlegg: List<String>,
+    ): List<ByteArray> {
+        val legeerklaringPdf = runBlocking {
+            pdfgenClient.generateLegeerklaring(legeerklaring)
         }
+        return mutableListOf(legeerklaringPdf!!).apply {
+            addAll(
+                vedlegg.map { id ->
+                    getVedlegg(id)
+                }.filter {
+                    it.vedlegg.type == "application/pdf"
+                }.map {
+                    it.getBytes()
+                }
+            )
+        }
+    }
 
-    private fun handleVedlegg(
+    private fun storeVedlegg(
         meldingId: PMelding.Id,
-        vedlegg: List<LegeerklaringVedleggDTO>,
+        vedlegg: List<ByteArray>,
         connection: Connection,
     ) {
-        vedlegg.forEachIndexed { index, legeerklaringVedleggDTO ->
+        vedlegg.forEachIndexed { index, pdf ->
             connection.createVedlegg(
-                pdf = legeerklaringVedleggDTO.getBytes(),
+                pdf = pdf,
                 meldingId = meldingId,
                 number = index,
                 commit = false,
