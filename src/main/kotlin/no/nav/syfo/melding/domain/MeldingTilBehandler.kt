@@ -29,6 +29,34 @@ data class MeldingTilBehandler(
     override val msgId: String? = null
     override val innkommende: Boolean = false
     override val journalpostId: String? = null
+
+    companion object {
+        fun createReturAvLegeerklaring(
+            opprinneligForesporselLegeerklaring: MeldingTilBehandler,
+            innkommendeLegeerklaring: MeldingFraBehandler,
+            veilederIdent: String,
+            document: List<DocumentComponentDTO>,
+        ): MeldingTilBehandler {
+            val now = OffsetDateTime.now()
+            return MeldingTilBehandler(
+                uuid = UUID.randomUUID(),
+                createdAt = now,
+                type = MeldingType.HENVENDELSE_RETUR_LEGEERKLARING,
+                conversationRef = opprinneligForesporselLegeerklaring.conversationRef,
+                parentRef = innkommendeLegeerklaring.uuid,
+                tidspunkt = now,
+                arbeidstakerPersonIdent = opprinneligForesporselLegeerklaring.arbeidstakerPersonIdent,
+                behandlerPersonIdent = opprinneligForesporselLegeerklaring.behandlerPersonIdent,
+                behandlerNavn = opprinneligForesporselLegeerklaring.behandlerNavn,
+                behandlerRef = opprinneligForesporselLegeerklaring.behandlerRef,
+                tekst = "",
+                document = document,
+                antallVedlegg = 0, // TODO: Eventuell opprinnelig melding pdf som vedlegg?
+                ubesvartPublishedAt = null,
+                veilederIdent = veilederIdent,
+            )
+        }
+    }
 }
 
 fun MeldingTilBehandler.toMeldingDTO(status: MeldingStatus?) = MeldingDTO(
