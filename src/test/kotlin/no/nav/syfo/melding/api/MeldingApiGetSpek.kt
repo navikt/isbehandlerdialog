@@ -86,11 +86,16 @@ class MeldingApiGetSpek : Spek({
                             val respons = objectMapper.readValue<MeldingResponseDTO>(response.content!!)
                             val conversation = respons.conversations[firstConversation]!!
                             conversation.size shouldBeEqualTo 4
-                            val message = conversation.first()
-                            message.tekst shouldBeEqualTo "${defaultMeldingTilBehandler.tekst}1"
-                            message.document shouldBeEqualTo defaultMeldingTilBehandler.document
-                            message.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER
                             conversation.all { it.status == null } shouldBeEqualTo true
+                            val firstMeldingDTO = conversation.first()
+                            firstMeldingDTO.tekst shouldBeEqualTo "${defaultMeldingTilBehandler.tekst}1"
+                            firstMeldingDTO.document shouldBeEqualTo defaultMeldingTilBehandler.document
+                            firstMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER
+                            firstMeldingDTO.conversationRef shouldBeEqualTo firstConversation
+                            firstMeldingDTO.parentRef.shouldBeNull()
+                            val lastMeldingDTO = conversation.last()
+                            lastMeldingDTO.conversationRef shouldBeEqualTo firstConversation
+                            lastMeldingDTO.parentRef.shouldNotBeNull()
 
                             respons.conversations[secondConversation]?.size shouldBeEqualTo 1
 

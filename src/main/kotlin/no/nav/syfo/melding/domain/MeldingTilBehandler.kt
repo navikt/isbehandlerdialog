@@ -33,6 +33,8 @@ data class MeldingTilBehandler(
 
 fun MeldingTilBehandler.toMeldingDTO(status: MeldingStatus?) = MeldingDTO(
     uuid = uuid,
+    conversationRef = conversationRef,
+    parentRef = parentRef,
     behandlerRef = behandlerRef,
     behandlerNavn = null,
     tekst = tekst,
