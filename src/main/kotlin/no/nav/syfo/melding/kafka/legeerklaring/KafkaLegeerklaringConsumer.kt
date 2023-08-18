@@ -114,7 +114,7 @@ class KafkaLegeerklaringConsumer(
                 vedlegg = pdfVedlegg,
                 connection = connection,
             )
-            COUNT_KAFKA_CONSUMER_LEGEERKLARING_STORED.increment()
+            COUNT_KAFKA_CONSUMER_LEGEERKLARING_WITH_CONVREF_STORED.increment()
         }
     }
 
@@ -144,7 +144,7 @@ class KafkaLegeerklaringConsumer(
                 vedlegg = pdfVedlegg,
                 connection = connection,
             )
-            COUNT_KAFKA_CONSUMER_LEGEERKLARING_STORED.increment()
+            COUNT_KAFKA_CONSUMER_LEGEERKLARING_WITHOUT_CONVREF_STORED.increment()
         }
     }
 
