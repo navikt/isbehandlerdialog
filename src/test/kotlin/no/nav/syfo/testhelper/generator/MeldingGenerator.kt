@@ -41,8 +41,8 @@ fun generateMeldingTilBehandlerRequestDTO(
 )
 
 fun generateMeldingFraBehandler(
-    conversationRef: UUID,
-    personIdent: PersonIdent,
+    conversationRef: UUID = UUID.randomUUID(),
+    personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
     tekst: String = "Melding fra behandler",
     msgId: UUID = UUID.randomUUID(),
 ) = generateDialogmeldingFraBehandlerDTO(
@@ -66,3 +66,4 @@ fun generateMeldingTilBehandler(
 ).toMeldingTilBehandler(personIdent, veilederIdent)
 
 val defaultMeldingTilBehandler = generateMeldingTilBehandler()
+val defaultMeldingFraBehandler = generateMeldingFraBehandler()

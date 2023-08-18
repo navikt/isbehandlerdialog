@@ -37,7 +37,7 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler() =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
-        type = DialogmeldingType.valueOf(msgType ?: DialogmeldingType.DIALOG_NOTAT.name).getMeldingType(),
+        type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
         conversationRef = conversationRef?.let {
             try {
                 UUID.fromString(it)

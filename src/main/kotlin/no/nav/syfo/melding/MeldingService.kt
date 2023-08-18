@@ -55,9 +55,10 @@ class MeldingService(
         }
 
     private fun getBehandlerRefForConversation(conversationRef: UUID, personIdent: PersonIdent): UUID {
-        return database.connection.use {
-            it.getUtgaendeMeldingerInConversation(conversationRef, personIdent)
-        }
+        return getUtgaendeMeldingerInConversation(
+            conversationRef = conversationRef,
+            personIdent = personIdent,
+        )
             .firstOrNull()
             ?.behandlerRef
             ?: throw IllegalStateException("Fant ikke behandlerRef for samtale $conversationRef, kunne ikke knyttes til melding fra behandler")
@@ -77,9 +78,27 @@ class MeldingService(
         return database.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
     }
 
+    internal fun getMeldingFraBehandler(meldingUuid: UUID): MeldingFraBehandler? {
+        return database.getMelding(meldingUuid)?.takeUnless { !it.innkommende }?.toMeldingFraBehandler()
+    }
+
+    internal fun getUtgaendeMeldingerInConversation(conversationRef: UUID, personIdent: PersonIdent): List<MeldingTilBehandler> {
+        return database.connection.use {
+            it.getUtgaendeMeldingerInConversation(
+                conversationRef = conversationRef,
+                arbeidstakerPersonIdent = personIdent,
+            )
+        }.map { it.toMeldingTilBehandler() }
+    }
+
     internal suspend fun createPaminnelse(callId: String, paminnelse: MeldingTilBehandler) {
         val pdf = createPdf(callId = callId, meldingTilBehandler = paminnelse)
         createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = paminnelse, pdf = pdf)
+    }
+
+    internal suspend fun createReturAvLegeerklaring(callId: String, returAvLegeerklaring: MeldingTilBehandler) {
+        val pdf = createPdf(callId = callId, meldingTilBehandler = returAvLegeerklaring)
+        createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = returAvLegeerklaring, pdf = pdf)
     }
 
     private suspend fun createPdf(
@@ -100,6 +119,11 @@ class MeldingService(
             MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> pdfgenClient.generateForesporselOmPasientLegeerklaring(
                 callId = callId,
                 documentComponentDTOList = meldingTilBehandler.document
+            )
+
+            MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> pdfgenClient.generateReturAvLegeerklaring(
+                callId = callId,
+                documentComponentDTOList = meldingTilBehandler.document,
             )
         } ?: throw RuntimeException("Failed to request PDF - ${meldingTilBehandler.type}")
     }

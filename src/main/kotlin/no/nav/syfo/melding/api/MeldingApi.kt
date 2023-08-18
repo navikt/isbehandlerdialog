@@ -9,6 +9,7 @@ import no.nav.syfo.application.api.checkVeilederTilgang
 import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.util.*
 import java.util.UUID
 
@@ -80,6 +81,7 @@ fun Route.registerMeldingApi(
 
             call.respond(HttpStatusCode.OK)
         }
+
         post("/{$uuid}/paminnelse") {
             val personIdent = call.personIdent()
             val veilederIdent = call.getNAVIdent()
@@ -100,6 +102,39 @@ fun Route.registerMeldingApi(
                     opprinneligMelding = opprinneligMelding,
                     veilederIdent = veilederIdent,
                 ),
+            )
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/{$uuid}/retur") {
+            val personIdent = call.personIdent()
+            val veilederIdent = call.getNAVIdent()
+            call.checkVeilederTilgang(
+                action = API_ACTION,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+                personIdent = personIdent
+            )
+
+            val meldingUuid = call.meldingUuid()
+            val innkommendeLegeerklaring = meldingService.getMeldingFraBehandler(meldingUuid)
+                ?.takeIf { it.type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING }
+                ?: throw IllegalArgumentException("Failed to create retur av legeerklæring: Melding with uuid $meldingUuid does not exist")
+            val opprinneligForesporselLegeerklaring = meldingService.getUtgaendeMeldingerInConversation(
+                conversationRef = innkommendeLegeerklaring.conversationRef,
+                personIdent = innkommendeLegeerklaring.arbeidstakerPersonIdent,
+            ).first { it.type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING }
+
+            val requestDTO = call.receive<ReturAvLegeerklaringRequestDTO>()
+            val returAvLegeerklaring = requestDTO.toMeldingTilBehandler(
+                opprinneligForesporselLegeerklaring = opprinneligForesporselLegeerklaring,
+                innkommendeLegeerklaring = innkommendeLegeerklaring,
+                veilederIdent = veilederIdent,
+            )
+
+            meldingService.createReturAvLegeerklaring(
+                callId = getCallId(),
+                returAvLegeerklaring = returAvLegeerklaring,
             )
 
             call.respond(HttpStatusCode.OK)

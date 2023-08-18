@@ -15,6 +15,7 @@ import org.amshove.kluent.*
 import org.apache.kafka.clients.producer.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.util.*
 import java.util.concurrent.Future
 
 class MeldingApiPostSpek : Spek({
@@ -299,6 +300,138 @@ class MeldingApiPostSpek : Spek({
                     }
                     it("returns status BadRequest if $NAV_PERSONIDENT_HEADER with invalid PersonIdent is supplied") {
                         testInvalidPersonIdent(apiUrl, validToken, HttpMethod.Post)
+                    }
+                }
+            }
+
+            describe("Create retur av legeerklæring") {
+                val returApiUrl = "$apiUrl/${defaultMeldingFraBehandler.uuid}/retur"
+                val returDTO = generateReturAvLegeerklaringRequestDTO()
+
+                describe("Happy path") {
+                    it("Creates retur av legeerklæring for melding fra behandler and produces dialogmelding-bestilling to kafka") {
+                        val foresporselLegeerklaring = generateMeldingTilBehandler(
+                            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                        )
+                        val paminnelse = foresporselLegeerklaring.copy(
+                            tekst = "",
+                            type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
+                            document = generatePaminnelseRequestDTO().document,
+                            uuid = UUID.randomUUID(),
+                        )
+                        val innkommendeLegeerklaring = generateMeldingFraBehandler().copy(
+                            conversationRef = foresporselLegeerklaring.conversationRef,
+                            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                        )
+
+                        database.connection.use {
+                            it.createMeldingTilBehandler(foresporselLegeerklaring)
+                            it.createMeldingTilBehandler(paminnelse)
+                            it.createMeldingFraBehandler(
+                                meldingFraBehandler = innkommendeLegeerklaring,
+                                commit = true,
+                            )
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Post, "$apiUrl/${innkommendeLegeerklaring.uuid}/retur") {
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                                setBody(objectMapper.writeValueAsString(returDTO))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                            val pMeldinger =
+                                database.getMeldingerForArbeidstaker(personIdent)
+                            pMeldinger.size shouldBeEqualTo 4
+                            val pMelding = pMeldinger.last()
+                            pMelding.tekst?.shouldBeEmpty()
+                            pMelding.type shouldBeEqualTo MeldingType.HENVENDELSE_RETUR_LEGEERKLARING.name
+                            pMelding.innkommende.shouldBeFalse()
+                            pMelding.conversationRef shouldBeEqualTo foresporselLegeerklaring.conversationRef
+                            pMelding.parentRef shouldBeEqualTo innkommendeLegeerklaring.uuid
+                            val brodtekst =
+                                pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
+                            brodtekst.texts.first() shouldBeEqualTo "Vi viser til tidligere legeerklæring utsendt for din pasient"
+
+                            // TODO: Test pdf as well
+
+                            val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
+                            verify(exactly = 1) {
+                                kafkaProducer.send(capture(producerRecordSlot))
+                            }
+
+                            val dialogmeldingBestillingDTO = producerRecordSlot.captured.value()
+                            dialogmeldingBestillingDTO.behandlerRef shouldBeEqualTo foresporselLegeerklaring.behandlerRef.toString()
+                            dialogmeldingBestillingDTO.dialogmeldingTekst shouldBeEqualTo returDTO.document.serialize()
+                            dialogmeldingBestillingDTO.dialogmeldingType shouldBeEqualTo DialogmeldingType.DIALOG_NOTAT.name
+                            dialogmeldingBestillingDTO.dialogmeldingKode shouldBeEqualTo DialogmeldingKode.RETUR_LEGEERKLARING.value
+                            dialogmeldingBestillingDTO.dialogmeldingKodeverk shouldBeEqualTo DialogmeldingKodeverk.HENVENDELSE.name
+                            dialogmeldingBestillingDTO.dialogmeldingUuid shouldBeEqualTo pMelding.uuid.toString()
+                            dialogmeldingBestillingDTO.personIdent shouldBeEqualTo pMelding.arbeidstakerPersonIdent
+                            dialogmeldingBestillingDTO.dialogmeldingRefConversation shouldBeEqualTo pMelding.conversationRef.toString()
+                            dialogmeldingBestillingDTO.dialogmeldingRefParent shouldBeEqualTo pMelding.parentRef.toString()
+                            dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldNotBeEqualTo null
+                        }
+                    }
+                }
+
+                describe("Unhappy path") {
+                    it("Returns status Unauthorized if no token is supplied") {
+                        testMissingToken(returApiUrl, HttpMethod.Post)
+                    }
+                    it("returns status Forbidden if denied access to person") {
+                        testDeniedPersonAccess(returApiUrl, validToken, HttpMethod.Post)
+                    }
+                    it("returns status BadRequest if no $NAV_PERSONIDENT_HEADER is supplied") {
+                        testMissingPersonIdent(returApiUrl, validToken, HttpMethod.Post)
+                    }
+                    it("returns status BadRequest if $NAV_PERSONIDENT_HEADER with invalid PersonIdent is supplied") {
+                        testInvalidPersonIdent(returApiUrl, validToken, HttpMethod.Post)
+                    }
+                    it("returns status BadRequest if no meldingFraBehandler exists for given uuid") {
+                        with(
+                            handleRequest(HttpMethod.Post, returApiUrl) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(
+                                    NAV_PERSONIDENT_HEADER,
+                                    personIdent.value
+                                )
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.BadRequest
+                        }
+                    }
+                    it("returns status BadRequest if meldingFraBehandler (not legeerklaring) exists for given uuid") {
+                        val foresporselTilleggsopplysninger = generateMeldingTilBehandler(
+                            type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+                        )
+                        val foresporselSvar = generateMeldingFraBehandler().copy(
+                            conversationRef = foresporselTilleggsopplysninger.conversationRef,
+                            type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+                        )
+
+                        database.connection.use {
+                            it.createMeldingTilBehandler(foresporselTilleggsopplysninger)
+                            it.createMeldingFraBehandler(
+                                meldingFraBehandler = foresporselSvar,
+                                commit = true,
+                            )
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Post, "$apiUrl/${foresporselSvar.uuid}/retur") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(
+                                    NAV_PERSONIDENT_HEADER,
+                                    personIdent.value
+                                )
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.BadRequest
+                        }
                     }
                 }
             }

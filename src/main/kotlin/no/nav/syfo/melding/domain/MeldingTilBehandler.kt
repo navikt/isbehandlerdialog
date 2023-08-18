@@ -62,18 +62,21 @@ private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingKode.FORESPORSEL
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingKode.PAMINNELSE_FORESPORSEL
+        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> DialogmeldingKode.RETUR_LEGEERKLARING
     }
 }
 
 private fun MeldingTilBehandler.getDialogmeldingKodeverk(): DialogmeldingKodeverk {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingKodeverk.FORESPORSEL
+        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> DialogmeldingKodeverk.HENVENDELSE
     }
 }
 
 private fun MeldingTilBehandler.getDialogmeldingType(): DialogmeldingType {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingType.DIALOG_FORESPORSEL
+        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> DialogmeldingType.DIALOG_NOTAT
     }
 }
 
@@ -81,6 +84,7 @@ private fun MeldingTilBehandler.getBrevKode(): BrevkodeType {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> BrevkodeType.FORESPORSEL_OM_PASIENT
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> BrevkodeType.FORESPORSEL_OM_PASIENT_PAMINNELSE
+        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> BrevkodeType.HENVENDELSE_RETUR_LEGEERKLARING
     }
 }
 
@@ -113,13 +117,14 @@ fun MeldingTilBehandler.createTittel(): String {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> MeldingTittel.DIALOGMELDING_DEFAULT.value
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> MeldingTittel.DIALOGMELDING_PAMINNELSE.value
+        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> MeldingTittel.DIALOGMELDING_RETUR.value // TODO: Trenger vi egen her?
     }
 }
 
 fun MeldingTilBehandler.createOverstyrInnsynsregler(): String? {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
-        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> null
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> null // TODO: Tenker at returer ikke trenger å vises til bruker?
     }
 }
 
