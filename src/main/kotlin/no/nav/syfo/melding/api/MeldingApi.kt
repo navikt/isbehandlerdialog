@@ -123,6 +123,7 @@ fun Route.registerMeldingApi(
                 meldingUuid = meldingUuid,
                 veilederIdent = veilederIdent,
                 document = requestDTO.document,
+                tekst = requestDTO.tekst,
             )
 
             call.respond(HttpStatusCode.OK)

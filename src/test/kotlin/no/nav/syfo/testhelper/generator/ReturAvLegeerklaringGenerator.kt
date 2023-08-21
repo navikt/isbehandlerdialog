@@ -16,5 +16,6 @@ fun generateReturAvLegeerklaringRequestDTO(): ReturAvLegeerklaringRequestDTO = R
             title = null,
             texts = listOf("Vi viser til tidligere legeerklæring utsendt for din pasient"),
         ),
-    )
+    ),
+    tekst = "Tekst for retur av legeerklæring",
 )

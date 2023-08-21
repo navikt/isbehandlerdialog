@@ -36,6 +36,7 @@ data class MeldingTilBehandler(
             innkommendeLegeerklaring: MeldingFraBehandler,
             veilederIdent: String,
             document: List<DocumentComponentDTO>,
+            tekst: String,
         ): MeldingTilBehandler {
             val now = OffsetDateTime.now()
             return MeldingTilBehandler(
@@ -49,7 +50,7 @@ data class MeldingTilBehandler(
                 behandlerPersonIdent = opprinneligForesporselLegeerklaring.behandlerPersonIdent,
                 behandlerNavn = opprinneligForesporselLegeerklaring.behandlerNavn,
                 behandlerRef = opprinneligForesporselLegeerklaring.behandlerRef,
-                tekst = "",
+                tekst = tekst,
                 document = document,
                 antallVedlegg = 0, // TODO: Eventuell opprinnelig melding pdf som vedlegg?
                 ubesvartPublishedAt = null,

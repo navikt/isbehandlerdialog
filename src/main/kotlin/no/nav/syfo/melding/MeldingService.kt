@@ -100,7 +100,8 @@ class MeldingService(
         callId: String,
         meldingUuid: UUID,
         veilederIdent: String,
-        document: List<DocumentComponentDTO>
+        document: List<DocumentComponentDTO>,
+        tekst: String,
     ) {
         val innkommendeLegeerklaring = getMeldingFraBehandler(meldingUuid)
             ?.takeIf { it.type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING }
@@ -115,6 +116,7 @@ class MeldingService(
             innkommendeLegeerklaring = innkommendeLegeerklaring,
             veilederIdent = veilederIdent,
             document = document,
+            tekst = tekst,
         )
 
         val pdf = createPdf(callId = callId, meldingTilBehandler = returAvLegeerklaring)
