@@ -78,11 +78,11 @@ class MeldingService(
         return database.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
     }
 
-    internal fun getMeldingFraBehandler(meldingUuid: UUID): MeldingFraBehandler? {
+    private fun getMeldingFraBehandler(meldingUuid: UUID): MeldingFraBehandler? {
         return database.getMelding(meldingUuid)?.takeUnless { !it.innkommende }?.toMeldingFraBehandler()
     }
 
-    internal fun getUtgaendeMeldingerInConversation(conversationRef: UUID, personIdent: PersonIdent): List<MeldingTilBehandler> {
+    private fun getUtgaendeMeldingerInConversation(conversationRef: UUID, personIdent: PersonIdent): List<MeldingTilBehandler> {
         return database.connection.use {
             it.getUtgaendeMeldingerInConversation(
                 conversationRef = conversationRef,
@@ -96,9 +96,32 @@ class MeldingService(
         createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = paminnelse, pdf = pdf)
     }
 
-    internal suspend fun createReturAvLegeerklaring(callId: String, returAvLegeerklaring: MeldingTilBehandler) {
+    internal suspend fun createReturAvLegeerklaring(
+        callId: String,
+        meldingUuid: UUID,
+        veilederIdent: String,
+        document: List<DocumentComponentDTO>
+    ) {
+        val innkommendeLegeerklaring = getMeldingFraBehandler(meldingUuid)
+            ?.takeIf { it.type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING }
+            ?: throw IllegalArgumentException("Failed to create retur av legeerklæring: Melding with uuid $meldingUuid does not exist")
+        val opprinneligForesporselLegeerklaring = getUtgaendeMeldingerInConversation(
+            conversationRef = innkommendeLegeerklaring.conversationRef,
+            personIdent = innkommendeLegeerklaring.arbeidstakerPersonIdent,
+        ).first { it.type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING }
+
+        val returAvLegeerklaring = MeldingTilBehandler.createReturAvLegeerklaring(
+            opprinneligForesporselLegeerklaring = opprinneligForesporselLegeerklaring,
+            innkommendeLegeerklaring = innkommendeLegeerklaring,
+            veilederIdent = veilederIdent,
+            document = document,
+        )
+
         val pdf = createPdf(callId = callId, meldingTilBehandler = returAvLegeerklaring)
-        createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = returAvLegeerklaring, pdf = pdf)
+        createMeldingTilBehandlerAndSendDialogmeldingBestilling(
+            meldingTilBehandler = returAvLegeerklaring,
+            pdf = pdf,
+        )
     }
 
     private suspend fun createPdf(
