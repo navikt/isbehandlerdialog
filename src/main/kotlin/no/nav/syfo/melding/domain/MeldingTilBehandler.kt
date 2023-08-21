@@ -148,14 +148,14 @@ fun MeldingTilBehandler.createTittel(): String {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> MeldingTittel.DIALOGMELDING_DEFAULT.value
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> MeldingTittel.DIALOGMELDING_PAMINNELSE.value
-        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> MeldingTittel.DIALOGMELDING_RETUR.value // TODO: Trenger vi egen her?
+        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> MeldingTittel.DIALOGMELDING_RETUR.value
     }
 }
 
 fun MeldingTilBehandler.createOverstyrInnsynsregler(): String? {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
-        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> null // TODO: Tenker at returer ikke trenger å vises til bruker?
+        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> null
     }
 }
 
