@@ -347,7 +347,7 @@ class MeldingApiPostSpek : Spek({
                                 database.getMeldingerForArbeidstaker(personIdent)
                             pMeldinger.size shouldBeEqualTo 4
                             val pMelding = pMeldinger.last()
-                            pMelding.tekst?.shouldBeEmpty()
+                            pMelding.tekst shouldBeEqualTo returDTO.tekst
                             pMelding.type shouldBeEqualTo MeldingType.HENVENDELSE_RETUR_LEGEERKLARING.name
                             pMelding.innkommende.shouldBeFalse()
                             pMelding.conversationRef shouldBeEqualTo foresporselLegeerklaring.conversationRef
