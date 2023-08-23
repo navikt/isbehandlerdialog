@@ -28,6 +28,7 @@ class PdfGenClient(
     private val foresporselOmPasientLegeerklaringUrl: String
     private val foresporselOmPasientPaminnelseUrl: String
     private val legeerklaringPdfUrl: String
+    private val returLegeerklaringPdfUrl: String
 
     init {
         this.foresporselOmPasientTilleggsopplysningerUrl =
@@ -35,6 +36,7 @@ class PdfGenClient(
         this.foresporselOmPasientLegeerklaringUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_LEGEERKLARING_PATH"
         this.foresporselOmPasientPaminnelseUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH"
         this.legeerklaringPdfUrl = "$legeerklaringPdfGenBaseUrl$LEGEERKLARING_PATH"
+        this.returLegeerklaringPdfUrl = "$pdfGenBaseUrl$RETUR_LEGEERKLARING_PATH"
     }
 
     suspend fun generateForesporselOmPasientTilleggsopplysinger(
@@ -66,11 +68,12 @@ class PdfGenClient(
 
     suspend fun generateReturAvLegeerklaring(
         callId: String,
-        documentComponentDTOList: List<DocumentComponentDTO>
-    ): ByteArray? {
-        // TODO: Implement
-        return byteArrayOf(0x2E, 0x28)
-    }
+        documentComponentDTOList: List<DocumentComponentDTO>,
+    ): ByteArray? = getPdf(
+        callId = callId,
+        payload = documentComponentDTOList,
+        pdfUrl = returLegeerklaringPdfUrl,
+    )
 
     suspend fun generateLegeerklaring(
         legeerklaringDTO: LegeerklaringDTO,
@@ -133,6 +136,7 @@ class PdfGenClient(
         const val FORESPORSEL_OM_PASIENT_LEGEERKLARING_PATH = "$API_BASE_PATH/foresporselompasient-legeerklaring"
         const val FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH = "$API_BASE_PATH/foresporselompasient-paminnelse"
         const val LEGEERKLARING_PATH = "/api/v1/genpdf/pale-2/pale-2"
+        const val RETUR_LEGEERKLARING_PATH = "$API_BASE_PATH/henvendelse-retur-legeerklaring"
 
         private val log = LoggerFactory.getLogger(PdfGenClient::class.java)
     }

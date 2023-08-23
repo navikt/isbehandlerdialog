@@ -356,7 +356,8 @@ class MeldingApiPostSpek : Spek({
                                 pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
                             brodtekst.texts.first() shouldBeEqualTo "Vi viser til tidligere legeerklæring utsendt for din pasient"
 
-                            // TODO: Test pdf as well
+                            val pPdf = database.firstPdf(meldingUuid = pMelding.uuid)
+                            pPdf.pdf shouldBeEqualTo UserConstants.PDF_RETUR_LEGEERKLARING
 
                             val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
                             verify(exactly = 1) {
