@@ -150,6 +150,11 @@ class MeldingService(
                 callId = callId,
                 documentComponentDTOList = meldingTilBehandler.document,
             )
+
+            MeldingType.HENVENDELSE_MELDING_FRA_NAV -> pdfgenClient.generateMeldingFraNav(
+                callId = callId,
+                documentComponentDTOList = meldingTilBehandler.document,
+            )
         } ?: throw RuntimeException("Failed to request PDF - ${meldingTilBehandler.type}")
     }
 

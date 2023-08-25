@@ -19,4 +19,5 @@ enum class DialogmeldingKode(
     PAMINNELSE_FORESPORSEL(2),
     RETUR_LEGEERKLARING(3),
     SVAR_FORESPORSEL(5),
+    MELDING_FRA_NAV(8),
 }

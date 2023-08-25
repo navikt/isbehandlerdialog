@@ -29,6 +29,7 @@ class DialogmeldingBestillingProducer(
                 MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> COUNT_KAFKA_PRODUCER_FORESPORSEL_LEGEERKLARING_BESTILLING_SENT.increment()
                 MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> COUNT_KAFKA_PRODUCER_PAMINNELSE_BESTILLING_SENT.increment()
                 MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> COUNT_KAFKA_PRODUCER_RETUR_LEGEERKLARING_BESTILLING_SENT.increment()
+                MeldingType.HENVENDELSE_MELDING_FRA_NAV -> COUNT_KAFKA_PRODUCER_MELDING_FRA_NAV_BESTILLING_SENT.increment()
             }
         } catch (e: Exception) {
             log.error(

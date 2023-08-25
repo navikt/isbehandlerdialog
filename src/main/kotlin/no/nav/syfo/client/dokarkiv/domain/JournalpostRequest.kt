@@ -27,7 +27,7 @@ enum class MeldingTittel(
 ) {
     DIALOGMELDING_DEFAULT("Dialogmelding til behandler"),
     DIALOGMELDING_PAMINNELSE("Påminnelse til behandler"),
-    DIALOGMELDING_RETUR("Retur av legeerklæring til behandler")
+    DIALOGMELDING_RETUR("Retur av legeerklæring til behandler"),
 }
 
 enum class OverstyrInnsynsregler(

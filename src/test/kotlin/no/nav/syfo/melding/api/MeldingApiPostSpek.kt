@@ -287,6 +287,55 @@ class MeldingApiPostSpek : Spek({
                             }
                         }
                     }
+
+                    describe("Henvendelse melding fra nav") {
+                        val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
+                            .copy(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV)
+
+                        it("Will create a new melding fra nav and produce dialogmelding-bestilling to kafka") {
+                            with(
+                                handleRequest(HttpMethod.Post, apiUrl) {
+                                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                    addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                    addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                                    setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
+                                }
+                            ) {
+                                response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                                val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                                pMeldinger.size shouldBeEqualTo 1
+                                val pMelding = pMeldinger.first()
+                                pMelding.tekst shouldBeEqualTo meldingTilBehandlerDTO.tekst
+                                pMelding.type shouldBeEqualTo MeldingType.HENVENDELSE_MELDING_FRA_NAV.name
+                                pMelding.innkommende shouldBeEqualTo false
+                                pMelding.veilederIdent shouldBeEqualTo veilederIdent
+
+                                val brodtekst =
+                                    pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
+                                brodtekst.texts.first() shouldBeEqualTo meldingTilBehandlerDTO.tekst
+
+                                val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
+                                verify(exactly = 1) {
+                                    kafkaProducer.send(capture(producerRecordSlot))
+                                }
+
+                                val dialogmeldingBestillingDTO = producerRecordSlot.captured.value()
+                                dialogmeldingBestillingDTO.behandlerRef shouldBeEqualTo meldingTilBehandlerDTO.behandlerRef.toString()
+                                dialogmeldingBestillingDTO.dialogmeldingTekst shouldBeEqualTo meldingTilBehandlerDTO.document.serialize()
+                                dialogmeldingBestillingDTO.dialogmeldingType shouldBeEqualTo DialogmeldingType.DIALOG_NOTAT.name
+                                dialogmeldingBestillingDTO.dialogmeldingKode shouldBeEqualTo DialogmeldingKode.MELDING_FRA_NAV.value
+                                dialogmeldingBestillingDTO.dialogmeldingKodeverk shouldBeEqualTo DialogmeldingKodeverk.HENVENDELSE.name
+                                dialogmeldingBestillingDTO.dialogmeldingUuid shouldBeEqualTo pMelding.uuid.toString()
+                                dialogmeldingBestillingDTO.personIdent shouldBeEqualTo pMelding.arbeidstakerPersonIdent
+                                dialogmeldingBestillingDTO.dialogmeldingRefConversation shouldBeEqualTo pMelding.conversationRef.toString()
+                                dialogmeldingBestillingDTO.dialogmeldingRefParent shouldBeEqualTo null
+                                dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldNotBeEqualTo null
+                            }
+                        }
+
+                        // TODO: Test pdf creation
+                    }
                 }
                 describe("Unhappy path") {
                     it("Returns status Unauthorized if no token is supplied") {

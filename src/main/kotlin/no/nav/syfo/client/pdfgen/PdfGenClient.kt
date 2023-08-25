@@ -87,6 +87,11 @@ class PdfGenClient(
         pdfUrl = legeerklaringPdfUrl,
     )
 
+    suspend fun generateMeldingFraNav(callId: String, documentComponentDTOList: List<DocumentComponentDTO>): ByteArray? {
+        // TODO: Fix pdf
+        return byteArrayOf(0x2E, 102)
+    }
+
     private suspend fun getPdf(
         callId: String,
         payload: Any,
