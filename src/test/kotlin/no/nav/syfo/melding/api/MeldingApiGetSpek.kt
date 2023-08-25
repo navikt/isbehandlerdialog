@@ -17,7 +17,7 @@ import no.nav.syfo.melding.status.domain.MeldingStatusType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
-import no.nav.syfo.testhelper.generator.generateMeldingTilBehandlerRequestDTO
+import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.bearerHeader
 import no.nav.syfo.util.configuredJacksonMapper
@@ -230,7 +230,7 @@ class MeldingApiGetSpek : Spek({
                     }
                     it("Returns status Forbidden if denied access to person") {
                         val (conversation, _) = database.createMeldingerTilBehandler(
-                            generateMeldingTilBehandlerRequestDTO().toMeldingTilBehandler(
+                            generateMeldingTilBehandler(
                                 personIdent = UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS,
                                 veilederIdent = veilederIdent,
                             ),

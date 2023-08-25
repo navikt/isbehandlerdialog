@@ -129,6 +129,8 @@ class MeldingApiPostSpek : Spek({
                                     NAV_PERSONIDENT_HEADER,
                                     personIdent.value
                                 )
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                setBody(objectMapper.writeValueAsString(paminnelseDTO))
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.BadRequest
@@ -155,6 +157,8 @@ class MeldingApiPostSpek : Spek({
                                     NAV_PERSONIDENT_HEADER,
                                     personIdent.value
                                 )
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                setBody(objectMapper.writeValueAsString(paminnelseDTO))
                             }
                         ) {
                             response.status() shouldBeEqualTo HttpStatusCode.BadRequest

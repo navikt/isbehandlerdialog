@@ -2,9 +2,9 @@ package no.nav.syfo.testhelper.generator
 
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.api.MeldingTilBehandlerRequestDTO
-import no.nav.syfo.melding.api.toMeldingTilBehandler
 import no.nav.syfo.melding.domain.DocumentComponentDTO
 import no.nav.syfo.melding.domain.DocumentComponentType
+import no.nav.syfo.melding.domain.MeldingTilBehandler
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.toMeldingFraBehandler
 import no.nav.syfo.testhelper.UserConstants
@@ -59,11 +59,23 @@ fun generateMeldingTilBehandler(
     tekst: String = "Melding til behandler",
     type: MeldingType = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
     veilederIdent: String = UserConstants.VEILEDER_IDENT,
-) = generateMeldingTilBehandlerRequestDTO(
-    behandlerRef = behandlerRef,
-    tekst = tekst,
-    type = type,
-).toMeldingTilBehandler(personIdent, veilederIdent)
+): MeldingTilBehandler {
+    val meldingTilBehandlerRequestDTO = generateMeldingTilBehandlerRequestDTO(
+        behandlerRef = behandlerRef,
+        tekst = tekst,
+        type = type,
+    )
+    return MeldingTilBehandler.createMeldingTilBehandler(
+        type = type,
+        veilederIdent = veilederIdent,
+        personIdent = personIdent,
+        document = meldingTilBehandlerRequestDTO.document,
+        behandlerRef = meldingTilBehandlerRequestDTO.behandlerRef,
+        behandlerNavn = meldingTilBehandlerRequestDTO.behandlerNavn,
+        behandlerIdent = meldingTilBehandlerRequestDTO.behandlerIdent,
+        tekst = meldingTilBehandlerRequestDTO.tekst,
+    )
+}
 
 val defaultMeldingTilBehandler = generateMeldingTilBehandler()
 val defaultMeldingFraBehandler = generateMeldingFraBehandler()

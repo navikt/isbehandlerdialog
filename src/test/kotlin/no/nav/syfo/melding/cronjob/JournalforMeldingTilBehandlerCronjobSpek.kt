@@ -7,8 +7,8 @@ import no.nav.syfo.application.cronjob.CronjobResult
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.dokarkiv.domain.*
 import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
-import no.nav.syfo.melding.api.toMeldingTilBehandler
 import no.nav.syfo.melding.database.*
+import no.nav.syfo.melding.domain.MeldingTilBehandler
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.*
@@ -77,9 +77,10 @@ class JournalforDialogmeldingCronjobSpek : Spek({
                         )
                     }
                     val paminnelseId = connection.createMeldingTilBehandler(
-                        meldingTilBehandler = generatePaminnelseRequestDTO().toMeldingTilBehandler(
+                        meldingTilBehandler = MeldingTilBehandler.createForesporselPasientPaminnelse(
                             opprinneligMelding = meldingTilBehandlerTilleggsopplysninger,
                             veilederIdent = UserConstants.VEILEDER_IDENT,
+                            document = generatePaminnelseRequestDTO().document,
                         ),
                         commit = false,
                     )

@@ -31,28 +31,90 @@ data class MeldingTilBehandler(
     override val journalpostId: String? = null
 
     companion object {
+        fun createMeldingTilBehandler(
+            type: MeldingType,
+            veilederIdent: String,
+            document: List<DocumentComponentDTO>,
+            personIdent: PersonIdent,
+            behandlerIdent: String?,
+            behandlerNavn: String?,
+            behandlerRef: UUID,
+            tekst: String,
+        ): MeldingTilBehandler = create(
+            type = type,
+            conversationRef = UUID.randomUUID(),
+            personIdent = personIdent,
+            behandlerPersonIdent = behandlerIdent?.let { PersonIdent(behandlerIdent) },
+            behandlerNavn = behandlerNavn,
+            behandlerRef = behandlerRef,
+            tekst = tekst,
+            document = document,
+            veilederIdent = veilederIdent
+        )
+
+        fun createForesporselPasientPaminnelse(
+            opprinneligMelding: MeldingTilBehandler,
+            veilederIdent: String,
+            document: List<DocumentComponentDTO>
+        ): MeldingTilBehandler = create(
+            type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
+            conversationRef = opprinneligMelding.conversationRef,
+            parentRef = opprinneligMelding.uuid,
+            personIdent = opprinneligMelding.arbeidstakerPersonIdent,
+            behandlerPersonIdent = opprinneligMelding.behandlerPersonIdent,
+            behandlerNavn = opprinneligMelding.behandlerNavn,
+            behandlerRef = opprinneligMelding.behandlerRef,
+            tekst = "",
+            document = document,
+            veilederIdent = veilederIdent,
+        )
+
         fun createReturAvLegeerklaring(
             opprinneligForesporselLegeerklaring: MeldingTilBehandler,
             innkommendeLegeerklaring: MeldingFraBehandler,
             veilederIdent: String,
             document: List<DocumentComponentDTO>,
             tekst: String,
+        ): MeldingTilBehandler = create(
+            type = MeldingType.HENVENDELSE_RETUR_LEGEERKLARING,
+            conversationRef = opprinneligForesporselLegeerklaring.conversationRef,
+            parentRef = innkommendeLegeerklaring.uuid,
+            personIdent = opprinneligForesporselLegeerklaring.arbeidstakerPersonIdent,
+            behandlerPersonIdent = opprinneligForesporselLegeerklaring.behandlerPersonIdent,
+            behandlerNavn = opprinneligForesporselLegeerklaring.behandlerNavn,
+            behandlerRef = opprinneligForesporselLegeerklaring.behandlerRef,
+            tekst = tekst,
+            document = document,
+            veilederIdent = veilederIdent,
+        )
+
+        private fun create(
+            type: MeldingType,
+            conversationRef: UUID,
+            parentRef: UUID? = null,
+            personIdent: PersonIdent,
+            behandlerPersonIdent: PersonIdent?,
+            behandlerNavn: String?,
+            behandlerRef: UUID,
+            tekst: String,
+            document: List<DocumentComponentDTO>,
+            veilederIdent: String
         ): MeldingTilBehandler {
             val now = OffsetDateTime.now()
             return MeldingTilBehandler(
                 uuid = UUID.randomUUID(),
                 createdAt = now,
-                type = MeldingType.HENVENDELSE_RETUR_LEGEERKLARING,
-                conversationRef = opprinneligForesporselLegeerklaring.conversationRef,
-                parentRef = innkommendeLegeerklaring.uuid,
+                type = type,
+                conversationRef = conversationRef,
+                parentRef = parentRef,
                 tidspunkt = now,
-                arbeidstakerPersonIdent = opprinneligForesporselLegeerklaring.arbeidstakerPersonIdent,
-                behandlerPersonIdent = opprinneligForesporselLegeerklaring.behandlerPersonIdent,
-                behandlerNavn = opprinneligForesporselLegeerklaring.behandlerNavn,
-                behandlerRef = opprinneligForesporselLegeerklaring.behandlerRef,
+                arbeidstakerPersonIdent = personIdent,
+                behandlerPersonIdent = behandlerPersonIdent,
+                behandlerNavn = behandlerNavn,
+                behandlerRef = behandlerRef,
                 tekst = tekst,
                 document = document,
-                antallVedlegg = 0, // TODO: Eventuell opprinnelig melding pdf som vedlegg?
+                antallVedlegg = 0,
                 ubesvartPublishedAt = null,
                 veilederIdent = veilederIdent,
             )
