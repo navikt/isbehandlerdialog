@@ -71,11 +71,10 @@ fun Route.registerMeldingApi(
             val requestDTO = call.receive<MeldingTilBehandlerRequestDTO>()
 
             meldingService.createMeldingTilBehandler(
+                requestDTO = requestDTO,
                 callId = getCallId(),
-                meldingTilBehandler = requestDTO.toMeldingTilBehandler(
-                    personIdent = personIdent,
-                    veilederIdent = veilederIdent,
-                ),
+                veilederIdent = veilederIdent,
+                personIdent = personIdent,
             )
 
             call.respond(HttpStatusCode.OK)
@@ -91,16 +90,13 @@ fun Route.registerMeldingApi(
             )
 
             val meldingUuid = call.meldingUuid()
-            val opprinneligMelding = meldingService.getMeldingTilBehandler(meldingUuid = meldingUuid)
-                ?: throw IllegalArgumentException("Failed to create påminnelse: Melding with uuid $meldingUuid does not exist")
-
             val requestDTO = call.receive<PaminnelseRequestDTO>()
+
             meldingService.createPaminnelse(
                 callId = getCallId(),
-                paminnelse = requestDTO.toMeldingTilBehandler(
-                    opprinneligMelding = opprinneligMelding,
-                    veilederIdent = veilederIdent,
-                ),
+                meldingUuid = meldingUuid,
+                veilederIdent = veilederIdent,
+                document = requestDTO.document,
             )
 
             call.respond(HttpStatusCode.OK)

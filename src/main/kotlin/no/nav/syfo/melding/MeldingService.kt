@@ -21,8 +21,20 @@ class MeldingService(
 ) {
     suspend fun createMeldingTilBehandler(
         callId: String,
-        meldingTilBehandler: MeldingTilBehandler,
+        requestDTO: MeldingTilBehandlerRequestDTO,
+        veilederIdent: String,
+        personIdent: PersonIdent,
     ) {
+        val meldingTilBehandler = MeldingTilBehandler.createMeldingTilBehandler(
+            type = requestDTO.type,
+            behandlerIdent = requestDTO.behandlerIdent,
+            behandlerNavn = requestDTO.behandlerNavn,
+            behandlerRef = requestDTO.behandlerRef,
+            tekst = requestDTO.tekst,
+            document = requestDTO.document,
+            personIdent = personIdent,
+            veilederIdent = veilederIdent,
+        )
         val pdf = createPdf(callId, meldingTilBehandler)
         createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = meldingTilBehandler, pdf = pdf)
     }
@@ -74,7 +86,7 @@ class MeldingService(
         connection: Connection? = null,
     ): MeldingStatus? = database.getMeldingStatus(meldingId = meldingId, connection = connection)?.toMeldingStatus()
 
-    internal fun getMeldingTilBehandler(meldingUuid: UUID): MeldingTilBehandler? {
+    private fun getMeldingTilBehandler(meldingUuid: UUID): MeldingTilBehandler? {
         return database.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
     }
 
@@ -91,7 +103,20 @@ class MeldingService(
         }.map { it.toMeldingTilBehandler() }
     }
 
-    internal suspend fun createPaminnelse(callId: String, paminnelse: MeldingTilBehandler) {
+    internal suspend fun createPaminnelse(
+        callId: String,
+        meldingUuid: UUID,
+        veilederIdent: String,
+        document: List<DocumentComponentDTO>
+    ) {
+        val opprinneligMelding = getMeldingTilBehandler(meldingUuid = meldingUuid)
+            ?: throw IllegalArgumentException("Failed to create påminnelse: Melding with uuid $meldingUuid does not exist")
+        val paminnelse = MeldingTilBehandler.createForesporselPasientPaminnelse(
+            opprinneligMelding = opprinneligMelding,
+            veilederIdent = veilederIdent,
+            document = document
+        )
+
         val pdf = createPdf(callId = callId, meldingTilBehandler = paminnelse)
         createMeldingTilBehandlerAndSendDialogmeldingBestilling(meldingTilBehandler = paminnelse, pdf = pdf)
     }
