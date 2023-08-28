@@ -56,18 +56,24 @@ data class MeldingTilBehandler(
             opprinneligMelding: MeldingTilBehandler,
             veilederIdent: String,
             document: List<DocumentComponentDTO>
-        ): MeldingTilBehandler = create(
-            type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
-            conversationRef = opprinneligMelding.conversationRef,
-            parentRef = opprinneligMelding.uuid,
-            personIdent = opprinneligMelding.arbeidstakerPersonIdent,
-            behandlerPersonIdent = opprinneligMelding.behandlerPersonIdent,
-            behandlerNavn = opprinneligMelding.behandlerNavn,
-            behandlerRef = opprinneligMelding.behandlerRef,
-            tekst = "",
-            document = document,
-            veilederIdent = veilederIdent,
-        )
+        ): MeldingTilBehandler {
+            if (!opprinneligMelding.kanHaPaminnelse()) {
+                throw IllegalArgumentException("Kan ikke opprette påminnelse for melding av type ${opprinneligMelding.type}")
+            }
+
+            return create(
+                type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
+                conversationRef = opprinneligMelding.conversationRef,
+                parentRef = opprinneligMelding.uuid,
+                personIdent = opprinneligMelding.arbeidstakerPersonIdent,
+                behandlerPersonIdent = opprinneligMelding.behandlerPersonIdent,
+                behandlerNavn = opprinneligMelding.behandlerNavn,
+                behandlerRef = opprinneligMelding.behandlerRef,
+                tekst = "",
+                document = document,
+                veilederIdent = veilederIdent,
+            )
+        }
 
         fun createReturAvLegeerklaring(
             opprinneligForesporselLegeerklaring: MeldingTilBehandler,
@@ -181,6 +187,11 @@ private fun MeldingTilBehandler.getBrevKode(): BrevkodeType {
         MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> BrevkodeType.HENVENDELSE_RETUR_LEGEERKLARING
         MeldingType.HENVENDELSE_MELDING_FRA_NAV -> BrevkodeType.HENVENDELSE_MELDING_FRA_NAV
     }
+}
+
+private fun MeldingTilBehandler.kanHaPaminnelse(): Boolean = when (this.type) {
+    MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> true
+    MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_MELDING_FRA_NAV -> false
 }
 
 fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) =

@@ -297,6 +297,32 @@ class UbesvartMeldingCronjobSpek : Spek({
                     verify(exactly = 0) { kafkaProducer.send(any()) }
                 }
 
+                it("Will not update ubesvart_published_at when melding is of type henvendelse melding fra NAV") {
+                    val meldingTilBehandler = generateMeldingTilBehandler(
+                        personIdent = personIdent,
+                        type = MeldingType.HENVENDELSE_MELDING_FRA_NAV,
+                    )
+                    val (_, idList) = database.createMeldingerTilBehandler(
+                        meldingTilBehandler = meldingTilBehandler,
+                    )
+                    database.updateMeldingCreatedAt(
+                        id = idList.first(),
+                        createdAt = OffsetDateTime.now().minusDays(14)
+                    )
+
+                    runBlocking {
+                        val result = ubesvartMeldingCronjob.runJob()
+
+                        result.failed shouldBeEqualTo 0
+                        result.updated shouldBeEqualTo 0
+                    }
+
+                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                    meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+
+                    verify(exactly = 0) { kafkaProducer.send(any()) }
+                }
+
                 it("Will not update ubesvart_published_at when melding has avvist apprec status") {
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (_, idList) = database.createMeldingerTilBehandler(
