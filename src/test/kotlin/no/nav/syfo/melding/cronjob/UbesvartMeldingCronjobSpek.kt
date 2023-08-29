@@ -62,7 +62,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     database.dropData()
                 }
 
-                it("Will update ubesvart_published_at when cronjob has run") {
+                it("Will publish ubesvart melding til behandler foresporsel pasient when cronjob has run") {
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (_, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -93,7 +93,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     kafkaMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
                 }
 
-                it("Will update ubesvart_published_at for several ubesvarte when cronjob has run") {
+                it("Will publish all ubesvarte meldinger when cronjob has run") {
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (_, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -136,7 +136,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     secondKafkaMeldingDTO.uuid shouldBeEqualTo meldinger.last().uuid.toString()
                 }
 
-                it("Will not update ubesvart_published_at when no melding older than 2 weeks") {
+                it("Will not publish any ubesvart melding when no melding older than 2 weeks") {
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (_, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -159,7 +159,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     verify(exactly = 0) { kafkaProducer.send(any()) }
                 }
 
-                it("Will not update ubesvart_published_at when melding is besvart") {
+                it("Will not publish ubesvart melding when melding is besvart") {
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (conversationRef, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -190,7 +190,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     verify(exactly = 0) { kafkaProducer.send(any()) }
                 }
 
-                it("Will update ubesvart_published_at when newest melding in conversation is ubesvart") {
+                it("Will publish ubesvart melding when newest melding in conversation is ubesvart") {
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (conversationRef, idListUtgaende) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -240,7 +240,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     kafkaMeldingDTO.uuid shouldBeEqualTo utgaendeMeldinger.last().uuid.toString()
                 }
 
-                it("Will update ubesvart_published_at when melding is of type legeeklaring and cronjob has run") {
+                it("Will publish ubesvart melding when melding is of type legeeklaring and cronjob has run") {
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent = personIdent, type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
                     val (_, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
@@ -271,7 +271,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     kafkaMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
                 }
 
-                it("Will not update ubesvart_published_at when melding is of type paminnelse") {
+                it("Will not publish ubesvart melding when melding is of type paminnelse") {
                     val meldingTilBehandler = generateMeldingTilBehandler(
                         personIdent = personIdent,
                         type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
@@ -297,7 +297,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     verify(exactly = 0) { kafkaProducer.send(any()) }
                 }
 
-                it("Will not update ubesvart_published_at when melding is of type henvendelse melding fra NAV") {
+                it("Will not publish ubesvart melding when melding is of type henvendelse melding fra NAV") {
                     val meldingTilBehandler = generateMeldingTilBehandler(
                         personIdent = personIdent,
                         type = MeldingType.HENVENDELSE_MELDING_FRA_NAV,
@@ -323,7 +323,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     verify(exactly = 0) { kafkaProducer.send(any()) }
                 }
 
-                it("Will not update ubesvart_published_at when melding has avvist apprec status") {
+                it("Will not publish ubesvart melding when melding has avvist apprec status") {
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (_, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
