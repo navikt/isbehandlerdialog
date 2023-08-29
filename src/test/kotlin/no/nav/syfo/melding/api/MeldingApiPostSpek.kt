@@ -164,6 +164,48 @@ class MeldingApiPostSpek : Spek({
                             response.status() shouldBeEqualTo HttpStatusCode.BadRequest
                         }
                     }
+
+                    it("returns status BadRequest if given uuid is melding til behandler påminnelse") {
+                        val meldingTilBehandlerPaminnelse = generateMeldingTilBehandler(type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE)
+                        database.connection.use {
+                            it.createMeldingTilBehandler(meldingTilBehandlerPaminnelse)
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Post, "$apiUrl/${meldingTilBehandlerPaminnelse.uuid}/paminnelse") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(
+                                    NAV_PERSONIDENT_HEADER,
+                                    personIdent.value
+                                )
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                setBody(objectMapper.writeValueAsString(paminnelseDTO))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.BadRequest
+                        }
+                    }
+
+                    it("returns status BadRequest if given uuid is melding til behandler henvendelse melding fra NAV") {
+                        val meldingFraNav = generateMeldingTilBehandler(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV)
+                        database.connection.use {
+                            it.createMeldingTilBehandler(meldingFraNav)
+                        }
+
+                        with(
+                            handleRequest(HttpMethod.Post, "$apiUrl/${meldingFraNav.uuid}/paminnelse") {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(
+                                    NAV_PERSONIDENT_HEADER,
+                                    personIdent.value
+                                )
+                                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                setBody(objectMapper.writeValueAsString(paminnelseDTO))
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.BadRequest
+                        }
+                    }
                 }
             }
 

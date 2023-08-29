@@ -191,7 +191,7 @@ const val queryGetUbesvarteMeldinger =
         WHERE NOT m_utgaende.innkommende
             AND m_utgaende.ubesvart_published_at IS NULL
             AND m_utgaende.created_at <= ?
-            AND m_utgaende.type != 'FORESPORSEL_PASIENT_PAMINNELSE'
+            AND m_utgaende.type not in ('FORESPORSEL_PASIENT_PAMINNELSE', 'HENVENDELSE_MELDING_FRA_NAV')
             AND NOT EXISTS (
                 SELECT melding_id
                 FROM melding_status
