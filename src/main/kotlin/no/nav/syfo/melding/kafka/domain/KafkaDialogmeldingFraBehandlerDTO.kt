@@ -23,21 +23,17 @@ data class KafkaDialogmeldingFraBehandlerDTO(
     val fellesformatXML: String,
 )
 
-fun KafkaDialogmeldingFraBehandlerDTO.isForesporselSvarWithConversationRef() =
-    isForesporselSvar() && !conversationRef.isNullOrEmpty()
-
-fun KafkaDialogmeldingFraBehandlerDTO.isForesporselSvarWithoutConversationRef() =
-    isForesporselSvar() && conversationRef.isNullOrEmpty()
-
 fun KafkaDialogmeldingFraBehandlerDTO.isForesporselSvar() =
     msgType == DialogmeldingType.DIALOG_SVAR.name &&
         dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.temaKode?.v == DialogmeldingKode.SVAR_FORESPORSEL.value.toString()
 
-fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler() =
+fun KafkaDialogmeldingFraBehandlerDTO.isDialogNotat() = msgType == DialogmeldingType.DIALOG_NOTAT.name
+
+fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(type: MeldingType) =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
-        type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+        type = type,
         conversationRef = conversationRef?.let {
             try {
                 UUID.fromString(it)
