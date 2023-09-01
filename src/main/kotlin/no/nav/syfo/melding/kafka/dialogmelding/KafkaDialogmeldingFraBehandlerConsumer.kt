@@ -76,6 +76,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 type = MeldingType.HENVENDELSE_MELDING_FRA_NAV,
             )
         } else {
+            log.warn("Dialogmelding: Melding fra behandler of not relevant type, msgType was: '${kafkaDialogmeldingFraBehandler.msgType}'")
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_TYPE_NOT_RELEVANT.increment()
         }
     }
