@@ -45,10 +45,10 @@ fun generateMeldingFraBehandler(
     personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
     tekst: String = "Melding fra behandler",
     msgId: UUID = UUID.randomUUID(),
-) = generateDialogmeldingFraBehandlerForesporselSvarDTO(
+) = generateDialogmeldingFraBehandlerDTO(
     uuid = msgId,
     personIdent = personIdent,
-).toMeldingFraBehandler(type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER).copy(
+).toMeldingFraBehandler().copy(
     conversationRef = conversationRef,
     tekst = tekst,
 )

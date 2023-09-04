@@ -7,7 +7,6 @@ import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.padm2.VedleggDTO
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.database.*
-import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.*
 import org.apache.kafka.clients.consumer.*
 import org.slf4j.LoggerFactory
@@ -57,49 +56,35 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
     ) {
-        val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef?.let { UUID.fromString(it) }
-        if (conversationRef == null) {
+        if (kafkaDialogmeldingFraBehandler.isForesporselSvarWithConversationRef()) {
+            handleForesporselSvar(
+                kafkaForesporselSvarFraBehandler = kafkaDialogmeldingFraBehandler,
+                connection = connection,
+            )
+        } else if (kafkaDialogmeldingFraBehandler.isForesporselSvarWithoutConversationRef()) {
+            log.warn("Received DIALOG_SVAR with missing conversationRef: msgId = ${kafkaDialogmeldingFraBehandler.msgId}")
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_CONVERSATION_REF_MISSING.increment()
-            return
-        }
-
-        if (kafkaDialogmeldingFraBehandler.isForesporselSvar()) {
-            handleDialogmeldingFromBehandler(
-                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                connection = connection,
-                type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
-            )
-        } else if (kafkaDialogmeldingFraBehandler.isDialogNotat()) {
-            handleDialogmeldingFromBehandler(
-                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                connection = connection,
-                type = MeldingType.HENVENDELSE_MELDING_FRA_NAV,
-            )
         } else {
-            log.warn("Dialogmelding: Melding fra behandler of not relevant type, msgType was: '${kafkaDialogmeldingFraBehandler.msgType}'")
-            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_TYPE_NOT_RELEVANT.increment()
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FORESPORSELSVAR.increment()
         }
     }
 
-    private fun handleDialogmeldingFromBehandler(
-        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
+    private fun handleForesporselSvar(
+        kafkaForesporselSvarFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
-        type: MeldingType,
     ) {
-        val conversationRef = UUID.fromString(kafkaDialogmeldingFraBehandler.conversationRef!!)
+        val conversationRef = UUID.fromString(kafkaForesporselSvarFraBehandler.conversationRef!!)
         if (
-            connection.hasSendtMeldingWithTypeForConversationRefAndArbeidstakerIdent(
+            connection.hasSendtMeldingForConversationRefAndArbeidstakerIdent(
                 conversationRef = conversationRef,
-                arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
-                type = type,
+                arbeidstakerPersonIdent = PersonIdent(kafkaForesporselSvarFraBehandler.personIdentPasient),
             )
         ) {
-            if (connection.getMeldingForMsgId(kafkaDialogmeldingFraBehandler.msgId) == null) {
+            if (connection.getMeldingForMsgId(kafkaForesporselSvarFraBehandler.msgId) == null) {
                 log.info("Received a dialogmelding from behandler: $conversationRef")
-                storeDialogmeldingFromBehandler(
+                storeForesporselSvar(
                     connection = connection,
-                    kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                    type = type,
+                    kafkaForesporselSvarFraBehandler = kafkaForesporselSvarFraBehandler,
                 )
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
             } else {
@@ -108,32 +93,23 @@ class KafkaDialogmeldingFraBehandlerConsumer(
             }
         } else {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
-            log.info(
-                """
-                    Received dialogmelding from behandler, but no existing conversation with type $type
-                    msgId: ${kafkaDialogmeldingFraBehandler.msgId}
-                    conversationRef: ${kafkaDialogmeldingFraBehandler.conversationRef}
-                    msgType: ${kafkaDialogmeldingFraBehandler.msgType}
-                """.trimIndent()
-            )
+            log.info("Received dialogsvar, but no existing conversation found: msgId ${kafkaForesporselSvarFraBehandler.msgId}")
         }
     }
 
-    private fun storeDialogmeldingFromBehandler(
+    private fun storeForesporselSvar(
         connection: Connection,
-        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
-        type: MeldingType,
+        kafkaForesporselSvarFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
     ) {
-        val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(type = type)
         val meldingId = connection.createMeldingFraBehandler(
-            meldingFraBehandler = meldingFraBehandler,
-            fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
+            meldingFraBehandler = kafkaForesporselSvarFraBehandler.toMeldingFraBehandler(),
+            fellesformat = kafkaForesporselSvarFraBehandler.fellesformatXML,
         )
-        if (kafkaDialogmeldingFraBehandler.antallVedlegg > 0) {
+        if (kafkaForesporselSvarFraBehandler.antallVedlegg > 0) {
             val vedlegg = mutableListOf<VedleggDTO>()
             runBlocking {
                 vedlegg.addAll(
-                    padm2Client.hentVedlegg(kafkaDialogmeldingFraBehandler.msgId)
+                    padm2Client.hentVedlegg(kafkaForesporselSvarFraBehandler.msgId)
                 )
             }
             vedlegg.forEachIndexed { index, vedleggDTO ->
