@@ -64,31 +64,35 @@ fun Connection.getMeldingForMsgId(
     }
 }
 
-const val queryGetMeldingForConversationRefAndArbeidstakerident =
+const val queryGetMeldingerWithTypeForConversationRefAndArbeidstakerident =
     """
         SELECT *
         FROM MELDING
-        WHERE conversation_ref = ? AND arbeidstaker_personident = ? AND NOT innkommende
+        WHERE conversation_ref = ? AND arbeidstaker_personident = ? AND type = ? AND NOT innkommende
         ORDER BY tidspunkt ASC
     """
 
-fun Connection.hasSendtMeldingForConversationRefAndArbeidstakerIdent(
+fun Connection.hasSendtMeldingWithTypeForConversationRefAndArbeidstakerIdent(
     conversationRef: UUID,
     arbeidstakerPersonIdent: PersonIdent,
+    type: MeldingType,
 ): Boolean {
     return this.getUtgaendeMeldingerInConversation(
         conversationRef = conversationRef,
         arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+        type = type,
     ).isNotEmpty()
 }
 
 fun Connection.getUtgaendeMeldingerInConversation(
     conversationRef: UUID,
     arbeidstakerPersonIdent: PersonIdent,
+    type: MeldingType,
 ): List<PMelding> {
-    return this.prepareStatement(queryGetMeldingForConversationRefAndArbeidstakerident).use {
+    return this.prepareStatement(queryGetMeldingerWithTypeForConversationRefAndArbeidstakerident).use {
         it.setString(1, conversationRef.toString())
         it.setString(2, arbeidstakerPersonIdent.value)
+        it.setString(3, type.name)
         it.executeQuery().toList { toPMelding() }
     }
 }

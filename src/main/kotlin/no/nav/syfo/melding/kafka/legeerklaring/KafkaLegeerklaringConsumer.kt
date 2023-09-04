@@ -100,6 +100,7 @@ class KafkaLegeerklaringConsumer(
         val utgaaende = connection.getUtgaendeMeldingerInConversation(
             conversationRef = UUID.fromString(conversationRef),
             arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
         ).lastOrNull()
         if (utgaaende != null) {
             val pdfVedlegg = getPDFVedlegg(legeerklaring, vedleggIds)

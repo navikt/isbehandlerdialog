@@ -89,10 +89,44 @@ val fellesformatXML = """<?xml version="1.0" ?>
     <MottakenhetBlokk avsender="12312341" avsenderFnrFraDigSignatur="${UserConstants.BEHANDLER_PERSONIDENT.value}" avsenderRef="SERIALNUMBER=996871045, CN=LEGEHUSET NOVA DA, O=LEGEHUSET NOVA DA, C=NO" ebAction="Henvendelse" ebRole="Sykmelder" ebService="HenvendelseFraLege" ebXMLSamtaleId="615356d4-f5e6-4138-a868-bbb63bd6195d" ediLoggId="1901162157lege21826.1" herIdentifikator="" meldingsType="xml" mottattDatotid="2019-01-16T21:57:43" partnerReferanse="${UserConstants.PARTNERID}" />
 </EI_fellesformat>"""
 
-fun generateDialogmeldingFraBehandlerDTO(
+fun generateDialogmeldingFraBehandlerDialogNotatDTO(
     uuid: UUID = UUID.randomUUID(),
     personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
-    msgType: String = DialogmeldingType.DIALOG_SVAR.name,
+    conversationRef: String = UUID.randomUUID().toString(),
+    antallVedlegg: Int = 0,
+) = KafkaDialogmeldingFraBehandlerDTO(
+    msgId = uuid.toString(),
+    msgType = DialogmeldingType.DIALOG_NOTAT.name,
+    navLogId = "1234asd123",
+    mottattTidspunkt = LocalDateTime.now(),
+    conversationRef = conversationRef,
+    parentRef = UUID.randomUUID().toString(),
+    personIdentPasient = personIdent.value,
+    personIdentBehandler = UserConstants.BEHANDLER_PERSONIDENT.value,
+    legekontorOrgNr = "987654321",
+    legekontorHerId = "",
+    legekontorOrgName = "",
+    legehpr = UserConstants.HPRID.toString(),
+    fellesformatXML = fellesformatXML,
+    antallVedlegg = antallVedlegg,
+    dialogmelding = Dialogmelding(
+        id = uuid.toString(),
+        henvendelseFraLegeHenvendelse = HenvendelseFraLegeHenvendelse(
+            temaKode = TemaKode("2.16.578.1.12.4.1.1.8128", "Henvendelse om sykefraværsoppfølging", "1", "", "", ""),
+            tekstNotatInnhold = "Dette er innholdet i et notat",
+            dokIdNotat = null,
+            foresporsel = null,
+            rollerRelatertNotat = null,
+        ),
+        navnHelsepersonell = UserConstants.BEHANDLER_NAVN,
+        signaturDato = LocalDateTime.now(),
+        foresporselFraSaksbehandlerForesporselSvar = null,
+    )
+)
+
+fun generateDialogmeldingFraBehandlerForesporselSvarDTO(
+    uuid: UUID = UUID.randomUUID(),
+    personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
     conversationRef: String = UUID.randomUUID().toString(),
     kodeverk: String = "2.16.578.1.12.4.1.1.9069",
     kodeTekst: String = "Svar på forespørsel",
@@ -100,7 +134,7 @@ fun generateDialogmeldingFraBehandlerDTO(
     antallVedlegg: Int = 0,
 ) = KafkaDialogmeldingFraBehandlerDTO(
     msgId = uuid.toString(),
-    msgType = msgType,
+    msgType = DialogmeldingType.DIALOG_SVAR.name,
     navLogId = "1234asd123",
     mottattTidspunkt = LocalDateTime.now(),
     conversationRef = conversationRef,
