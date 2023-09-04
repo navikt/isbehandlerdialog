@@ -108,7 +108,14 @@ class KafkaDialogmeldingFraBehandlerConsumer(
             }
         } else {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
-            log.info("Received dialogmelding from behandler, but no existing conversation found: msgId ${kafkaDialogmeldingFraBehandler.msgId}")
+            log.info(
+                """
+                    Received dialogmelding from behandler, but no existing conversation with type $type
+                    msgId: ${kafkaDialogmeldingFraBehandler.msgId}
+                    conversationRef: ${kafkaDialogmeldingFraBehandler.conversationRef}
+                    msgType: ${kafkaDialogmeldingFraBehandler.msgType}
+                """.trimIndent()
+            )
         }
     }
 
