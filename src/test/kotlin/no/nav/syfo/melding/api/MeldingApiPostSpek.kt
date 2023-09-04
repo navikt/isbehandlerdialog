@@ -380,7 +380,22 @@ class MeldingApiPostSpek : Spek({
                             }
                         }
 
-                        // TODO: Test pdf creation
+                        it("Creates pdf for melding fra NAV") {
+                            with(
+                                handleRequest(HttpMethod.Post, apiUrl) {
+                                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                    addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                    addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                                    setBody(objectMapper.writeValueAsString(meldingTilBehandlerDTO))
+                                }
+                            ) {
+                                response.status() shouldBeEqualTo HttpStatusCode.OK
+
+                                val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                                val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
+                                pPdf.pdf shouldBeEqualTo UserConstants.PDF_HENVENDELSE_MELDING_FRA_NAV
+                            }
+                        }
                     }
                 }
                 describe("Unhappy path") {

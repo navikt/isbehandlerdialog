@@ -15,6 +15,7 @@ object UserConstants {
     var PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE = byteArrayOf(0x2E, 100)
     var PDF_LEGEERKLARING = byteArrayOf(0x2E, 101)
     var PDF_RETUR_LEGEERKLARING = byteArrayOf(0x2E, 102)
+    var PDF_HENVENDELSE_MELDING_FRA_NAV = byteArrayOf(0x2E, 103)
 
     const val VEILEDER_IDENT = "Z999999"
 

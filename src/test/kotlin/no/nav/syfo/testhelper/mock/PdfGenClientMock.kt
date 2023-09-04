@@ -23,6 +23,9 @@ fun MockRequestHandleScope.pdfGenClientMockResponse(request: HttpRequestData): H
         requestUrl.endsWith(PdfGenClient.Companion.RETUR_LEGEERKLARING_PATH) -> {
             respond(content = UserConstants.PDF_RETUR_LEGEERKLARING)
         }
+        requestUrl.endsWith(PdfGenClient.Companion.HENVENDELSE_MELDING_FRA_NAV_PATH) -> {
+            respond(content = UserConstants.PDF_HENVENDELSE_MELDING_FRA_NAV)
+        }
 
         else -> error("Unhandled pdf ${request.url.encodedPath}")
     }
