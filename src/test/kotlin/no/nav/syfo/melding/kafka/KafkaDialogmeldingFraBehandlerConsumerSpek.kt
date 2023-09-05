@@ -6,6 +6,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.melding.database.*
+import no.nav.syfo.melding.domain.MeldingTilBehandler
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
 import no.nav.syfo.melding.kafka.dialogmelding.KafkaDialogmeldingFraBehandlerConsumer
@@ -243,6 +244,42 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                         val pSvar = pMeldingListAfter.last()
                         pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
                         pSvar.innkommende shouldBe true
+                        pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
+                    }
+                }
+                describe("Having sent melding til behandler FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER and PAMINNELSE") {
+                    it("Receive dialogmelding DIALOG_SVAR and known conversationRef creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER") {
+                        val meldingTilBehandler = defaultMeldingTilBehandler
+                        val (conversationRef, _) = database.createMeldingerTilBehandler(meldingTilBehandler)
+                        database.createMeldingerTilBehandler(
+                            MeldingTilBehandler.createForesporselPasientPaminnelse(
+                                opprinneligMelding = meldingTilBehandler,
+                                veilederIdent = UserConstants.VEILEDER_IDENT,
+                                document = emptyList(),
+                            )
+                        )
+
+                        val msgId = UUID.randomUUID()
+                        val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
+                            uuid = msgId,
+                            conversationRef = conversationRef.toString(),
+                        )
+                        val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+
+                        runBlocking {
+                            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                                kafkaConsumer = mockConsumer,
+                            )
+                        }
+
+                        verify(exactly = 1) { mockConsumer.commitSync() }
+
+                        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                        pMeldingListAfter.size shouldBeEqualTo 3
+                        val pSvar = pMeldingListAfter.last()
+                        pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                        pSvar.innkommende shouldBe true
+                        pSvar.msgId shouldBeEqualTo msgId.toString()
                         pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
                     }
                 }

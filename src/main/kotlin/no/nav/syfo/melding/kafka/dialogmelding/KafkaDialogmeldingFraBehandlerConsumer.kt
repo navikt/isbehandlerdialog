@@ -77,7 +77,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         val utgaaende = connection.getUtgaendeMeldingerInConversation(
             conversationRef = conversationRef,
             arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient)
-        ).lastOrNull()
+        ).firstOrNull()
         if (utgaaende != null) {
             if (connection.getMeldingForMsgId(kafkaDialogmeldingFraBehandler.msgId) == null) {
                 log.info("Received a dialogmelding from behandler: $conversationRef")
