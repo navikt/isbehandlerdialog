@@ -13,7 +13,7 @@ jobs:
     name: Deploy Kafka topic to NAIS dev-gcp
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Deploy meldingfrabehandler topic to dev-gcp
         uses: nais/deploy/actions/deploy@v1
@@ -44,7 +44,7 @@ jobs:
     needs: deploy-kafka-dev
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Deploy meldingfrabehandler to prod-gcp
         uses: nais/deploy/actions/deploy@v1
