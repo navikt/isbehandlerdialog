@@ -49,7 +49,6 @@ class MeldingService(
                     val behandlerRef = getBehandlerRefForConversation(
                         conversationRef = it.conversationRef,
                         personIdent = personIdent,
-                        type = meldingFraBehandler.type
                     )
                     meldingFraBehandler.toMeldingDTO(behandlerRef)
                 } else {
@@ -71,11 +70,10 @@ class MeldingService(
             PdfContent(it.pdf)
         }
 
-    private fun getBehandlerRefForConversation(conversationRef: UUID, personIdent: PersonIdent, type: MeldingType): UUID {
+    private fun getBehandlerRefForConversation(conversationRef: UUID, personIdent: PersonIdent): UUID {
         return getUtgaendeMeldingerInConversation(
             conversationRef = conversationRef,
             personIdent = personIdent,
-            type = type,
         )
             .firstOrNull()
             ?.behandlerRef
@@ -103,13 +101,11 @@ class MeldingService(
     private fun getUtgaendeMeldingerInConversation(
         conversationRef: UUID,
         personIdent: PersonIdent,
-        type: MeldingType
     ): List<MeldingTilBehandler> {
         return database.connection.use {
             it.getUtgaendeMeldingerInConversation(
                 conversationRef = conversationRef,
                 arbeidstakerPersonIdent = personIdent,
-                type = type,
             )
         }.map { it.toMeldingTilBehandler() }
     }
@@ -144,9 +140,8 @@ class MeldingService(
             ?: throw IllegalArgumentException("Failed to create retur av legeerklæring: Melding with uuid $meldingUuid does not exist")
         val opprinneligForesporselLegeerklaring = getUtgaendeMeldingerInConversation(
             conversationRef = innkommendeLegeerklaring.conversationRef,
-            personIdent = innkommendeLegeerklaring.arbeidstakerPersonIdent,
-            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-        ).first()
+            personIdent = innkommendeLegeerklaring.arbeidstakerPersonIdent
+        ).first { it.type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING }
 
         val returAvLegeerklaring = MeldingTilBehandler.createReturAvLegeerklaring(
             opprinneligForesporselLegeerklaring = opprinneligForesporselLegeerklaring,

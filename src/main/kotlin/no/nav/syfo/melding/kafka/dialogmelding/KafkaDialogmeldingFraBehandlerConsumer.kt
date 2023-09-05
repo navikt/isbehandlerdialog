@@ -63,43 +63,28 @@ class KafkaDialogmeldingFraBehandlerConsumer(
             return
         }
 
-        if (kafkaDialogmeldingFraBehandler.isForesporselSvar()) {
-            handleDialogmeldingFromBehandler(
-                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                connection = connection,
-                type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
-            )
-        } else if (kafkaDialogmeldingFraBehandler.isDialogNotat()) {
-            handleDialogmeldingFromBehandler(
-                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                connection = connection,
-                type = MeldingType.HENVENDELSE_MELDING_FRA_NAV,
-            )
-        } else {
-            log.warn("Dialogmelding: Melding fra behandler of not relevant type, msgType was: '${kafkaDialogmeldingFraBehandler.msgType}'")
-            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_TYPE_NOT_RELEVANT.increment()
-        }
+        handleDialogmeldingFromBehandler(
+            kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+            connection = connection,
+        )
     }
 
     private fun handleDialogmeldingFromBehandler(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
-        type: MeldingType,
     ) {
         val conversationRef = UUID.fromString(kafkaDialogmeldingFraBehandler.conversationRef!!)
-        if (
-            connection.hasSendtMeldingWithTypeForConversationRefAndArbeidstakerIdent(
-                conversationRef = conversationRef,
-                arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
-                type = type,
-            )
-        ) {
+        val utgaaende = connection.getUtgaendeMeldingerInConversation(
+            conversationRef = conversationRef,
+            arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient)
+        ).firstOrNull()
+        if (utgaaende != null) {
             if (connection.getMeldingForMsgId(kafkaDialogmeldingFraBehandler.msgId) == null) {
                 log.info("Received a dialogmelding from behandler: $conversationRef")
                 storeDialogmeldingFromBehandler(
                     connection = connection,
                     kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                    type = type,
+                    type = MeldingType.valueOf(utgaaende.type),
                 )
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
             } else {
@@ -110,7 +95,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
             log.info(
                 """
-                    Received dialogmelding from behandler, but no existing conversation with type $type
+                    Received dialogmelding from behandler, but no existing conversation
                     msgId: ${kafkaDialogmeldingFraBehandler.msgId}
                     conversationRef: ${kafkaDialogmeldingFraBehandler.conversationRef}
                     msgType: ${kafkaDialogmeldingFraBehandler.msgType}
