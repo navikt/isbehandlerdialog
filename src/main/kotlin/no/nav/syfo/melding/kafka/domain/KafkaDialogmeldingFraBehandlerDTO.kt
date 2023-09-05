@@ -23,12 +23,6 @@ data class KafkaDialogmeldingFraBehandlerDTO(
     val fellesformatXML: String,
 )
 
-fun KafkaDialogmeldingFraBehandlerDTO.isForesporselSvar() =
-    msgType == DialogmeldingType.DIALOG_SVAR.name &&
-        dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.temaKode?.v == DialogmeldingKode.SVAR_FORESPORSEL.value.toString()
-
-fun KafkaDialogmeldingFraBehandlerDTO.isDialogNotat() = msgType == DialogmeldingType.DIALOG_NOTAT.name
-
 fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(type: MeldingType) =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),

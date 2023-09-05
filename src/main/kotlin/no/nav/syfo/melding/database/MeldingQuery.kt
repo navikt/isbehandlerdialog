@@ -72,16 +72,23 @@ const val queryGetMeldingerWithTypeForConversationRefAndArbeidstakerident =
         ORDER BY tidspunkt ASC
     """
 
-fun Connection.hasSendtMeldingWithTypeForConversationRefAndArbeidstakerIdent(
+const val queryGetMeldingerForConversationRefAndArbeidstakerident =
+    """
+        SELECT *
+        FROM MELDING
+        WHERE conversation_ref = ? AND arbeidstaker_personident = ? AND NOT innkommende
+        ORDER BY tidspunkt ASC
+    """
+
+fun Connection.getUtgaendeMeldingerInConversation(
     conversationRef: UUID,
     arbeidstakerPersonIdent: PersonIdent,
-    type: MeldingType,
-): Boolean {
-    return this.getUtgaendeMeldingerInConversation(
-        conversationRef = conversationRef,
-        arbeidstakerPersonIdent = arbeidstakerPersonIdent,
-        type = type,
-    ).isNotEmpty()
+): List<PMelding> {
+    return this.prepareStatement(queryGetMeldingerForConversationRefAndArbeidstakerident).use {
+        it.setString(1, conversationRef.toString())
+        it.setString(2, arbeidstakerPersonIdent.value)
+        it.executeQuery().toList { toPMelding() }
+    }
 }
 
 fun Connection.getUtgaendeMeldingerInConversation(

@@ -224,7 +224,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                         database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 1
                     }
-                    it("Receive DIALOG_NOTAT and known conversationref creates no MeldingFraBehandler") {
+                    it("Receive DIALOG_NOTAT and known conversationref creates MeldingFraBehandler") {
                         val (conversationRef, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
                         val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO(conversationRef = conversationRef.toString())
                         val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
@@ -237,7 +237,13 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                         verify(exactly = 1) { mockConsumer.commitSync() }
 
-                        database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 1
+                        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                        pMeldingListAfter.size shouldBeEqualTo 2
+
+                        val pSvar = pMeldingListAfter.last()
+                        pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                        pSvar.innkommende shouldBe true
+                        pSvar.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
                     }
                 }
                 describe("Having sent melding til behandler HENVENDELSE_MELDING_FRA_NAV") {
@@ -302,7 +308,13 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                         verify(exactly = 1) { mockConsumer.commitSync() }
 
-                        database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 1
+                        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                        pMeldingListAfter.size shouldBeEqualTo 2
+
+                        val pSvar = pMeldingListAfter.last()
+                        pSvar.arbeidstakerPersonIdent shouldBeEqualTo personIdent.value
+                        pSvar.innkommende shouldBe true
+                        pSvar.type shouldBeEqualTo MeldingType.HENVENDELSE_MELDING_FRA_NAV.name
                     }
                 }
                 it("Receive dialogmelding DIALOG_SVAR for dialogmøte creates no melding") {
