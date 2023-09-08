@@ -24,6 +24,7 @@ data class MeldingDTO(
     val antallVedlegg: Int,
     val status: MeldingStatusDTO?,
     val veilederIdent: String?,
+    val isFirstVedleggLegeerklaring: Boolean,
 )
 
 data class MeldingStatusDTO(

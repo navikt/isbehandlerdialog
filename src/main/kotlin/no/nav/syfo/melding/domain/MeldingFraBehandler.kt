@@ -6,6 +6,8 @@ import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import java.time.OffsetDateTime
 import java.util.UUID
 
+const val MOTTATT_LEGEERKLARING_TEKST = "Mottatt legeerklæring"
+
 data class MeldingFraBehandler(
     override val uuid: UUID,
     val createdAt: OffsetDateTime,
@@ -42,6 +44,7 @@ fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID) = MeldingDTO(
     antallVedlegg = antallVedlegg,
     status = null,
     veilederIdent = veilederIdent,
+    isFirstVedleggLegeerklaring = type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING && tekst == MOTTATT_LEGEERKLARING_TEKST
 )
 
 fun MeldingFraBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(
