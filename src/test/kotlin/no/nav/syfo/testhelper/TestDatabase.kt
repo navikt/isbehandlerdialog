@@ -71,7 +71,7 @@ fun DatabaseInterface.createMeldingerFraBehandler(
                 meldingFraBehandler = meldingFraBehandler
                     .copy(
                         uuid = UUID.randomUUID(),
-                        tekst = "${meldingFraBehandler.tekst}$i"
+                        tekst = if (numberOfMeldinger > 1) "${meldingFraBehandler.tekst}$i" else "${meldingFraBehandler.tekst}"
                     ),
                 fellesformat = null,
             )

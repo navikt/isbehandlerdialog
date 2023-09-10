@@ -1,6 +1,7 @@
 package no.nav.syfo.melding.kafka.legeerklaring
 
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.melding.domain.MOTTATT_LEGEERKLARING_TEKST
 import no.nav.syfo.melding.domain.MeldingFraBehandler
 import no.nav.syfo.melding.domain.MeldingType
 import java.time.*
@@ -178,7 +179,7 @@ fun LegeerklaringDTO.toMeldingFraBehandler(
         arbeidstakerPersonIdent = PersonIdent(personNrPasient),
         behandlerPersonIdent = PersonIdent(personNrLege),
         behandlerNavn = legeerklaering.signatur.navn,
-        tekst = "Mottatt legeerklæring",
+        tekst = MOTTATT_LEGEERKLARING_TEKST,
         antallVedlegg = antallVedlegg,
         innkommendePublishedAt = null,
     )

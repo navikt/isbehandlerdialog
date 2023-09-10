@@ -9,13 +9,16 @@ import no.nav.syfo.melding.database.createMeldingFraBehandler
 import no.nav.syfo.melding.database.createMeldingTilBehandler
 import no.nav.syfo.melding.database.createVedlegg
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
+import no.nav.syfo.melding.domain.MOTTATT_LEGEERKLARING_TEKST
 import no.nav.syfo.melding.domain.MeldingType
+import no.nav.syfo.melding.kafka.legeerklaring.toMeldingFraBehandler
 import no.nav.syfo.melding.kafka.producer.DialogmeldingBestillingProducer
 import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatusType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
+import no.nav.syfo.testhelper.generator.generateKafkaLegeerklaringFraBehandlerDTO
 import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
@@ -93,9 +96,11 @@ class MeldingApiGetSpek : Spek({
                             firstMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER
                             firstMeldingDTO.conversationRef shouldBeEqualTo firstConversation
                             firstMeldingDTO.parentRef.shouldBeNull()
+                            firstMeldingDTO.isFirstVedleggLegeerklaring.shouldBeFalse()
                             val lastMeldingDTO = conversation.last()
                             lastMeldingDTO.conversationRef shouldBeEqualTo firstConversation
                             lastMeldingDTO.parentRef.shouldNotBeNull()
+                            lastMeldingDTO.isFirstVedleggLegeerklaring.shouldBeFalse()
 
                             respons.conversations[secondConversation]?.size shouldBeEqualTo 1
 
@@ -134,6 +139,48 @@ class MeldingApiGetSpek : Spek({
                             message.status.shouldNotBeNull()
                             message.status?.type shouldBeEqualTo MeldingStatusType.AVVIST
                             message.status?.tekst shouldBeEqualTo "Melding avvist"
+                        }
+                    }
+                    it("Returns meldinger for personident with isFirstVedleggLegeerklaring true for legeerklaring melding fra behandler") {
+                        val meldingTilBehandler = generateMeldingTilBehandler(type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
+                        val (firstConversation, _) = database.createMeldingerTilBehandler(
+                            meldingTilBehandler = meldingTilBehandler,
+                        )
+                        val meldingFraBehandler = generateKafkaLegeerklaringFraBehandlerDTO(
+                            behandlerPersonIdent = UserConstants.BEHANDLER_PERSONIDENT,
+                            behandlerNavn = UserConstants.BEHANDLER_NAVN,
+                            personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+                            conversationRef = firstConversation.toString(),
+                            parentRef = meldingTilBehandler.uuid.toString(),
+                        ).toMeldingFraBehandler(
+                            parentRef = meldingTilBehandler.uuid,
+                            antallVedlegg = 1,
+                        )
+                        database.createMeldingerFraBehandler(
+                            meldingFraBehandler = meldingFraBehandler,
+                        )
+
+                        with(
+                            handleRequest(HttpMethod.Get, apiUrl) {
+                                addHeader(HttpHeaders.Authorization, bearerHeader(validToken))
+                                addHeader(NAV_PERSONIDENT_HEADER, personIdent.value)
+                            }
+                        ) {
+                            response.status() shouldBeEqualTo HttpStatusCode.OK
+                            val respons = objectMapper.readValue<MeldingResponseDTO>(response.content!!)
+                            val conversation = respons.conversations[firstConversation]!!
+                            conversation.size shouldBeEqualTo 2
+
+                            val firstMeldingDTO = conversation.first()
+                            firstMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING
+                            firstMeldingDTO.conversationRef shouldBeEqualTo firstConversation
+                            firstMeldingDTO.isFirstVedleggLegeerklaring.shouldBeFalse()
+
+                            val lastMeldingDTO = conversation.last()
+                            lastMeldingDTO.conversationRef shouldBeEqualTo firstConversation
+                            lastMeldingDTO.tekst shouldBeEqualTo MOTTATT_LEGEERKLARING_TEKST
+                            lastMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING
+                            lastMeldingDTO.isFirstVedleggLegeerklaring.shouldBeTrue()
                         }
                     }
                 }

@@ -142,6 +142,7 @@ fun MeldingTilBehandler.toMeldingDTO(status: MeldingStatus?) = MeldingDTO(
     antallVedlegg = antallVedlegg,
     status = status?.toMeldingStatusDTO(),
     veilederIdent = veilederIdent,
+    isFirstVedleggLegeerklaring = false,
 )
 
 fun MeldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf: ByteArray) = DialogmeldingBestillingDTO(
