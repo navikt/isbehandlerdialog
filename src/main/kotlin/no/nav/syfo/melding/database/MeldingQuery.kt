@@ -76,17 +76,18 @@ const val queryGetMeldingerForConversationRefAndArbeidstakerident =
     """
         SELECT *
         FROM MELDING
-        WHERE conversation_ref = ? AND arbeidstaker_personident = ? AND NOT innkommende
+        WHERE (uuid = ? OR conversation_ref = ?) AND arbeidstaker_personident = ? AND NOT innkommende
         ORDER BY tidspunkt ASC
     """
 
 fun Connection.getUtgaendeMeldingerInConversation(
-    conversationRef: UUID,
+    uuidParam: UUID,
     arbeidstakerPersonIdent: PersonIdent,
-): List<PMelding> {
+): MutableList<PMelding> {
     return this.prepareStatement(queryGetMeldingerForConversationRefAndArbeidstakerident).use {
-        it.setString(1, conversationRef.toString())
-        it.setString(2, arbeidstakerPersonIdent.value)
+        it.setString(1, uuidParam.toString())
+        it.setString(2, uuidParam.toString())
+        it.setString(3, arbeidstakerPersonIdent.value)
         it.executeQuery().toList { toPMelding() }
     }
 }
@@ -296,11 +297,13 @@ fun Connection.createMeldingTilBehandler(
 fun Connection.createMeldingFraBehandler(
     meldingFraBehandler: MeldingFraBehandler,
     fellesformat: String? = null,
+    conversationRef: UUID? = null,
     commit: Boolean = false,
 ): PMelding.Id {
     return this.createMelding(
         melding = meldingFraBehandler,
         fellesformat = fellesformat,
+        conversationRef = conversationRef,
         commit = commit,
     )
 }
@@ -308,6 +311,7 @@ fun Connection.createMeldingFraBehandler(
 private fun Connection.createMelding(
     melding: Melding,
     fellesformat: String? = null,
+    conversationRef: UUID? = null,
     commit: Boolean = true,
 ): PMelding.Id {
     val idList = this.prepareStatement(queryCreateMelding).use {
@@ -315,7 +319,7 @@ private fun Connection.createMelding(
         it.setObject(2, OffsetDateTime.now())
         it.setBoolean(3, melding.innkommende)
         it.setString(4, melding.type.name)
-        it.setString(5, melding.conversationRef.toString())
+        it.setString(5, if (conversationRef != null) conversationRef.toString() else melding.conversationRef.toString())
         it.setString(6, melding.parentRef?.toString())
         it.setString(7, melding.msgId)
         it.setObject(8, melding.tidspunkt)

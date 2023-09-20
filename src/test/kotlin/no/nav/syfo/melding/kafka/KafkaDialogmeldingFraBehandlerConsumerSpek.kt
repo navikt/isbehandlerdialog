@@ -127,6 +127,58 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                         val vedlegg = database.getVedlegg(pSvar.uuid, 0)
                         vedlegg shouldBe null
                     }
+                    it("Receive dialogmelding DIALOG_SVAR and known conversationRef matching uuid of sent message creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER") {
+                        database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
+                        val msgId = UUID.randomUUID()
+                        val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
+                            uuid = msgId,
+                            conversationRef = defaultMeldingTilBehandler.uuid.toString(),
+                            parentRef = UUID.randomUUID().toString(),
+                        )
+                        val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+
+                        runBlocking {
+                            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                                kafkaConsumer = mockConsumer,
+                            )
+                        }
+
+                        verify(exactly = 1) { mockConsumer.commitSync() }
+
+                        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                        pMeldingListAfter.size shouldBeEqualTo 2
+                        val pMelding = pMeldingListAfter.first()
+                        val pSvar = pMeldingListAfter.last()
+                        pSvar.innkommende shouldBe true
+                        pSvar.msgId shouldBeEqualTo msgId.toString()
+                        pSvar.conversationRef shouldBeEqualTo pMelding.conversationRef
+                    }
+                    it("Receive dialogmelding DIALOG_SVAR and parentRef matching uuid of sent message creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER") {
+                        database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
+                        val msgId = UUID.randomUUID()
+                        val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
+                            uuid = msgId,
+                            conversationRef = UUID.randomUUID().toString(),
+                            parentRef = defaultMeldingTilBehandler.uuid.toString(),
+                        )
+                        val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+
+                        runBlocking {
+                            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                                kafkaConsumer = mockConsumer,
+                            )
+                        }
+
+                        verify(exactly = 1) { mockConsumer.commitSync() }
+
+                        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+                        pMeldingListAfter.size shouldBeEqualTo 2
+                        val pMelding = pMeldingListAfter.first()
+                        val pSvar = pMeldingListAfter.last()
+                        pSvar.innkommende shouldBe true
+                        pSvar.msgId shouldBeEqualTo msgId.toString()
+                        pSvar.conversationRef shouldBeEqualTo pMelding.conversationRef
+                    }
                     it("Receive dialogmelding DIALOG_SVAR and known conversationRef and with vedlegg creates melding with vedlegg") {
                         val (conversationRef, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
                         val msgId = UserConstants.MSG_ID_WITH_VEDLEGG
