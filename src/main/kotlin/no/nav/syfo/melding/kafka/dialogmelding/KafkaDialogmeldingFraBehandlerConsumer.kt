@@ -122,9 +122,10 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         type: MeldingType,
         conversationRef: UUID,
     ) {
-        val meldingFraBehandler = kafkaDialogmeldingFraBehandler
-            .toMeldingFraBehandler(type = type)
-            .copy(conversationRef = conversationRef)
+        val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
+            type = type,
+            conversationRef = conversationRef
+        )
         val meldingId = connection.createMeldingFraBehandler(
             meldingFraBehandler = meldingFraBehandler,
             fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
