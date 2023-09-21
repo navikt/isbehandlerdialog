@@ -124,7 +124,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
     ) {
         val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
             type = type,
-            conversationRef = conversationRef
+            conversationRef = conversationRef,
         )
         val meldingId = connection.createMeldingFraBehandler(
             meldingFraBehandler = meldingFraBehandler,
