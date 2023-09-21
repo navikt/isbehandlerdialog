@@ -104,7 +104,7 @@ class MeldingService(
     ): List<MeldingTilBehandler> {
         return database.connection.use {
             it.getUtgaendeMeldingerInConversation(
-                conversationRef = conversationRef,
+                uuidParam = conversationRef,
                 arbeidstakerPersonIdent = personIdent,
             )
         }.map { it.toMeldingTilBehandler() }

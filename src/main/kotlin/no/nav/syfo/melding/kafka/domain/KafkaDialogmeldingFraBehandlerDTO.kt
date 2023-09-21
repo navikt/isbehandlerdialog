@@ -23,18 +23,15 @@ data class KafkaDialogmeldingFraBehandlerDTO(
     val fellesformatXML: String,
 )
 
-fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(type: MeldingType) =
+fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(
+    type: MeldingType,
+    conversationRef: UUID,
+) =
     MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
         type = type,
-        conversationRef = conversationRef?.let {
-            try {
-                UUID.fromString(it)
-            } catch (exc: IllegalArgumentException) {
-                UUID.randomUUID()
-            }
-        } ?: UUID.randomUUID(),
+        conversationRef = conversationRef,
         parentRef = parentRef?.let {
             try {
                 UUID.fromString(it)

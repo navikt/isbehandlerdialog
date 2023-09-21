@@ -48,8 +48,10 @@ fun generateMeldingFraBehandler(
 ) = generateDialogmeldingFraBehandlerForesporselSvarDTO(
     uuid = msgId,
     personIdent = personIdent,
-).toMeldingFraBehandler(type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER).copy(
+).toMeldingFraBehandler(
+    type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
     conversationRef = conversationRef,
+).copy(
     tekst = tekst,
 )
 

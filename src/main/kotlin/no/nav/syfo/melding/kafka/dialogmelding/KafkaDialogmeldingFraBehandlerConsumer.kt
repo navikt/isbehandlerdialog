@@ -74,17 +74,29 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         connection: Connection,
     ) {
         val conversationRef = UUID.fromString(kafkaDialogmeldingFraBehandler.conversationRef!!)
+        val personIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient)
         val utgaaende = connection.getUtgaendeMeldingerInConversation(
-            conversationRef = conversationRef,
-            arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient)
-        ).firstOrNull()
-        if (utgaaende != null) {
+            uuidParam = conversationRef,
+            arbeidstakerPersonIdent = personIdent
+        )
+        if (utgaaende.isEmpty() && kafkaDialogmeldingFraBehandler.parentRef != null) {
+            val parentRef = UUID.fromString(kafkaDialogmeldingFraBehandler.parentRef)
+            utgaaende.addAll(
+                connection.getUtgaendeMeldingerInConversation(
+                    uuidParam = parentRef,
+                    arbeidstakerPersonIdent = personIdent,
+                )
+            )
+        }
+        val utgaaendeMelding = utgaaende.firstOrNull()
+        if (utgaaendeMelding != null) {
             if (connection.getMeldingForMsgId(kafkaDialogmeldingFraBehandler.msgId) == null) {
                 log.info("Received a dialogmelding from behandler: $conversationRef")
                 storeDialogmeldingFromBehandler(
                     connection = connection,
                     kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                    type = MeldingType.valueOf(utgaaende.type),
+                    type = MeldingType.valueOf(utgaaendeMelding.type),
+                    conversationRef = utgaaendeMelding.conversationRef,
                 )
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
             } else {
@@ -108,8 +120,12 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         connection: Connection,
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         type: MeldingType,
+        conversationRef: UUID,
     ) {
-        val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(type = type)
+        val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
+            type = type,
+            conversationRef = conversationRef,
+        )
         val meldingId = connection.createMeldingFraBehandler(
             meldingFraBehandler = meldingFraBehandler,
             fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,

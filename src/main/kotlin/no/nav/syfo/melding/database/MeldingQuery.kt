@@ -76,17 +76,18 @@ const val queryGetMeldingerForConversationRefAndArbeidstakerident =
     """
         SELECT *
         FROM MELDING
-        WHERE conversation_ref = ? AND arbeidstaker_personident = ? AND NOT innkommende
+        WHERE (uuid = ? OR conversation_ref = ?) AND arbeidstaker_personident = ? AND NOT innkommende
         ORDER BY tidspunkt ASC
     """
 
 fun Connection.getUtgaendeMeldingerInConversation(
-    conversationRef: UUID,
+    uuidParam: UUID,
     arbeidstakerPersonIdent: PersonIdent,
-): List<PMelding> {
+): MutableList<PMelding> {
     return this.prepareStatement(queryGetMeldingerForConversationRefAndArbeidstakerident).use {
-        it.setString(1, conversationRef.toString())
-        it.setString(2, arbeidstakerPersonIdent.value)
+        it.setString(1, uuidParam.toString())
+        it.setString(2, uuidParam.toString())
+        it.setString(3, arbeidstakerPersonIdent.value)
         it.executeQuery().toList { toPMelding() }
     }
 }
