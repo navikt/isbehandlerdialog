@@ -122,11 +122,12 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         type: MeldingType,
         conversationRef: UUID,
     ) {
-        val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(type = type)
+        val meldingFraBehandler = kafkaDialogmeldingFraBehandler
+            .toMeldingFraBehandler(type = type)
+            .copy(conversationRef = conversationRef)
         val meldingId = connection.createMeldingFraBehandler(
             meldingFraBehandler = meldingFraBehandler,
             fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
-            conversationRef = conversationRef,
         )
         if (kafkaDialogmeldingFraBehandler.antallVedlegg > 0) {
             val vedlegg = mutableListOf<VedleggDTO>()

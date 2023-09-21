@@ -297,13 +297,11 @@ fun Connection.createMeldingTilBehandler(
 fun Connection.createMeldingFraBehandler(
     meldingFraBehandler: MeldingFraBehandler,
     fellesformat: String? = null,
-    conversationRef: UUID? = null,
     commit: Boolean = false,
 ): PMelding.Id {
     return this.createMelding(
         melding = meldingFraBehandler,
         fellesformat = fellesformat,
-        conversationRef = conversationRef,
         commit = commit,
     )
 }
@@ -311,7 +309,6 @@ fun Connection.createMeldingFraBehandler(
 private fun Connection.createMelding(
     melding: Melding,
     fellesformat: String? = null,
-    conversationRef: UUID? = null,
     commit: Boolean = true,
 ): PMelding.Id {
     val idList = this.prepareStatement(queryCreateMelding).use {
@@ -319,7 +316,7 @@ private fun Connection.createMelding(
         it.setObject(2, OffsetDateTime.now())
         it.setBoolean(3, melding.innkommende)
         it.setString(4, melding.type.name)
-        it.setString(5, if (conversationRef != null) conversationRef.toString() else melding.conversationRef.toString())
+        it.setString(5, melding.conversationRef.toString())
         it.setString(6, melding.parentRef?.toString())
         it.setString(7, melding.msgId)
         it.setObject(8, melding.tidspunkt)
