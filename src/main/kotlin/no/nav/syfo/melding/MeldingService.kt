@@ -189,6 +189,8 @@ class MeldingService(
                 callId = callId,
                 documentComponentDTOList = meldingTilBehandler.document,
             )
+            MeldingType.HENVENDELSE_MELDING_TIL_NAV ->
+                throw RuntimeException("Should only be used for incoming messages")
         } ?: throw RuntimeException("Failed to request PDF - ${meldingTilBehandler.type}")
     }
 

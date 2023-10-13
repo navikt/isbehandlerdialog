@@ -18,6 +18,7 @@ import java.util.UUID
 class KafkaDialogmeldingFraBehandlerConsumer(
     private val database: DatabaseInterface,
     private val padm2Client: Padm2Client,
+    private val storeMeldingTilNAV: Boolean,
 ) : KafkaConsumerService<KafkaDialogmeldingFraBehandlerDTO> {
 
     override val pollDurationInMillis: Long = 1000
@@ -40,7 +41,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_READ.increment()
                 val kafkaDialogmeldingFraBehandler = it.value()
                 if (kafkaDialogmeldingFraBehandler != null) {
-                    handleIncomingMessage(
+                    handleDialogmeldingFromBehandler(
                         kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
                         connection = connection,
                     )
@@ -53,32 +54,19 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         }
     }
 
-    private fun handleIncomingMessage(
-        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
-        connection: Connection,
-    ) {
-        val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef?.let { UUID.fromString(it) }
-        if (conversationRef == null) {
-            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_CONVERSATION_REF_MISSING.increment()
-            return
-        }
-
-        handleDialogmeldingFromBehandler(
-            kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-            connection = connection,
-        )
-    }
-
     private fun handleDialogmeldingFromBehandler(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
     ) {
-        val conversationRef = UUID.fromString(kafkaDialogmeldingFraBehandler.conversationRef!!)
+        val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef?.let { UUID.fromString(it) }
         val personIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient)
-        val utgaaende = connection.getUtgaendeMeldingerInConversation(
-            uuidParam = conversationRef,
-            arbeidstakerPersonIdent = personIdent
-        )
+        val utgaaende = conversationRef?.let {
+            connection.getUtgaendeMeldingerInConversation(
+                uuidParam = it,
+                arbeidstakerPersonIdent = personIdent
+            )
+        } ?: ArrayList()
+
         if (utgaaende.isEmpty() && kafkaDialogmeldingFraBehandler.parentRef != null) {
             val parentRef = UUID.fromString(kafkaDialogmeldingFraBehandler.parentRef)
             utgaaende.addAll(
@@ -102,6 +90,22 @@ class KafkaDialogmeldingFraBehandlerConsumer(
             } else {
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
                 log.warn("Received duplicate dialogmelding from behandler: $conversationRef")
+            }
+        } else if (
+                kafkaDialogmeldingFraBehandler.dialogmelding.henvendelseFraLegeHenvendelse != null &&
+                kafkaDialogmeldingFraBehandler.dialogmelding.henvendelseFraLegeHenvendelse.temaKode.kodeverkOID == "2.16.578.1.12.4.1.1.8128" &&
+                kafkaDialogmeldingFraBehandler.dialogmelding.henvendelseFraLegeHenvendelse.temaKode.v == "1"
+            ) {
+            if (storeMeldingTilNAV) {
+                log.info("Received a dialogmelding from behandler to NAV")
+                storeDialogmeldingFromBehandler(
+                    connection = connection,
+                    kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                    type = MeldingType.HENVENDELSE_MELDING_TIL_NAV,
+                    conversationRef = conversationRef ?: UUID.randomUUID(),
+                )
+            } else {
+                log.info("Skipped storing dialogmelding from behandler to NAV")
             }
         } else {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()

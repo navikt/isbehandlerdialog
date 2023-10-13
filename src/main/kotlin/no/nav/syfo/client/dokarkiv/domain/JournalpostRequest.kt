@@ -26,6 +26,7 @@ enum class MeldingTittel(
     val value: String,
 ) {
     DIALOGMELDING_DEFAULT("Dialogmelding til behandler"),
+    DIALOGMELDING_TIL_NAV("Dialogmelding fra behandler"),
     DIALOGMELDING_PAMINNELSE("Påminnelse til behandler"),
     DIALOGMELDING_RETUR("Retur av legeerklæring til behandler"),
 }

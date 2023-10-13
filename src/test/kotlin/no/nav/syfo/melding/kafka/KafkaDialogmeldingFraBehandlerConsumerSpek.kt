@@ -11,10 +11,7 @@ import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
 import no.nav.syfo.melding.kafka.dialogmelding.KafkaDialogmeldingFraBehandlerConsumer
 import no.nav.syfo.testhelper.*
-import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
-import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerDialogNotatDTO
-import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerForesporselSvarDTO
-import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
+import no.nav.syfo.testhelper.generator.*
 import no.nav.syfo.testhelper.mock.mockKafkaConsumer
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
@@ -49,6 +46,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
         val kafkaDialogmeldingFraBehandlerConsumer = KafkaDialogmeldingFraBehandlerConsumer(
             database = database,
             padm2Client = padm2Client,
+            storeMeldingTilNAV = externalMockEnvironment.environment.storeMeldingTilNAV,
         )
 
         describe("Read dialogmelding sent from behandler to NAV from Kafka Topic") {
@@ -93,7 +91,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                     verify(exactly = 1) { mockConsumer.commitSync() }
 
-                    database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
+                    database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 1
                 }
                 describe("Having sent melding til behandler FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER") {
                     it("Receive dialogmelding DIALOG_SVAR and known conversationRef creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER") {
@@ -370,7 +368,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     }
                     it("Receive DIALOG_NOTAT and unknown conversationref creates no MeldingFraBehandler") {
                         database.createMeldingerTilBehandler(generateMeldingTilBehandler(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV))
-                        val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO()
+                        val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatIkkeSykefravrDTO()
                         val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
                         runBlocking {
