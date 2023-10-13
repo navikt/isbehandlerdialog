@@ -91,22 +91,14 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
                 log.warn("Received duplicate dialogmelding from behandler: $conversationRef")
             }
-        } else if (
-                kafkaDialogmeldingFraBehandler.dialogmelding.henvendelseFraLegeHenvendelse != null &&
-                kafkaDialogmeldingFraBehandler.dialogmelding.henvendelseFraLegeHenvendelse.temaKode.kodeverkOID == "2.16.578.1.12.4.1.1.8128" &&
-                kafkaDialogmeldingFraBehandler.dialogmelding.henvendelseFraLegeHenvendelse.temaKode.v == "1"
-            ) {
-            if (storeMeldingTilNAV) {
-                log.info("Received a dialogmelding from behandler to NAV")
-                storeDialogmeldingFromBehandler(
-                    connection = connection,
-                    kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                    type = MeldingType.HENVENDELSE_MELDING_TIL_NAV,
-                    conversationRef = conversationRef ?: UUID.randomUUID(),
-                )
-            } else {
-                log.info("Skipped storing dialogmelding from behandler to NAV")
-            }
+        } else if (storeMeldingTilNAV && isMeldingTilNAV(kafkaDialogmeldingFraBehandler)) {
+            log.info("Received a dialogmelding from behandler to NAV")
+            storeDialogmeldingFromBehandler(
+                connection = connection,
+                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                type = MeldingType.HENVENDELSE_MELDING_TIL_NAV,
+                conversationRef = conversationRef ?: UUID.randomUUID(),
+            )
         } else {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
             log.info(
@@ -118,6 +110,15 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 """.trimIndent()
             )
         }
+    }
+
+    private fun isMeldingTilNAV(
+        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
+    ): Boolean {
+        val henvendelseFraLegeHenvendelse = kafkaDialogmeldingFraBehandler.dialogmelding.henvendelseFraLegeHenvendelse
+        return henvendelseFraLegeHenvendelse != null &&
+            henvendelseFraLegeHenvendelse.temaKode.kodeverkOID == "2.16.578.1.12.4.1.1.8128" &&
+            henvendelseFraLegeHenvendelse.temaKode.v == "1"
     }
 
     private fun storeDialogmeldingFromBehandler(

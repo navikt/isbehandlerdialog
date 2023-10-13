@@ -26,8 +26,15 @@ data class KafkaDialogmeldingFraBehandlerDTO(
 fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(
     type: MeldingType,
     conversationRef: UUID,
-) =
-    MeldingFraBehandler(
+): MeldingFraBehandler {
+    val tekst = if (type == MeldingType.HENVENDELSE_MELDING_TIL_NAV) {
+        dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold
+            ?: dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
+    } else {
+        dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
+            ?: dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold
+    }
+    return MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
         type = type,
@@ -44,11 +51,11 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(
         arbeidstakerPersonIdent = PersonIdent(personIdentPasient),
         behandlerPersonIdent = personIdentBehandler?.let { PersonIdent(personIdentBehandler) },
         behandlerNavn = dialogmelding.navnHelsepersonell,
-        tekst = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
-            ?: dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold,
+        tekst = tekst,
         antallVedlegg = antallVedlegg,
         innkommendePublishedAt = null,
     )
+}
 
 data class Dialogmelding(
     val id: String,
