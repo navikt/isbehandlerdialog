@@ -47,7 +47,7 @@ class MeldingService(
                 if (it.innkommende) {
                     val meldingFraBehandler = it.toMeldingFraBehandler()
                     val behandlerRef = getBehandlerRefForConversation(
-                        conversationRef = it.conversationRef,
+                        meldingFraBehandler = meldingFraBehandler,
                         personIdent = personIdent,
                     )
                     meldingFraBehandler.toMeldingDTO(behandlerRef)
