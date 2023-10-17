@@ -5,14 +5,13 @@ group = "no.nav.syfo"
 version = "0.0.1"
 
 object Versions {
-    const val confluent = "7.4.0"
-    const val flyway = "9.20.0"
+    const val flyway = "9.22.3"
     const val googleCloudStorage = "2.23.0"
     const val hikari = "5.0.1"
     const val jacksonDataType = "2.15.2"
-    const val kafka = "3.3.2"
+    const val kafka = "3.6.0"
     const val kluent = "1.73"
-    const val ktor = "2.3.2"
+    const val ktor = "2.3.5"
     const val logback = "1.4.7"
     const val logstashEncoder = "7.3"
     const val micrometerRegistry = "1.11.0"
@@ -20,19 +19,17 @@ object Versions {
     const val nimbusJoseJwt = "9.31"
     const val postgres = "42.5.1"
     val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
-    const val scala = "2.13.9"
     const val spek = "2.0.19"
 }
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "1.9.10"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "11.5.0"
 }
 
 repositories {
     mavenCentral()
-    maven(url = "https://packages.confluent.io/maven/")
 }
 
 dependencies {
@@ -78,12 +75,6 @@ dependencies {
         exclude(group = "log4j")
     }
     implementation("org.apache.kafka:kafka_2.13:${Versions.kafka}", excludeLog4j)
-    implementation("io.confluent:kafka-avro-serializer:${Versions.confluent}", excludeLog4j)
-    implementation("org.scala-lang:scala-library") {
-        version {
-            strictly(Versions.scala)
-        }
-    }
     implementation("com.google.cloud:google-cloud-storage:${Versions.googleCloudStorage}")
 
     // Tests
