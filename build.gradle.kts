@@ -5,11 +5,11 @@ group = "no.nav.syfo"
 version = "0.0.1"
 
 object Versions {
-    const val flyway = "9.20.0"
+    const val flyway = "9.22.3"
     const val googleCloudStorage = "2.23.0"
     const val hikari = "5.0.1"
     const val jacksonDataType = "2.15.2"
-    const val kafka = "3.4.0"
+    const val kafka = "3.6.0"
     const val kluent = "1.73"
     const val ktor = "2.3.5"
     const val logback = "1.4.7"
@@ -30,7 +30,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven(url = "https://packages.confluent.io/maven/")
 }
 
 dependencies {
