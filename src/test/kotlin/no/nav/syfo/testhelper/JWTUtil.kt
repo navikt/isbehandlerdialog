@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
+import no.nav.syfo.util.JWT_CLAIM_AZP
 import no.nav.syfo.util.JWT_CLAIM_NAVIDENT
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -20,6 +21,7 @@ const val keyId = "localhost-signer"
 fun generateJWT(
     audience: String,
     issuer: String,
+    azp: String? = null,
     navIdent: String? = null,
     subject: String? = null,
     expiry: LocalDateTime? = LocalDateTime.now().plusHours(1)
@@ -41,6 +43,7 @@ fun generateJWT(
         .withClaim("iat", now)
         .withClaim("exp", Date.from(expiry?.atZone(ZoneId.systemDefault())?.toInstant()))
         .withClaim(JWT_CLAIM_NAVIDENT, navIdent)
+        .withClaim(JWT_CLAIM_AZP, azp)
         .sign(alg)
 }
 

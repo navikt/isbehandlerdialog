@@ -5,6 +5,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
+import no.nav.syfo.application.api.access.APIConsumerAccessService
 import no.nav.syfo.application.api.auth.*
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.metric.registerMetricApi
@@ -12,6 +13,7 @@ import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.WellKnown
 import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.melding.api.registerMeldingApi
+import no.nav.syfo.melding.api.registerMeldingSystemApi
 
 fun Application.apiModule(
     applicationState: ApplicationState,
@@ -34,6 +36,9 @@ fun Application.apiModule(
             ),
         )
     )
+    val apiConsumerAccessService = APIConsumerAccessService(
+        azureAppPreAuthorizedApps = environment.azure.appPreAuthorizedApps,
+    )
 
     routing {
         registerPodApi(
@@ -43,8 +48,12 @@ fun Application.apiModule(
         registerMetricApi()
         authenticate(JwtIssuerType.INTERNAL_AZUREAD.name) {
             registerMeldingApi(
-                veilederTilgangskontrollClient,
-                meldingService,
+                veilederTilgangskontrollClient = veilederTilgangskontrollClient,
+                meldingService = meldingService,
+            )
+            registerMeldingSystemApi(
+                apiConsumerAccessService = apiConsumerAccessService,
+                meldingService = meldingService,
             )
         }
     }

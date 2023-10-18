@@ -2,10 +2,12 @@ package no.nav.syfo.testhelper
 
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.Environment
+import no.nav.syfo.application.api.access.PreAuthorizedClient
 import no.nav.syfo.application.database.DatabaseEnvironment
 import no.nav.syfo.application.kafka.KafkaEnvironment
 import no.nav.syfo.client.*
 import no.nav.syfo.client.azuread.AzureEnvironment
+import no.nav.syfo.util.configuredJacksonMapper
 
 fun testEnvironment() = Environment(
     database = DatabaseEnvironment(
@@ -18,6 +20,7 @@ fun testEnvironment() = Environment(
     azure = AzureEnvironment(
         appClientId = "isbehandlerdialog-client-id",
         appClientSecret = "isbehandlerdialog-secret",
+        appPreAuthorizedApps = configuredJacksonMapper().writeValueAsString(testAzureAppPreAuthorizedApps),
         appWellKnownUrl = "wellknown",
         openidConfigTokenEndpoint = "azureOpenIdTokenEndpoint",
     ),
@@ -62,4 +65,14 @@ fun testEnvironment() = Environment(
 fun testAppState() = ApplicationState(
     alive = true,
     ready = true,
+)
+
+private const val padm2ApplicationName: String = "padm2"
+const val padm2ClientId = "$padm2ApplicationName-client-id"
+
+val testAzureAppPreAuthorizedApps = listOf(
+    PreAuthorizedClient(
+        name = "cluster:teamsykefravr:$padm2ApplicationName",
+        clientId = padm2ClientId,
+    ),
 )

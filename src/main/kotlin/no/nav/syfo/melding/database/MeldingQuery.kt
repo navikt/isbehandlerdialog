@@ -64,6 +64,12 @@ fun Connection.getMeldingForMsgId(
     }
 }
 
+fun DatabaseInterface.hasMelding(msgId: String): Boolean {
+    return this.connection.use { connection ->
+        connection.getMeldingForMsgId(msgId) != null
+    }
+}
+
 const val queryGetMeldingerWithTypeForConversationRefAndArbeidstakerident =
     """
         SELECT *

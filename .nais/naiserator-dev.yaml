@@ -43,8 +43,7 @@ spec:
     inbound:
       rules:
         - application: syfomodiaperson
-          namespace: teamsykefravr
-          cluster: dev-gcp
+        - application: padm2
     outbound:
       external:
         - host: "dokarkiv.dev-fss-pub.nais.io"
