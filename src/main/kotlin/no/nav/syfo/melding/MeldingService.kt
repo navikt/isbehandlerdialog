@@ -90,6 +90,8 @@ class MeldingService(
         connection: Connection? = null,
     ): MeldingStatus? = database.getMeldingStatus(meldingId = meldingId, connection = connection)?.toMeldingStatus()
 
+    internal fun hasMelding(msgId: String): Boolean = database.hasMelding(msgId = msgId)
+
     private fun getMeldingTilBehandler(meldingUuid: UUID): MeldingTilBehandler? {
         return database.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
     }
