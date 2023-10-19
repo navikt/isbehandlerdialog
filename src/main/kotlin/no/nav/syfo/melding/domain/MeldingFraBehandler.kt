@@ -30,7 +30,7 @@ data class MeldingFraBehandler(
     override val veilederIdent: String? = null
 }
 
-fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID) = MeldingDTO(
+fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID?) = MeldingDTO(
     uuid = uuid,
     conversationRef = conversationRef,
     parentRef = parentRef,

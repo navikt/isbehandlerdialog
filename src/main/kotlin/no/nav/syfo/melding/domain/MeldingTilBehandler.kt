@@ -233,8 +233,8 @@ fun MeldingTilBehandler.createTittel(): String {
 
 fun MeldingTilBehandler.createOverstyrInnsynsregler(): String? {
     return when (this.type) {
-        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, MeldingType.HENVENDELSE_RETUR_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
-        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> null
+        MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, MeldingType.HENVENDELSE_RETUR_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> null
     }
 }
 

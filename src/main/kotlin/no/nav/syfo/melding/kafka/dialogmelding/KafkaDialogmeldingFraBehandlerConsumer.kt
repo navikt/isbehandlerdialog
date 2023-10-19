@@ -65,7 +65,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 uuidParam = it,
                 arbeidstakerPersonIdent = personIdent
             )
-        } ?: ArrayList()
+        } ?: mutableListOf()
 
         if (utgaaende.isEmpty() && kafkaDialogmeldingFraBehandler.parentRef != null) {
             val parentRef = UUID.fromString(kafkaDialogmeldingFraBehandler.parentRef)
@@ -91,7 +91,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
                 log.warn("Received duplicate dialogmelding from behandler: $conversationRef")
             }
-        } else if (storeMeldingTilNAV && isMeldingTilNAV(kafkaDialogmeldingFraBehandler)) {
+        } else if (storeMeldingTilNAV && kafkaDialogmeldingFraBehandler.isHenvendelseTilNAV()) {
             log.info("Received a dialogmelding from behandler to NAV")
             storeDialogmeldingFromBehandler(
                 connection = connection,
@@ -110,15 +110,6 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 """.trimIndent()
             )
         }
-    }
-
-    private fun isMeldingTilNAV(
-        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
-    ): Boolean {
-        val henvendelseFraLegeHenvendelse = kafkaDialogmeldingFraBehandler.dialogmelding.henvendelseFraLegeHenvendelse
-        return henvendelseFraLegeHenvendelse != null &&
-            henvendelseFraLegeHenvendelse.temaKode.kodeverkOID == "2.16.578.1.12.4.1.1.8128" &&
-            henvendelseFraLegeHenvendelse.temaKode.v == "1"
     }
 
     private fun storeDialogmeldingFromBehandler(

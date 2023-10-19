@@ -14,7 +14,7 @@ data class MeldingDTO(
     val uuid: UUID,
     val conversationRef: UUID,
     val parentRef: UUID?,
-    val behandlerRef: UUID,
+    val behandlerRef: UUID?,
     val behandlerNavn: String?,
     val tekst: String,
     val document: List<DocumentComponentDTO>,

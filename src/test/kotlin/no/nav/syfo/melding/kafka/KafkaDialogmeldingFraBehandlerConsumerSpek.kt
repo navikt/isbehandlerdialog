@@ -79,7 +79,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                     database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
                 }
-                it("Receive dialogmelding DIALOG_NOTAT but unknown conversationRef creates no melding") {
+                it("Receive dialogmelding DIALOG_NOTAT from behandler creates melding") {
                     val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO()
                     val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 

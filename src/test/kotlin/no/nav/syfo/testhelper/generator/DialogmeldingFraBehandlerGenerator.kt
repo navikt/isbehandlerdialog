@@ -112,7 +112,7 @@ fun generateDialogmeldingFraBehandlerDialogNotatDTO(
     dialogmelding = Dialogmelding(
         id = uuid.toString(),
         henvendelseFraLegeHenvendelse = HenvendelseFraLegeHenvendelse(
-            temaKode = TemaKode("2.16.578.1.12.4.1.1.8128", "Henvendelse om sykefraværsoppfølging", "1", "", "", ""),
+            temaKode = TemaKode(KODEVERK_MELDING_TIL_NAV, "Henvendelse om sykefraværsoppfølging", HENVENDELSE_OM_SYKEFRAVAR, "", "", ""),
             tekstNotatInnhold = "Dette er innholdet i et notat",
             dokIdNotat = null,
             foresporsel = null,
@@ -147,7 +147,7 @@ fun generateDialogmeldingFraBehandlerDialogNotatIkkeSykefravrDTO(
     dialogmelding = Dialogmelding(
         id = uuid.toString(),
         henvendelseFraLegeHenvendelse = HenvendelseFraLegeHenvendelse(
-            temaKode = TemaKode("2.16.578.1.12.4.1.1.8128", "Henvendelse om pasient", "2", "", "", ""),
+            temaKode = TemaKode(KODEVERK_MELDING_TIL_NAV, "Henvendelse om pasient", HENVENDELSE_OM_PASIENT, "", "", ""),
             tekstNotatInnhold = "Dette er innholdet i et notat",
             dokIdNotat = null,
             foresporsel = null,

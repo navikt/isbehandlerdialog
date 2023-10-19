@@ -70,16 +70,13 @@ class MeldingService(
             PdfContent(it.pdf)
         }
 
-    private fun getBehandlerRefForConversation(meldingFraBehandler: MeldingFraBehandler, personIdent: PersonIdent): UUID {
-        return getUtgaendeMeldingerInConversation(
-            conversationRef = meldingFraBehandler.conversationRef,
-            personIdent = personIdent,
-        )
-            .firstOrNull()
-            ?.behandlerRef
-            ?: meldingFraBehandler.behandlerRef
-            ?: throw IllegalStateException("Fant ikke behandlerRef for samtale ${meldingFraBehandler.conversationRef}, kunne ikke knyttes til melding fra behandler")
-    }
+    private fun getBehandlerRefForConversation(
+        meldingFraBehandler: MeldingFraBehandler,
+        personIdent: PersonIdent
+    ) = getUtgaendeMeldingerInConversation(
+        conversationRef = meldingFraBehandler.conversationRef,
+        personIdent = personIdent,
+    ).firstOrNull()?.behandlerRef
 
     fun getArbeidstakerPersonIdentForMelding(meldingUuid: UUID): PersonIdent {
         val pMelding = database.getMelding(meldingUuid) ?: throw IllegalArgumentException("Melding not found")
