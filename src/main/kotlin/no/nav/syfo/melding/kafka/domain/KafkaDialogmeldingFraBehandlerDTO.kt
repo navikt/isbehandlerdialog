@@ -5,6 +5,10 @@ import no.nav.syfo.melding.domain.*
 import java.time.*
 import java.util.UUID
 
+const val KODEVERK_MELDING_TIL_NAV = "2.16.578.1.12.4.1.1.8128"
+const val HENVENDELSE_OM_SYKEFRAVAR = "1"
+const val HENVENDELSE_OM_PASIENT = "2"
+
 data class KafkaDialogmeldingFraBehandlerDTO(
     val msgId: String,
     val msgType: String?,
@@ -23,11 +27,25 @@ data class KafkaDialogmeldingFraBehandlerDTO(
     val fellesformatXML: String,
 )
 
+fun KafkaDialogmeldingFraBehandlerDTO.isHenvendelseTilNAVOmSykefravar(): Boolean {
+    val henvendelseFraLegeHenvendelse = dialogmelding.henvendelseFraLegeHenvendelse
+    return henvendelseFraLegeHenvendelse != null &&
+        henvendelseFraLegeHenvendelse.temaKode.kodeverkOID == KODEVERK_MELDING_TIL_NAV &&
+        henvendelseFraLegeHenvendelse.temaKode.v == HENVENDELSE_OM_SYKEFRAVAR
+}
+
 fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(
     type: MeldingType,
     conversationRef: UUID,
-) =
-    MeldingFraBehandler(
+): MeldingFraBehandler {
+    val tekst = if (type == MeldingType.HENVENDELSE_MELDING_TIL_NAV) {
+        dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold
+            ?: dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
+    } else {
+        dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
+            ?: dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold
+    }
+    return MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
         type = type,
@@ -44,11 +62,11 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(
         arbeidstakerPersonIdent = PersonIdent(personIdentPasient),
         behandlerPersonIdent = personIdentBehandler?.let { PersonIdent(personIdentBehandler) },
         behandlerNavn = dialogmelding.navnHelsepersonell,
-        tekst = dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
-            ?: dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold,
+        tekst = tekst,
         antallVedlegg = antallVedlegg,
         innkommendePublishedAt = null,
     )
+}
 
 data class Dialogmelding(
     val id: String,

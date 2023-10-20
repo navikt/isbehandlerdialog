@@ -164,20 +164,21 @@ private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingKode.PAMINNELSE_FORESPORSEL
         MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> DialogmeldingKode.RETUR_LEGEERKLARING
         MeldingType.HENVENDELSE_MELDING_FRA_NAV -> DialogmeldingKode.MELDING_FRA_NAV
+        MeldingType.HENVENDELSE_MELDING_TIL_NAV -> DialogmeldingKode.HENVENDELSE_OM_SYKEFRAVARSOPPFOLGING
     }
 }
 
 private fun MeldingTilBehandler.getDialogmeldingKodeverk(): DialogmeldingKodeverk {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingKodeverk.FORESPORSEL
-        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV -> DialogmeldingKodeverk.HENVENDELSE
+        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> DialogmeldingKodeverk.HENVENDELSE
     }
 }
 
 private fun MeldingTilBehandler.getDialogmeldingType(): DialogmeldingType {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingType.DIALOG_FORESPORSEL
-        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV -> DialogmeldingType.DIALOG_NOTAT
+        MeldingType.HENVENDELSE_RETUR_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> DialogmeldingType.DIALOG_NOTAT
     }
 }
 
@@ -187,12 +188,13 @@ private fun MeldingTilBehandler.getBrevKode(): BrevkodeType {
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> BrevkodeType.FORESPORSEL_OM_PASIENT_PAMINNELSE
         MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> BrevkodeType.HENVENDELSE_RETUR_LEGEERKLARING
         MeldingType.HENVENDELSE_MELDING_FRA_NAV -> BrevkodeType.HENVENDELSE_MELDING_FRA_NAV
+        MeldingType.HENVENDELSE_MELDING_TIL_NAV -> BrevkodeType.HENVENDELSE_MELDING_TIL_NAV
     }
 }
 
 private fun MeldingTilBehandler.kanHaPaminnelse(): Boolean = when (this.type) {
     MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> true
-    MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_MELDING_FRA_NAV -> false
+    MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_MELDING_FRA_NAV, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> false
 }
 
 fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) =
@@ -223,6 +225,7 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) =
 fun MeldingTilBehandler.createTittel(): String {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV -> MeldingTittel.DIALOGMELDING_DEFAULT.value
+        MeldingType.HENVENDELSE_MELDING_TIL_NAV -> MeldingTittel.DIALOGMELDING_TIL_NAV.value
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> MeldingTittel.DIALOGMELDING_PAMINNELSE.value
         MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> MeldingTittel.DIALOGMELDING_RETUR.value
     }
@@ -231,7 +234,7 @@ fun MeldingTilBehandler.createTittel(): String {
 fun MeldingTilBehandler.createOverstyrInnsynsregler(): String? {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, MeldingType.HENVENDELSE_RETUR_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV -> OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
-        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> null
+        MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> null
     }
 }
 

@@ -93,3 +93,5 @@ spec:
       value: "336" # Etter to uker, 14*24
     - name: CRONJOB_AVVIST_MELDING_STATUS_INTERVAL_DELAY_MINUTES
       value: "240" # Hver fjerde time, 60*4
+    - name: TOGGLE_STORE_MELDING_TIL_NAV
+      value: "false"

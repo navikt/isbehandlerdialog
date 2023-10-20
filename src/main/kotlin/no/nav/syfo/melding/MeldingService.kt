@@ -47,7 +47,7 @@ class MeldingService(
                 if (it.innkommende) {
                     val meldingFraBehandler = it.toMeldingFraBehandler()
                     val behandlerRef = getBehandlerRefForConversation(
-                        conversationRef = it.conversationRef,
+                        meldingFraBehandler = meldingFraBehandler,
                         personIdent = personIdent,
                     )
                     meldingFraBehandler.toMeldingDTO(behandlerRef)
@@ -70,14 +70,18 @@ class MeldingService(
             PdfContent(it.pdf)
         }
 
-    private fun getBehandlerRefForConversation(conversationRef: UUID, personIdent: PersonIdent): UUID {
-        return getUtgaendeMeldingerInConversation(
-            conversationRef = conversationRef,
+    private fun getBehandlerRefForConversation(
+        meldingFraBehandler: MeldingFraBehandler,
+        personIdent: PersonIdent
+    ): UUID? {
+        val behandlerRef = getUtgaendeMeldingerInConversation(
+            conversationRef = meldingFraBehandler.conversationRef,
             personIdent = personIdent,
-        )
-            .firstOrNull()
-            ?.behandlerRef
-            ?: throw IllegalStateException("Fant ikke behandlerRef for samtale $conversationRef, kunne ikke knyttes til melding fra behandler")
+        ).firstOrNull()?.behandlerRef
+        if (meldingFraBehandler.type != MeldingType.HENVENDELSE_MELDING_TIL_NAV && behandlerRef == null) {
+            throw IllegalStateException("Fant ikke behandlerRef for samtale ${meldingFraBehandler.conversationRef}, kunne ikke knyttes til melding fra behandler")
+        }
+        return behandlerRef
     }
 
     fun getArbeidstakerPersonIdentForMelding(meldingUuid: UUID): PersonIdent {
@@ -189,6 +193,8 @@ class MeldingService(
                 callId = callId,
                 documentComponentDTOList = meldingTilBehandler.document,
             )
+            MeldingType.HENVENDELSE_MELDING_TIL_NAV ->
+                throw RuntimeException("Should only be used for incoming messages")
         } ?: throw RuntimeException("Failed to request PDF - ${meldingTilBehandler.type}")
     }
 

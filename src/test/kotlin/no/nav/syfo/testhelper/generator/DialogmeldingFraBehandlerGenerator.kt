@@ -112,7 +112,42 @@ fun generateDialogmeldingFraBehandlerDialogNotatDTO(
     dialogmelding = Dialogmelding(
         id = uuid.toString(),
         henvendelseFraLegeHenvendelse = HenvendelseFraLegeHenvendelse(
-            temaKode = TemaKode("2.16.578.1.12.4.1.1.8128", "Henvendelse om sykefraværsoppfølging", "1", "", "", ""),
+            temaKode = TemaKode(KODEVERK_MELDING_TIL_NAV, "Henvendelse om sykefraværsoppfølging", HENVENDELSE_OM_SYKEFRAVAR, "", "", ""),
+            tekstNotatInnhold = "Dette er innholdet i et notat",
+            dokIdNotat = null,
+            foresporsel = null,
+            rollerRelatertNotat = null,
+        ),
+        navnHelsepersonell = UserConstants.BEHANDLER_NAVN,
+        signaturDato = LocalDateTime.now(),
+        foresporselFraSaksbehandlerForesporselSvar = null,
+    )
+)
+
+fun generateDialogmeldingFraBehandlerDialogNotatIkkeSykefravrDTO(
+    uuid: UUID = UUID.randomUUID(),
+    personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+    conversationRef: String = UUID.randomUUID().toString(),
+    antallVedlegg: Int = 0,
+) = KafkaDialogmeldingFraBehandlerDTO(
+    msgId = uuid.toString(),
+    msgType = DialogmeldingType.DIALOG_NOTAT.name,
+    navLogId = "1234asd123",
+    mottattTidspunkt = LocalDateTime.now(),
+    conversationRef = conversationRef,
+    parentRef = UUID.randomUUID().toString(),
+    personIdentPasient = personIdent.value,
+    personIdentBehandler = UserConstants.BEHANDLER_PERSONIDENT.value,
+    legekontorOrgNr = "987654321",
+    legekontorHerId = "",
+    legekontorOrgName = "",
+    legehpr = UserConstants.HPRID.toString(),
+    fellesformatXML = fellesformatXML,
+    antallVedlegg = antallVedlegg,
+    dialogmelding = Dialogmelding(
+        id = uuid.toString(),
+        henvendelseFraLegeHenvendelse = HenvendelseFraLegeHenvendelse(
+            temaKode = TemaKode(KODEVERK_MELDING_TIL_NAV, "Henvendelse om pasient", HENVENDELSE_OM_PASIENT, "", "", ""),
             tekstNotatInnhold = "Dette er innholdet i et notat",
             dokIdNotat = null,
             foresporsel = null,

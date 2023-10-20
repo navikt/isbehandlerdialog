@@ -30,6 +30,7 @@ class DialogmeldingBestillingProducer(
                 MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> COUNT_KAFKA_PRODUCER_PAMINNELSE_BESTILLING_SENT.increment()
                 MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> COUNT_KAFKA_PRODUCER_RETUR_LEGEERKLARING_BESTILLING_SENT.increment()
                 MeldingType.HENVENDELSE_MELDING_FRA_NAV -> COUNT_KAFKA_PRODUCER_MELDING_FRA_NAV_BESTILLING_SENT.increment()
+                MeldingType.HENVENDELSE_MELDING_TIL_NAV -> {} // only used for incoming messages
             }
         } catch (e: Exception) {
             log.error(
