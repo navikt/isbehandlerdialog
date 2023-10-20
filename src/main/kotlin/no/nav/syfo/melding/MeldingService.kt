@@ -73,10 +73,16 @@ class MeldingService(
     private fun getBehandlerRefForConversation(
         meldingFraBehandler: MeldingFraBehandler,
         personIdent: PersonIdent
-    ) = getUtgaendeMeldingerInConversation(
-        conversationRef = meldingFraBehandler.conversationRef,
-        personIdent = personIdent,
-    ).firstOrNull()?.behandlerRef
+    ): UUID? {
+        val behandlerRef = getUtgaendeMeldingerInConversation(
+            conversationRef = meldingFraBehandler.conversationRef,
+            personIdent = personIdent,
+        ).firstOrNull()?.behandlerRef
+        if (meldingFraBehandler.type != MeldingType.HENVENDELSE_MELDING_TIL_NAV && behandlerRef == null) {
+            throw IllegalStateException("Fant ikke behandlerRef for samtale ${meldingFraBehandler.conversationRef}, kunne ikke knyttes til melding fra behandler")
+        }
+        return behandlerRef
+    }
 
     fun getArbeidstakerPersonIdentForMelding(meldingUuid: UUID): PersonIdent {
         val pMelding = database.getMelding(meldingUuid) ?: throw IllegalArgumentException("Melding not found")

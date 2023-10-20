@@ -164,7 +164,7 @@ private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingKode.PAMINNELSE_FORESPORSEL
         MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> DialogmeldingKode.RETUR_LEGEERKLARING
         MeldingType.HENVENDELSE_MELDING_FRA_NAV -> DialogmeldingKode.MELDING_FRA_NAV
-        MeldingType.HENVENDELSE_MELDING_TIL_NAV -> DialogmeldingKode.FORESPORSEL
+        MeldingType.HENVENDELSE_MELDING_TIL_NAV -> DialogmeldingKode.HENVENDELSE_OM_SYKEFRAVARSOPPFOLGING
     }
 }
 
