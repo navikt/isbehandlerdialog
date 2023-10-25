@@ -25,6 +25,8 @@ import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.Future
 
+private val threeWeeksAgo = OffsetDateTime.now().minusDays(21)
+
 class UbesvartMeldingCronjobSpek : Spek({
 
     with(TestApplicationEngine()) {
@@ -69,7 +71,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idList.first(),
-                        createdAt = OffsetDateTime.now().minusDays(14)
+                        createdAt = threeWeeksAgo
                     )
 
                     runBlocking {
@@ -100,7 +102,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idList.first(),
-                        createdAt = OffsetDateTime.now().minusDays(14)
+                        createdAt = threeWeeksAgo
                     )
 
                     val meldingTilBehandlerWithOtherConversationRef = generateMeldingTilBehandler(personIdent)
@@ -109,7 +111,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idListForMeldingWithOtherConversationRef.first(),
-                        createdAt = OffsetDateTime.now().minusDays(14)
+                        createdAt = threeWeeksAgo
                     )
 
                     runBlocking {
@@ -136,14 +138,14 @@ class UbesvartMeldingCronjobSpek : Spek({
                     secondKafkaMeldingDTO.uuid shouldBeEqualTo meldinger.last().uuid.toString()
                 }
 
-                it("Will not publish any ubesvart melding when no melding older than 2 weeks") {
+                it("Will not publish any ubesvart melding when no melding older than 3 weeks") {
                     val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
                     val (_, idList) = database.createMeldingerTilBehandler(
                         meldingTilBehandler = meldingTilBehandler,
                     )
                     database.updateMeldingCreatedAt(
                         id = idList.first(),
-                        createdAt = OffsetDateTime.now().minusDays(13)
+                        createdAt = OffsetDateTime.now().minusDays(20)
                     )
 
                     runBlocking {
@@ -166,7 +168,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idList.first(),
-                        createdAt = OffsetDateTime.now().minusDays(14)
+                        createdAt = threeWeeksAgo
                     )
 
                     val meldingFraBehandler = generateMeldingFraBehandler(
@@ -202,7 +204,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idListUtgaende.last(),
-                        createdAt = OffsetDateTime.now().minusDays(14)
+                        createdAt = threeWeeksAgo
                     )
 
                     val meldingFraBehandler = generateMeldingFraBehandler(
@@ -214,7 +216,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idListInnkommende.first(),
-                        createdAt = OffsetDateTime.now().minusDays(20)
+                        createdAt = OffsetDateTime.now().minusDays(30)
                     )
 
                     runBlocking {
@@ -247,7 +249,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idList.first(),
-                        createdAt = OffsetDateTime.now().minusDays(14)
+                        createdAt = threeWeeksAgo
                     )
 
                     runBlocking {
@@ -281,7 +283,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idList.first(),
-                        createdAt = OffsetDateTime.now().minusDays(14)
+                        createdAt = threeWeeksAgo
                     )
 
                     runBlocking {
@@ -307,7 +309,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idList.first(),
-                        createdAt = OffsetDateTime.now().minusDays(14)
+                        createdAt = threeWeeksAgo
                     )
 
                     runBlocking {
@@ -330,7 +332,7 @@ class UbesvartMeldingCronjobSpek : Spek({
                     )
                     database.updateMeldingCreatedAt(
                         id = idList.first(),
-                        createdAt = OffsetDateTime.now().minusDays(14)
+                        createdAt = threeWeeksAgo
                     )
                     val meldingStatus = MeldingStatus(
                         uuid = UUID.randomUUID(),
