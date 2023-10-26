@@ -18,7 +18,6 @@ import java.util.UUID
 class KafkaDialogmeldingFraBehandlerConsumer(
     private val database: DatabaseInterface,
     private val padm2Client: Padm2Client,
-    private val storeMeldingTilNAV: Boolean,
 ) : KafkaConsumerService<KafkaDialogmeldingFraBehandlerDTO> {
 
     override val pollDurationInMillis: Long = 1000
@@ -91,7 +90,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
                 log.warn("Received duplicate dialogmelding from behandler: $conversationRef")
             }
-        } else if (storeMeldingTilNAV && kafkaDialogmeldingFraBehandler.isHenvendelseTilNAVOmSykefravar()) {
+        } else if (kafkaDialogmeldingFraBehandler.isHenvendelseTilNAVOmSykefravar()) {
             log.info("Received a dialogmelding from behandler to NAV")
             storeDialogmeldingFromBehandler(
                 connection = connection,

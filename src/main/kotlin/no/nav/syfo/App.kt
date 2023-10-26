@@ -100,7 +100,6 @@ fun main() {
             kafkaEnvironment = environment.kafka,
             database = applicationDatabase,
             padm2Client = padm2Client,
-            storeMeldingTilNAV = environment.storeMeldingTilNAV,
         )
 
         launchKafkaTaskDialogmeldingStatus(
