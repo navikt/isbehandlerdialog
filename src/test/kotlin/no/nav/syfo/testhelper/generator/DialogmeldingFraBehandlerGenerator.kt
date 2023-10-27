@@ -121,6 +121,7 @@ fun generateDialogmeldingFraBehandlerDialogNotatDTO(
         navnHelsepersonell = UserConstants.BEHANDLER_NAVN,
         signaturDato = LocalDateTime.now(),
         foresporselFraSaksbehandlerForesporselSvar = null,
+        innkallingMoterespons = null,
     )
 )
 
@@ -156,6 +157,7 @@ fun generateDialogmeldingFraBehandlerDialogNotatIkkeSykefravrDTO(
         navnHelsepersonell = UserConstants.BEHANDLER_NAVN,
         signaturDato = LocalDateTime.now(),
         foresporselFraSaksbehandlerForesporselSvar = null,
+        innkallingMoterespons = null,
     )
 )
 
@@ -193,6 +195,7 @@ fun generateDialogmeldingFraBehandlerForesporselSvarDTO(
             datoNotat = LocalDateTime.now(),
             dokIdNotat = null,
             tekstNotatInnhold = "Dette er innholdet i et notat"
-        )
+        ),
+        innkallingMoterespons = null,
     )
 )
