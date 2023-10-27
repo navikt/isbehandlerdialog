@@ -46,7 +46,6 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
         val kafkaDialogmeldingFraBehandlerConsumer = KafkaDialogmeldingFraBehandlerConsumer(
             database = database,
             padm2Client = padm2Client,
-            storeMeldingTilNAV = externalMockEnvironment.environment.storeMeldingTilNAV,
         )
 
         describe("Read dialogmelding sent from behandler to NAV from Kafka Topic") {
