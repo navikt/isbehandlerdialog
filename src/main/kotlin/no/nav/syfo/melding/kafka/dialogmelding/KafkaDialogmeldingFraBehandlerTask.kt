@@ -14,10 +14,12 @@ fun launchKafkaTaskDialogmeldingFraBehandler(
     kafkaEnvironment: KafkaEnvironment,
     database: DatabaseInterface,
     padm2Client: Padm2Client,
+    storeMeldingTilNAV: Boolean,
 ) {
     val kafkaDialogmeldingFraBehandlerConsumer = KafkaDialogmeldingFraBehandlerConsumer(
         database = database,
         padm2Client = padm2Client,
+        storeMeldingTilNAV = storeMeldingTilNAV,
     )
     val consumerProperties =
         kafkaConsumerConfig<JacksonKafkaDeserializerDialogmeldingFraBehandler>(kafkaEnvironment).apply {
