@@ -59,6 +59,7 @@ data class Environment(
     val legeerklaringBucketName: String = getEnvVar("LEGEERKLARING_BUCKET_NAME"),
     val legeerklaringVedleggBucketName: String = getEnvVar("LEGEERKLARING_VEDLEGG_BUCKET_NAME"),
     val cronjobAvvistMeldingStatusIntervalDelayMinutes: Long = getEnvVar("CRONJOB_AVVIST_MELDING_STATUS_INTERVAL_DELAY_MINUTES").toLong(),
+    val storeMeldingTilNAV: Boolean = getEnvVar("TOGGLE_STORE_MELDING_TIL_NAV").toBoolean(),
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =
