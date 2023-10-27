@@ -99,7 +99,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 type = MeldingType.HENVENDELSE_MELDING_TIL_NAV,
                 conversationRef = conversationRef ?: UUID.randomUUID(),
             )
-        } else {
+        } else if (kafkaDialogmeldingFraBehandler.dialogmelding.innkallingMoterespons == null) {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
             log.info(
                 """
