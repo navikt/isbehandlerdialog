@@ -70,10 +70,18 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(
 
 data class Dialogmelding(
     val id: String,
+    val innkallingMoterespons: InnkallingMoterespons?,
     val foresporselFraSaksbehandlerForesporselSvar: ForesporselFraSaksbehandlerForesporselSvar?,
     val henvendelseFraLegeHenvendelse: HenvendelseFraLegeHenvendelse?,
     val navnHelsepersonell: String,
     val signaturDato: LocalDateTime
+)
+
+data class InnkallingMoterespons(
+    val temaKode: TemaKode,
+    val tekstNotatInnhold: String?,
+    val dokIdNotat: String?,
+    val foresporsel: Foresporsel?
 )
 
 data class HenvendelseFraLegeHenvendelse(
