@@ -8,6 +8,7 @@ object UserConstants {
     private const val ARBEIDSTAKER_FNR = "12345678912"
 
     val ARBEIDSTAKER_PERSONIDENT = PersonIdent(ARBEIDSTAKER_FNR)
+    val ARBEIDSTAKER_PERSONIDENT_INACTIVE = PersonIdent(ARBEIDSTAKER_PERSONIDENT.value.replace("4", "1"))
     val PERSONIDENT_VEILEDER_NO_ACCESS = PersonIdent(ARBEIDSTAKER_PERSONIDENT.value.replace("3", "1"))
 
     var PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER = byteArrayOf(0x2E, 0x28)
@@ -27,4 +28,5 @@ object UserConstants {
     val PARTNERID = PartnerId(321)
     const val HERID = 404
     const val HPRID = 1337
+    const val VIRKSOMHETSNUMMER = "987654321"
 }

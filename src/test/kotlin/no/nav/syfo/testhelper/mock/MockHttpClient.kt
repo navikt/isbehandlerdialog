@@ -22,6 +22,8 @@ fun mockHttpClient(environment: Environment) = HttpClient(MockEngine) {
 
                 requestUrl.startsWith("/${environment.clients.padm2.baseUrl}") -> padm2ClientMockResponse(request)
 
+                requestUrl.startsWith("/${environment.clients.oppfolgingstilfelle.baseUrl}") -> oppfolgingstilfelleClientMockResponse(request)
+
                 else -> error("Unhandled ${request.url.encodedPath}")
             }
         }

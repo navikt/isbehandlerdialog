@@ -4,6 +4,7 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.client.azuread.AzureAdClient
+import no.nav.syfo.client.oppfolgingstilfelle.OppfolgingstilfelleClient
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.domain.MeldingTilBehandler
@@ -31,6 +32,11 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
             azureEnvironment = externalMockEnvironment.environment.azure,
             httpClient = mockHttpClient,
         )
+        val oppfolgingstilfelleClient = OppfolgingstilfelleClient(
+            azureAdClient = azureAdClient,
+            clientEnvironment = externalMockEnvironment.environment.clients.oppfolgingstilfelle,
+            httpClient = mockHttpClient,
+        )
         val padm2Client = Padm2Client(
             azureAdClient = azureAdClient,
             clientEnvironment = externalMockEnvironment.environment.clients.padm2,
@@ -46,6 +52,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
         val kafkaDialogmeldingFraBehandlerConsumer = KafkaDialogmeldingFraBehandlerConsumer(
             database = database,
             padm2Client = padm2Client,
+            oppfolgingstilfelleClient = oppfolgingstilfelleClient,
             storeMeldingTilNAV = externalMockEnvironment.environment.storeMeldingTilNAV,
         )
 
@@ -79,7 +86,7 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                     database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
                 }
-                it("Receive dialogmelding DIALOG_NOTAT from behandler creates melding") {
+                it("Receive dialogmelding DIALOG_NOTAT from behandler creates melding when person sykmeldt") {
                     val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO()
                     val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
@@ -92,6 +99,38 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
                     verify(exactly = 1) { mockConsumer.commitSync() }
 
                     database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 1
+                }
+                it("Receive dialogmelding DIALOG_NOTAT from behandler creates no melding when person not sykmeldt") {
+                    val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO(
+                        personIdent = UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS,
+                    )
+                    val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+
+                    runBlocking {
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
+
+                    database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
+                }
+                it("Receive dialogmelding DIALOG_NOTAT from behandler creates no melding when person sykmeldt long time ago") {
+                    val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO(
+                        personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT_INACTIVE,
+                    )
+                    val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+
+                    runBlocking {
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+
+                    verify(exactly = 1) { mockConsumer.commitSync() }
+
+                    database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
                 }
                 describe("Having sent melding til behandler FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER") {
                     it("Receive dialogmelding DIALOG_SVAR and known conversationRef creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER") {

@@ -33,10 +33,6 @@ val COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION: Co
     Counter.builder(KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION)
         .description("Counts the number of melding skipped from topic because no conversation found - teamsykefravr.dialogmelding")
         .register(METRICS_REGISTRY)
-val COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_CONVERSATION_REF_MISSING: Counter =
-    Counter.builder(KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_CONVERSATION_REF_MISSING)
-        .description("Counts the number of melding skipped from topic because conversationRef is null - teamsykefravr.dialogmelding")
-        .register(METRICS_REGISTRY)
 val COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE: Counter =
     Counter.builder(KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE)
         .description("Counts the number of melding skipped from topic because duplicate - teamsykefravr.dialogmelding")

@@ -1,7 +1,5 @@
 package no.nav.syfo.client.oppfolgingstilfelle
 
-import no.nav.syfo.util.isAfterOrEqual
-import no.nav.syfo.util.isBeforeOrEqual
 import java.time.LocalDate
 
 data class OppfolgingstilfellePersonDTO(
@@ -32,21 +30,4 @@ fun OppfolgingstilfellePersonDTO.toLatestOppfolgingstilfelle(): Oppfolgingstilfe
             end = oppfolgingstilfelleDTO.end,
         )
     }
-}
-
-fun List<OppfolgingstilfelleDTO>.toOppfolgingstilfelle(): List<Oppfolgingstilfelle> {
-    return this.map {
-        Oppfolgingstilfelle(
-            start = it.start,
-            end = it.end
-        )
-    }
-}
-
-fun List<Oppfolgingstilfelle>.findOppfolgingstilfelleByDate(date: LocalDate): Oppfolgingstilfelle? {
-    val oppfolgingstilfeller = this.filter {
-        it.start.isBeforeOrEqual(date) && it.end.isAfterOrEqual(date)
-    }
-
-    return oppfolgingstilfeller.minByOrNull { it.start }
 }

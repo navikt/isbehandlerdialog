@@ -3,6 +3,7 @@ package no.nav.syfo.melding.kafka.dialogmelding
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.*
+import no.nav.syfo.client.oppfolgingstilfelle.OppfolgingstilfelleClient
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.melding.kafka.config.JacksonKafkaDeserializerDialogmeldingFraBehandler
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -14,11 +15,13 @@ fun launchKafkaTaskDialogmeldingFraBehandler(
     kafkaEnvironment: KafkaEnvironment,
     database: DatabaseInterface,
     padm2Client: Padm2Client,
+    oppfolgingstilfelleClient: OppfolgingstilfelleClient,
     storeMeldingTilNAV: Boolean,
 ) {
     val kafkaDialogmeldingFraBehandlerConsumer = KafkaDialogmeldingFraBehandlerConsumer(
         database = database,
         padm2Client = padm2Client,
+        oppfolgingstilfelleClient = oppfolgingstilfelleClient,
         storeMeldingTilNAV = storeMeldingTilNAV,
     )
     val consumerProperties =

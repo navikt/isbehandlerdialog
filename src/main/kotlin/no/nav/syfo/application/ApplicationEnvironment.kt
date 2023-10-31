@@ -53,6 +53,10 @@ data class Environment(
             baseUrl = getEnvVar("DOKARKIV_URL"),
             clientId = getEnvVar("DOKARKIV_CLIENT_ID"),
         ),
+        oppfolgingstilfelle = ClientEnvironment(
+            baseUrl = getEnvVar("ISOPPFOLGINGSTILFELLE_URL"),
+            clientId = getEnvVar("ISOPPFOLGINGSTILFELLE_CLIENT_ID"),
+        ),
     ),
     val cronjobUbesvartMeldingIntervalDelayMinutes: Long = getEnvVar("CRONJOB_UBESVART_MELDING_INTERVAL_DELAY_MINUTES").toLong(),
     val cronjobUbesvartMeldingFristHours: Long = getEnvVar("CRONJOB_UBESVART_MELDING_FRIST_HOURS").toLong(),

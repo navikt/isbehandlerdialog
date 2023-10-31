@@ -3,6 +3,8 @@ package no.nav.syfo.melding.kafka.dialogmelding
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.*
+import no.nav.syfo.client.oppfolgingstilfelle.OppfolgingstilfelleClient
+import no.nav.syfo.client.oppfolgingstilfelle.isActive
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.padm2.VedleggDTO
 import no.nav.syfo.domain.PersonIdent
@@ -18,6 +20,7 @@ import java.util.UUID
 class KafkaDialogmeldingFraBehandlerConsumer(
     private val database: DatabaseInterface,
     private val padm2Client: Padm2Client,
+    private val oppfolgingstilfelleClient: OppfolgingstilfelleClient,
     private val storeMeldingTilNAV: Boolean,
 ) : KafkaConsumerService<KafkaDialogmeldingFraBehandlerDTO> {
 
@@ -91,14 +94,20 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
                 log.warn("Received duplicate dialogmelding from behandler: $conversationRef")
             }
-        } else if (storeMeldingTilNAV && kafkaDialogmeldingFraBehandler.isHenvendelseTilNAVOmSykefravar()) {
-            log.info("Received a dialogmelding from behandler to NAV")
-            storeDialogmeldingFromBehandler(
-                connection = connection,
-                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                type = MeldingType.HENVENDELSE_MELDING_TIL_NAV,
-                conversationRef = conversationRef ?: UUID.randomUUID(),
-            )
+        } else if (storeMeldingTilNAV && kafkaDialogmeldingFraBehandler.isHenvendelseTilNAV()) {
+            val latestOppfolgingstilfelle = runBlocking {
+                oppfolgingstilfelleClient.getOppfolgingstilfelle(personIdent)
+            }
+            if (latestOppfolgingstilfelle?.isActive() == true) {
+                log.info("Received a dialogmelding from behandler to NAV for active oppfolgingstilfelle")
+                storeDialogmeldingFromBehandler(
+                    connection = connection,
+                    kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                    type = MeldingType.HENVENDELSE_MELDING_TIL_NAV,
+                    conversationRef = conversationRef ?: UUID.randomUUID(),
+                )
+                COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
+            }
         } else if (kafkaDialogmeldingFraBehandler.dialogmelding.innkallingMoterespons == null) {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
             log.info(

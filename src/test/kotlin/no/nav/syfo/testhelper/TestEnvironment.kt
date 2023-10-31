@@ -49,6 +49,10 @@ fun testEnvironment() = Environment(
             baseUrl = "padm2Url",
             clientId = "dev-gcp.teamsykefravr.padm2",
         ),
+        oppfolgingstilfelle = ClientEnvironment(
+            baseUrl = "oppfolgingstilfelleUrl",
+            clientId = "dev-gcp.teamsykefravr.isoppfolgingstilfelle",
+        ),
         dokarkiv = ClientEnvironment(
             baseUrl = "dokarkivUrl",
             clientId = "dev-fss.teamdokumenthandtering.dokarkiv-q1"

@@ -127,7 +127,7 @@ fun generateDialogmeldingFraBehandlerDialogNotatDTO(
 
 fun generateDialogmeldingFraBehandlerDialogNotatIkkeSykefravrDTO(
     uuid: UUID = UUID.randomUUID(),
-    personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
+    personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT_INACTIVE,
     conversationRef: String = UUID.randomUUID().toString(),
     antallVedlegg: Int = 0,
 ) = KafkaDialogmeldingFraBehandlerDTO(
