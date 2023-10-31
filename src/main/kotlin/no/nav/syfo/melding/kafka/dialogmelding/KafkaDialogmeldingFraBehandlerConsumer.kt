@@ -9,6 +9,7 @@ import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.padm2.VedleggDTO
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.database.*
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.*
 import org.apache.kafka.clients.consumer.*
@@ -61,55 +62,28 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
     ) {
-        val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef?.let { UUID.fromString(it) }
-        val personIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient)
-        val utgaaende = conversationRef?.let {
-            connection.getUtgaendeMeldingerInConversation(
-                uuidParam = it,
-                arbeidstakerPersonIdent = personIdent
-            )
-        } ?: mutableListOf()
-
-        if (utgaaende.isEmpty() && kafkaDialogmeldingFraBehandler.parentRef != null) {
-            val parentRef = UUID.fromString(kafkaDialogmeldingFraBehandler.parentRef)
-            utgaaende.addAll(
-                connection.getUtgaendeMeldingerInConversation(
-                    uuidParam = parentRef,
-                    arbeidstakerPersonIdent = personIdent,
-                )
-            )
+        if (kafkaDialogmeldingFraBehandler.dialogmelding.innkallingMoterespons != null) {
+            return // dialogmøterelaterte meldinger konsumeres av isdialogmote
         }
-        val utgaaendeMelding = utgaaende.firstOrNull()
+        val utgaaendeMelding = findUtgaaendeMelding(
+            kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+            connection = connection,
+        )
+        val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef?.let { UUID.fromString(it) }
         if (utgaaendeMelding != null) {
-            if (connection.getMeldingForMsgId(kafkaDialogmeldingFraBehandler.msgId) == null) {
-                log.info("Received a dialogmelding from behandler: $conversationRef")
-                storeDialogmeldingFromBehandler(
-                    connection = connection,
-                    kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                    type = MeldingType.valueOf(utgaaendeMelding.type),
-                    conversationRef = utgaaendeMelding.conversationRef,
-                )
-                COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
-            } else {
-                COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
-                log.warn("Received duplicate dialogmelding from behandler: $conversationRef")
-            }
-        } else if (storeMeldingTilNAV && kafkaDialogmeldingFraBehandler.isHenvendelseTilNAV()) {
-            val latestOppfolgingstilfelle = runBlocking {
-                oppfolgingstilfelleClient.getOppfolgingstilfelle(personIdent)
-            }
-            if (latestOppfolgingstilfelle?.isActive() == true) {
-                log.info("Received a dialogmelding from behandler to NAV for active oppfolgingstilfelle")
-                storeDialogmeldingFromBehandler(
-                    connection = connection,
-                    kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                    type = MeldingType.HENVENDELSE_MELDING_TIL_NAV,
-                    conversationRef = conversationRef ?: UUID.randomUUID(),
-                )
-                COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
-            }
-        } else if (kafkaDialogmeldingFraBehandler.dialogmelding.innkallingMoterespons == null) {
-            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
+            storeDialogmeldingFromBehandler(
+                connection = connection,
+                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                type = MeldingType.valueOf(utgaaendeMelding.type),
+                conversationRef = utgaaendeMelding.conversationRef,
+            )
+        } else if (kafkaDialogmeldingFraBehandler.isHenvendelseTilNAV()) {
+            handleHenvendelseTilNAV(
+                connection = connection,
+                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                conversationRef = conversationRef,
+            )
+        } else {
             log.info(
                 """
                     Received dialogmelding from behandler, but no existing conversation
@@ -121,35 +95,88 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         }
     }
 
+    private fun findUtgaaendeMelding(
+        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
+        connection: Connection,
+    ): PMelding? {
+        val utgaaende = kafkaDialogmeldingFraBehandler.conversationRef?.let {
+            connection.getUtgaendeMeldingerInConversation(
+                uuidParam = UUID.fromString(it),
+                arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
+            )
+        } ?: mutableListOf()
+
+        if (utgaaende.isEmpty() && kafkaDialogmeldingFraBehandler.parentRef != null) {
+            val parentRef = UUID.fromString(kafkaDialogmeldingFraBehandler.parentRef)
+            utgaaende.addAll(
+                connection.getUtgaendeMeldingerInConversation(
+                    uuidParam = parentRef,
+                    arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
+                )
+            )
+        }
+        return utgaaende.firstOrNull()
+    }
+
+    private fun handleHenvendelseTilNAV(
+        connection: Connection,
+        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
+        conversationRef: UUID?,
+    ) {
+        val latestOppfolgingstilfelle = runBlocking {
+            oppfolgingstilfelleClient.getOppfolgingstilfelle(
+                personIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
+            )
+        }
+        if (storeMeldingTilNAV && latestOppfolgingstilfelle?.isActive() == true) {
+            storeDialogmeldingFromBehandler(
+                connection = connection,
+                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                type = MeldingType.HENVENDELSE_MELDING_TIL_NAV,
+                conversationRef = conversationRef ?: UUID.randomUUID(),
+            )
+        } else {
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
+        }
+    }
+
     private fun storeDialogmeldingFromBehandler(
         connection: Connection,
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         type: MeldingType,
         conversationRef: UUID,
     ) {
-        val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
-            type = type,
-            conversationRef = conversationRef,
-        )
-        val meldingId = connection.createMeldingFraBehandler(
-            meldingFraBehandler = meldingFraBehandler,
-            fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
-        )
-        if (kafkaDialogmeldingFraBehandler.antallVedlegg > 0) {
-            val vedlegg = mutableListOf<VedleggDTO>()
-            runBlocking {
-                vedlegg.addAll(
-                    padm2Client.hentVedlegg(kafkaDialogmeldingFraBehandler.msgId)
-                )
+        if (connection.getMeldingForMsgId(kafkaDialogmeldingFraBehandler.msgId) != null) {
+            log.warn("Received a duplicate dialogmelding of type $type from behandler: $conversationRef")
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
+        } else {
+            log.info("Received a dialogmelding of type $type from behandler: $conversationRef")
+
+            val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
+                type = type,
+                conversationRef = conversationRef,
+            )
+            val meldingId = connection.createMeldingFraBehandler(
+                meldingFraBehandler = meldingFraBehandler,
+                fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
+            )
+            if (kafkaDialogmeldingFraBehandler.antallVedlegg > 0) {
+                val vedlegg = mutableListOf<VedleggDTO>()
+                runBlocking {
+                    vedlegg.addAll(
+                        padm2Client.hentVedlegg(kafkaDialogmeldingFraBehandler.msgId)
+                    )
+                }
+                vedlegg.forEachIndexed { index, vedleggDTO ->
+                    connection.createVedlegg(
+                        pdf = vedleggDTO.bytes,
+                        meldingId = meldingId,
+                        number = index,
+                        commit = false,
+                    )
+                }
             }
-            vedlegg.forEachIndexed { index, vedleggDTO ->
-                connection.createVedlegg(
-                    pdf = vedleggDTO.bytes,
-                    meldingId = meldingId,
-                    number = index,
-                    commit = false,
-                )
-            }
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
         }
     }
 
