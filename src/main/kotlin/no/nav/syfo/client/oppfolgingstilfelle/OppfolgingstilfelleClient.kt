@@ -52,7 +52,7 @@ class OppfolgingstilfelleClient(
     }
 
     companion object {
-        const val ISOPPFOLGINGSTILFELLE_OPPFOLGINGSTILFELLE_SYSTEM_PERSON_PATH =
+        private const val ISOPPFOLGINGSTILFELLE_OPPFOLGINGSTILFELLE_SYSTEM_PERSON_PATH =
             "/api/system/v1/oppfolgingstilfelle/personident"
 
         private val log = LoggerFactory.getLogger(OppfolgingstilfelleClient::class.java)

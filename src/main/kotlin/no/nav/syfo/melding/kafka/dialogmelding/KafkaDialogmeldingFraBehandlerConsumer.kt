@@ -45,10 +45,12 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_READ.increment()
                 val kafkaDialogmeldingFraBehandler = it.value()
                 if (kafkaDialogmeldingFraBehandler != null) {
-                    handleDialogmeldingFromBehandler(
-                        kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                        connection = connection,
-                    )
+                    if (kafkaDialogmeldingFraBehandler.dialogmelding.innkallingMoterespons == null) {
+                        handleDialogmeldingFromBehandler(
+                            kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                            connection = connection,
+                        )
+                    } // else: dialogmøterelaterte meldinger konsumeres av isdialogmote
                 } else {
                     COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_TOMBSTONE.increment()
                     log.warn("Received kafkaDialogmeldingFraBehandler with no value: could be tombstone")
@@ -62,9 +64,6 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
     ) {
-        if (kafkaDialogmeldingFraBehandler.dialogmelding.innkallingMoterespons != null) {
-            return // dialogmøterelaterte meldinger konsumeres av isdialogmote
-        }
         val utgaaendeMelding = findUtgaaendeMelding(
             kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
             connection = connection,
