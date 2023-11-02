@@ -64,17 +64,17 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
     ) {
-        val utgaaendeMelding = findUtgaaendeMelding(
+        val utgaendeMelding = findUtgaendeMelding(
             kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
             connection = connection,
         )
         val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef?.let { UUID.fromString(it) }
-        if (utgaaendeMelding != null) {
+        if (utgaendeMelding != null) {
             storeDialogmeldingFromBehandler(
                 connection = connection,
                 kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                type = MeldingType.valueOf(utgaaendeMelding.type),
-                conversationRef = utgaaendeMelding.conversationRef,
+                type = MeldingType.valueOf(utgaendeMelding.type),
+                conversationRef = utgaendeMelding.conversationRef,
             )
         } else if (kafkaDialogmeldingFraBehandler.isHenvendelseTilNAV()) {
             handleHenvendelseTilNAV(
@@ -83,9 +83,10 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 conversationRef = conversationRef,
             )
         } else {
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA.increment()
             log.info(
                 """
-                    Received dialogmelding from behandler, but no existing conversation
+                    Received dialogmelding from behandler, but skipped since not for Modia
                     msgId: ${kafkaDialogmeldingFraBehandler.msgId}
                     conversationRef: ${kafkaDialogmeldingFraBehandler.conversationRef}
                     msgType: ${kafkaDialogmeldingFraBehandler.msgType}
@@ -94,7 +95,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         }
     }
 
-    private fun findUtgaaendeMelding(
+    private fun findUtgaendeMelding(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
     ): PMelding? {
@@ -135,7 +136,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 conversationRef = conversationRef ?: UUID.randomUUID(),
             )
         } else {
-            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA.increment()
         }
     }
 
