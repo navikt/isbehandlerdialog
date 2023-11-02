@@ -42,7 +42,7 @@ fun main() {
     )
     val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
         azureAdClient = azureAdClient,
-        clientEnvironment = environment.clients.syfotilgangskontroll
+        clientEnvironment = environment.clients.istilgangskontroll
     )
     val padm2Client = Padm2Client(
         azureAdClient = azureAdClient,

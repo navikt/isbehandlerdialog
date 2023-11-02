@@ -35,9 +35,9 @@ fun testEnvironment() = Environment(
         aivenRegistryPassword = "registrypassword",
     ),
     clients = ClientsEnvironment(
-        syfotilgangskontroll = ClientEnvironment(
-            baseUrl = "syfoTilgangskontrollUrl",
-            clientId = "dev-fss.teamsykefravr.syfotilgangskontroll",
+        istilgangskontroll = ClientEnvironment(
+            baseUrl = "istilgangskontrollUrl",
+            clientId = "dev-fss.teamsykefravr.istilgangskontroll",
         ),
         dialogmeldingpdfgen = OpenClientEnvironment(
             baseUrl = "pdfGenClientUrl"

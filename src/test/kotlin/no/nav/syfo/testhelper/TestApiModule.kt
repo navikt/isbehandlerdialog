@@ -24,7 +24,7 @@ fun Application.testApiModule(
     )
     val veilederTilgangskontrollClient = VeilederTilgangskontrollClient(
         azureAdClient = azureAdClient,
-        clientEnvironment = externalMockEnvironment.environment.clients.syfotilgangskontroll,
+        clientEnvironment = externalMockEnvironment.environment.clients.istilgangskontroll,
         httpClient = mockHttpClient,
     )
     this.apiModule(
