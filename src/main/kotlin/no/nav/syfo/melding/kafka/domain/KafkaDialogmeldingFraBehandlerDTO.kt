@@ -27,11 +27,10 @@ data class KafkaDialogmeldingFraBehandlerDTO(
     val fellesformatXML: String,
 )
 
-fun KafkaDialogmeldingFraBehandlerDTO.isHenvendelseTilNAVOmSykefravar(): Boolean {
+fun KafkaDialogmeldingFraBehandlerDTO.isHenvendelseTilNAV(): Boolean {
     val henvendelseFraLegeHenvendelse = dialogmelding.henvendelseFraLegeHenvendelse
     return henvendelseFraLegeHenvendelse != null &&
-        henvendelseFraLegeHenvendelse.temaKode.kodeverkOID == KODEVERK_MELDING_TIL_NAV &&
-        henvendelseFraLegeHenvendelse.temaKode.v == HENVENDELSE_OM_SYKEFRAVAR
+        henvendelseFraLegeHenvendelse.temaKode.kodeverkOID == KODEVERK_MELDING_TIL_NAV
 }
 
 fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(

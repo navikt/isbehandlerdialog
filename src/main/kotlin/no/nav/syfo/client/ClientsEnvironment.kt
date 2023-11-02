@@ -6,6 +6,7 @@ data class ClientsEnvironment(
     val dialogmeldingpdfgen: OpenClientEnvironment,
     val legeerklaringpdfgen: OpenClientEnvironment,
     val dokarkiv: ClientEnvironment,
+    val oppfolgingstilfelle: ClientEnvironment,
 )
 
 data class ClientEnvironment(

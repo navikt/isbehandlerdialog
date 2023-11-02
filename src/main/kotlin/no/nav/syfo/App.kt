@@ -13,6 +13,7 @@ import no.nav.syfo.application.database.applicationDatabase
 import no.nav.syfo.application.database.databaseModule
 import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
 import no.nav.syfo.client.azuread.AzureAdClient
+import no.nav.syfo.client.oppfolgingstilfelle.OppfolgingstilfelleClient
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
@@ -46,6 +47,10 @@ fun main() {
     val padm2Client = Padm2Client(
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.padm2,
+    )
+    val oppfolgingstilfelleClient = OppfolgingstilfelleClient(
+        azureAdClient = azureAdClient,
+        clientEnvironment = environment.clients.oppfolgingstilfelle,
     )
     val dialogmeldingBestillingProducer = DialogmeldingBestillingProducer(
         dialogmeldingBestillingKafkaProducer = KafkaProducer(
@@ -100,6 +105,7 @@ fun main() {
             kafkaEnvironment = environment.kafka,
             database = applicationDatabase,
             padm2Client = padm2Client,
+            oppfolgingstilfelleClient = oppfolgingstilfelleClient,
             storeMeldingTilNAV = environment.storeMeldingTilNAV,
         )
 

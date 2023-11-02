@@ -3,10 +3,13 @@ package no.nav.syfo.melding.kafka.dialogmelding
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.database.DatabaseInterface
 import no.nav.syfo.application.kafka.*
+import no.nav.syfo.client.oppfolgingstilfelle.OppfolgingstilfelleClient
+import no.nav.syfo.client.oppfolgingstilfelle.isActive
 import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.padm2.VedleggDTO
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.melding.database.*
+import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.*
 import org.apache.kafka.clients.consumer.*
@@ -18,6 +21,7 @@ import java.util.UUID
 class KafkaDialogmeldingFraBehandlerConsumer(
     private val database: DatabaseInterface,
     private val padm2Client: Padm2Client,
+    private val oppfolgingstilfelleClient: OppfolgingstilfelleClient,
     private val storeMeldingTilNAV: Boolean,
 ) : KafkaConsumerService<KafkaDialogmeldingFraBehandlerDTO> {
 
@@ -41,10 +45,12 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_READ.increment()
                 val kafkaDialogmeldingFraBehandler = it.value()
                 if (kafkaDialogmeldingFraBehandler != null) {
-                    handleDialogmeldingFromBehandler(
-                        kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                        connection = connection,
-                    )
+                    if (kafkaDialogmeldingFraBehandler.dialogmelding.innkallingMoterespons == null) {
+                        handleDialogmeldingFromBehandler(
+                            kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                            connection = connection,
+                        )
+                    } // else: dialogmøterelaterte meldinger konsumeres av isdialogmote
                 } else {
                     COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_TOMBSTONE.increment()
                     log.warn("Received kafkaDialogmeldingFraBehandler with no value: could be tombstone")
@@ -58,12 +64,45 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
     ) {
+        val utgaendeMelding = findUtgaendeMelding(
+            kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+            connection = connection,
+        )
         val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef?.let { UUID.fromString(it) }
-        val personIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient)
-        val utgaaende = conversationRef?.let {
+        if (utgaendeMelding != null) {
+            storeDialogmeldingFromBehandler(
+                connection = connection,
+                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                type = MeldingType.valueOf(utgaendeMelding.type),
+                conversationRef = utgaendeMelding.conversationRef,
+            )
+        } else if (kafkaDialogmeldingFraBehandler.isHenvendelseTilNAV()) {
+            handleHenvendelseTilNAV(
+                connection = connection,
+                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+                conversationRef = conversationRef,
+            )
+        } else {
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA.increment()
+            log.info(
+                """
+                    Received dialogmelding from behandler, but skipped since not for Modia
+                    msgId: ${kafkaDialogmeldingFraBehandler.msgId}
+                    conversationRef: ${kafkaDialogmeldingFraBehandler.conversationRef}
+                    msgType: ${kafkaDialogmeldingFraBehandler.msgType}
+                """.trimIndent()
+            )
+        }
+    }
+
+    private fun findUtgaendeMelding(
+        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
+        connection: Connection,
+    ): PMelding? {
+        val utgaaende = kafkaDialogmeldingFraBehandler.conversationRef?.let {
             connection.getUtgaendeMeldingerInConversation(
-                uuidParam = it,
-                arbeidstakerPersonIdent = personIdent
+                uuidParam = UUID.fromString(it),
+                arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
             )
         } ?: mutableListOf()
 
@@ -72,43 +111,32 @@ class KafkaDialogmeldingFraBehandlerConsumer(
             utgaaende.addAll(
                 connection.getUtgaendeMeldingerInConversation(
                     uuidParam = parentRef,
-                    arbeidstakerPersonIdent = personIdent,
+                    arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
                 )
             )
         }
-        val utgaaendeMelding = utgaaende.firstOrNull()
-        if (utgaaendeMelding != null) {
-            if (connection.getMeldingForMsgId(kafkaDialogmeldingFraBehandler.msgId) == null) {
-                log.info("Received a dialogmelding from behandler: $conversationRef")
-                storeDialogmeldingFromBehandler(
-                    connection = connection,
-                    kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                    type = MeldingType.valueOf(utgaaendeMelding.type),
-                    conversationRef = utgaaendeMelding.conversationRef,
-                )
-                COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
-            } else {
-                COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
-                log.warn("Received duplicate dialogmelding from behandler: $conversationRef")
-            }
-        } else if (storeMeldingTilNAV && kafkaDialogmeldingFraBehandler.isHenvendelseTilNAVOmSykefravar()) {
-            log.info("Received a dialogmelding from behandler to NAV")
+        return utgaaende.firstOrNull()
+    }
+
+    private fun handleHenvendelseTilNAV(
+        connection: Connection,
+        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
+        conversationRef: UUID?,
+    ) {
+        val latestOppfolgingstilfelle = runBlocking {
+            oppfolgingstilfelleClient.getOppfolgingstilfelle(
+                personIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
+            )
+        }
+        if (storeMeldingTilNAV && latestOppfolgingstilfelle?.isActive() == true) {
             storeDialogmeldingFromBehandler(
                 connection = connection,
                 kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
                 type = MeldingType.HENVENDELSE_MELDING_TIL_NAV,
                 conversationRef = conversationRef ?: UUID.randomUUID(),
             )
-        } else if (kafkaDialogmeldingFraBehandler.dialogmelding.innkallingMoterespons == null) {
-            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NO_CONVERSATION.increment()
-            log.info(
-                """
-                    Received dialogmelding from behandler, but no existing conversation
-                    msgId: ${kafkaDialogmeldingFraBehandler.msgId}
-                    conversationRef: ${kafkaDialogmeldingFraBehandler.conversationRef}
-                    msgType: ${kafkaDialogmeldingFraBehandler.msgType}
-                """.trimIndent()
-            )
+        } else {
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA.increment()
         }
     }
 
@@ -118,29 +146,37 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         type: MeldingType,
         conversationRef: UUID,
     ) {
-        val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
-            type = type,
-            conversationRef = conversationRef,
-        )
-        val meldingId = connection.createMeldingFraBehandler(
-            meldingFraBehandler = meldingFraBehandler,
-            fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
-        )
-        if (kafkaDialogmeldingFraBehandler.antallVedlegg > 0) {
-            val vedlegg = mutableListOf<VedleggDTO>()
-            runBlocking {
-                vedlegg.addAll(
-                    padm2Client.hentVedlegg(kafkaDialogmeldingFraBehandler.msgId)
-                )
+        if (connection.getMeldingForMsgId(kafkaDialogmeldingFraBehandler.msgId) != null) {
+            log.warn("Received a duplicate dialogmelding of type $type from behandler: $conversationRef")
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
+        } else {
+            log.info("Received a dialogmelding of type $type from behandler: $conversationRef")
+
+            val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
+                type = type,
+                conversationRef = conversationRef,
+            )
+            val meldingId = connection.createMeldingFraBehandler(
+                meldingFraBehandler = meldingFraBehandler,
+                fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
+            )
+            if (kafkaDialogmeldingFraBehandler.antallVedlegg > 0) {
+                val vedlegg = mutableListOf<VedleggDTO>()
+                runBlocking {
+                    vedlegg.addAll(
+                        padm2Client.hentVedlegg(kafkaDialogmeldingFraBehandler.msgId)
+                    )
+                }
+                vedlegg.forEachIndexed { index, vedleggDTO ->
+                    connection.createVedlegg(
+                        pdf = vedleggDTO.bytes,
+                        meldingId = meldingId,
+                        number = index,
+                        commit = false,
+                    )
+                }
             }
-            vedlegg.forEachIndexed { index, vedleggDTO ->
-                connection.createVedlegg(
-                    pdf = vedleggDTO.bytes,
-                    meldingId = meldingId,
-                    number = index,
-                    commit = false,
-                )
-            }
+            COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
         }
     }
 
