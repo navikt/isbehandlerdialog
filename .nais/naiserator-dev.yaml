@@ -98,5 +98,3 @@ spec:
       value: "1"
     - name: CRONJOB_AVVIST_MELDING_STATUS_INTERVAL_DELAY_MINUTES
       value: "10"
-    - name: TOGGLE_STORE_MELDING_TIL_NAV
-      value: "true"

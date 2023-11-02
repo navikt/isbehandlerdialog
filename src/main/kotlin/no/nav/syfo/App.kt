@@ -106,7 +106,6 @@ fun main() {
             database = applicationDatabase,
             padm2Client = padm2Client,
             oppfolgingstilfelleClient = oppfolgingstilfelleClient,
-            storeMeldingTilNAV = environment.storeMeldingTilNAV,
         )
 
         launchKafkaTaskDialogmeldingStatus(

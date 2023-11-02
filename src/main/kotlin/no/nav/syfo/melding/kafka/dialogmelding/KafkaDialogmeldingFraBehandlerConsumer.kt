@@ -22,7 +22,6 @@ class KafkaDialogmeldingFraBehandlerConsumer(
     private val database: DatabaseInterface,
     private val padm2Client: Padm2Client,
     private val oppfolgingstilfelleClient: OppfolgingstilfelleClient,
-    private val storeMeldingTilNAV: Boolean,
 ) : KafkaConsumerService<KafkaDialogmeldingFraBehandlerDTO> {
 
     override val pollDurationInMillis: Long = 1000
@@ -128,7 +127,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 personIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
             )
         }
-        if (storeMeldingTilNAV && latestOppfolgingstilfelle?.isActive() == true) {
+        if (latestOppfolgingstilfelle?.isActive() == true) {
             storeDialogmeldingFromBehandler(
                 connection = connection,
                 kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
@@ -136,6 +135,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
                 conversationRef = conversationRef ?: UUID.randomUUID(),
             )
         } else {
+            log.info("Received dialogmelding til NAV from behandler, but skipped since no active oppfolgingstilfelle")
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA.increment()
         }
     }
