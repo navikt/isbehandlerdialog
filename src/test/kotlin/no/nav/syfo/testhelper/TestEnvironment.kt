@@ -64,7 +64,6 @@ fun testEnvironment() = Environment(
     legeerklaringBucketName = "test_bucket",
     legeerklaringVedleggBucketName = "vedlegg_bucket",
     cronjobAvvistMeldingStatusIntervalDelayMinutes = 60L * 4,
-    storeMeldingTilNAV = true,
 )
 
 fun testAppState() = ApplicationState(
