@@ -50,7 +50,7 @@ spec:
       rules:
         - application: dialogmeldingpdfgen
         - application: padm2
-        - application: syfo-tilgangskontroll
+        - application: istilgangskontroll
         - application: isoppfolgingstilfelle
         - application: pale-2-pdfgen
           namespace: teamsykmelding
@@ -80,10 +80,10 @@ spec:
       value: "dev-gcp.teamsykefravr.padm2"
     - name: PADM2_URL
       value: "http://padm2"
-    - name: SYFOTILGANGSKONTROLL_CLIENT_ID
-      value: "dev-gcp.teamsykefravr.syfo-tilgangskontroll"
-    - name: SYFOTILGANGSKONTROLL_URL
-      value: "http://syfo-tilgangskontroll"
+    - name: ISTILGANGSKONTROLL_CLIENT_ID
+      value: "dev-gcp.teamsykefravr.istilgangskontroll"
+    - name: ISTILGANGSKONTROLL_URL
+      value: "http://istilgangskontroll"
     - name: DOKARKIV_CLIENT_ID
       value: "dev-fss.teamdokumenthandtering.dokarkiv-q1"
     - name: DOKARKIV_URL

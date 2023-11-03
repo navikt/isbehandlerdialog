@@ -39,9 +39,9 @@ data class Environment(
             baseUrl = getEnvVar("PADM2_URL"),
             clientId = getEnvVar("PADM2_CLIENT_ID"),
         ),
-        syfotilgangskontroll = ClientEnvironment(
-            baseUrl = getEnvVar("SYFOTILGANGSKONTROLL_URL"),
-            clientId = getEnvVar("SYFOTILGANGSKONTROLL_CLIENT_ID"),
+        istilgangskontroll = ClientEnvironment(
+            baseUrl = getEnvVar("ISTILGANGSKONTROLL_URL"),
+            clientId = getEnvVar("ISTILGANGSKONTROLL_CLIENT_ID"),
         ),
         dialogmeldingpdfgen = OpenClientEnvironment(
             baseUrl = "http://dialogmeldingpdfgen",
