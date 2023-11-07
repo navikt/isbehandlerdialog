@@ -8,6 +8,8 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.client.httpClientDefault
+import no.nav.syfo.client.pdfgen.PdfGenClient.Companion.illegalCharacters
+import no.nav.syfo.client.pdfgen.PdfGenClient.Companion.log
 import no.nav.syfo.melding.domain.DocumentComponentDTO
 import no.nav.syfo.melding.kafka.domain.Status
 import no.nav.syfo.melding.kafka.domain.ValidationResult
@@ -15,6 +17,7 @@ import no.nav.syfo.melding.kafka.legeerklaring.Legeerklaering
 import no.nav.syfo.melding.kafka.legeerklaring.LegeerklaringDTO
 import no.nav.syfo.util.NAV_CALL_ID_HEADER
 import no.nav.syfo.util.callIdArgument
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
@@ -46,7 +49,7 @@ class PdfGenClient(
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList,
+        payload = documentComponentDTOList.sanitizeForPdfGen(),
         pdfUrl = foresporselOmPasientTilleggsopplysningerUrl,
     )
 
@@ -55,7 +58,7 @@ class PdfGenClient(
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList,
+        payload = documentComponentDTOList.sanitizeForPdfGen(),
         pdfUrl = foresporselOmPasientPaminnelseUrl,
     )
 
@@ -64,7 +67,7 @@ class PdfGenClient(
         documentComponentDTOList: List<DocumentComponentDTO>
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList,
+        payload = documentComponentDTOList.sanitizeForPdfGen(),
         pdfUrl = foresporselOmPasientLegeerklaringUrl,
     )
 
@@ -73,7 +76,7 @@ class PdfGenClient(
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList,
+        payload = documentComponentDTOList.sanitizeForPdfGen(),
         pdfUrl = returLegeerklaringPdfUrl,
     )
 
@@ -94,7 +97,7 @@ class PdfGenClient(
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList,
+        payload = documentComponentDTOList.sanitizeForPdfGen(),
         pdfUrl = henvendelseMeldingFraNavPdfUrl,
     )
 
@@ -150,6 +153,22 @@ class PdfGenClient(
         const val RETUR_LEGEERKLARING_PATH = "$API_BASE_PATH/henvendelse-retur-legeerklaring"
         const val HENVENDELSE_MELDING_FRA_NAV_PATH = "$API_BASE_PATH/henvendelse-meldingfranav"
 
-        private val log = LoggerFactory.getLogger(PdfGenClient::class.java)
+        val log: Logger = LoggerFactory.getLogger(PdfGenClient::class.java)
+        val illegalCharacters = listOf('\u0002')
     }
+}
+
+fun List<DocumentComponentDTO>.sanitizeForPdfGen(): List<DocumentComponentDTO> = this.map {
+    it.copy(
+        texts = it.texts.map { text ->
+            text.toCharArray().filter { char ->
+                if (char in illegalCharacters) {
+                    log.warn("Illegal character in document: %x".format(char.code))
+                    false
+                } else {
+                    true
+                }
+            }.joinToString("")
+        }
+    )
 }
