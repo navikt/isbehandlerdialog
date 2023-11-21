@@ -93,6 +93,8 @@ fun main() {
                 database = applicationDatabase,
                 environment = environment,
                 azureAdClient = azureAdClient,
+                bucketName = environment.legeerklaringBucketName,
+                pdfgenClient = pdfgenClient,
             )
         }
     }
