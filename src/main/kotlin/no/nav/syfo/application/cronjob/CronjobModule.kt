@@ -7,11 +7,9 @@ import no.nav.syfo.application.kafka.kafkaAivenProducerConfig
 import no.nav.syfo.client.azuread.AzureAdClient
 import no.nav.syfo.client.dokarkiv.DokarkivClient
 import no.nav.syfo.client.leaderelection.LeaderPodClient
+import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
-import no.nav.syfo.melding.cronjob.AvvistMeldingCronjob
-import no.nav.syfo.melding.cronjob.JournalforMeldingTilBehandlerCronjob
-import no.nav.syfo.melding.cronjob.MeldingFraBehandlerCronjob
-import no.nav.syfo.melding.cronjob.UbesvartMeldingCronjob
+import no.nav.syfo.melding.cronjob.*
 import no.nav.syfo.melding.kafka.config.KafkaMeldingDTOSerializer
 import no.nav.syfo.melding.kafka.config.kafkaMeldingFraBehandlerProducerConfig
 import no.nav.syfo.melding.kafka.config.kafkaUbesvartMeldingProducerConfig
@@ -23,6 +21,8 @@ fun Application.cronjobModule(
     database: DatabaseInterface,
     environment: Environment,
     azureAdClient: AzureAdClient,
+    bucketName: String,
+    pdfgenClient: PdfGenClient,
 ) {
     val leaderPodClient = LeaderPodClient(
         electorPath = environment.electorPath
@@ -91,12 +91,18 @@ fun Application.cronjobModule(
         publishAvvistMeldingService = publishAvvistMeldingService,
         intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
     )
+    val repairLegeerklaringCronjob = RepairLegeerklaringCronjob(
+        database = database,
+        bucketName = bucketName,
+        pdfgenClient = pdfgenClient,
+    )
 
     val allCronjobs = mutableListOf(
         journalforMeldingTilBehandlerCronjob,
         meldingFraBehandlerCronjob,
         ubesvartMeldingCronjob,
         avvistMeldingStatusCronjob,
+        repairLegeerklaringCronjob
     )
 
     allCronjobs.forEach {
