@@ -59,8 +59,8 @@ class RepairLegeerklaringCronjob(
                 """
                 select m.* from melding m inner join vedlegg v on (v.melding_id=m.id) where innkommende 
                 and m.type='FORESPORSEL_PASIENT_LEGEERKLARING'
-                and m.created_at > '2023-11-17T06:34:00' 
-                and m.created_at < '2023-11-20T08:05:00'
+                and m.created_at > '2023-11-20T07:00:00' 
+                and m.created_at < '2023-11-20T09:05:00'
                 and length(v.pdf) = 481947
                """
             ).use { ps ->
