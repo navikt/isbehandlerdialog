@@ -2,7 +2,7 @@ package no.nav.syfo.melding.kafka.dialogmelding
 
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.application.kafka.*
+import no.nav.syfo.application.kafka.KafkaConsumerService
 import no.nav.syfo.client.oppfolgingstilfelle.OppfolgingstilfelleClient
 import no.nav.syfo.client.oppfolgingstilfelle.isActive
 import no.nav.syfo.client.padm2.Padm2Client
@@ -12,11 +12,12 @@ import no.nav.syfo.melding.database.*
 import no.nav.syfo.melding.database.domain.PMelding
 import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.*
-import org.apache.kafka.clients.consumer.*
+import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.time.Duration
-import java.util.UUID
+import java.util.*
 
 class KafkaDialogmeldingFraBehandlerConsumer(
     private val database: DatabaseInterface,
@@ -99,8 +100,14 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         connection: Connection,
     ): PMelding? {
         val utgaaende = kafkaDialogmeldingFraBehandler.conversationRef?.let {
+            val uuid = try {
+                UUID.fromString(it)
+            } catch (e: IllegalArgumentException) {
+                log.error("Failed to parse conversationRef to UUID: '$it', msgId: ${kafkaDialogmeldingFraBehandler.msgId}")
+                throw e
+            }
             connection.getUtgaendeMeldingerInConversation(
-                uuidParam = UUID.fromString(it),
+                uuidParam = uuid,
                 arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
             )
         } ?: mutableListOf()
