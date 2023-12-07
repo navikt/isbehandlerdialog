@@ -64,11 +64,13 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
         connection: Connection,
     ) {
+        val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef
+        val conversationRefUuid = if (conversationRef.isNullOrBlank()) null else UUID.fromString(conversationRef)
         val utgaendeMelding = findUtgaendeMelding(
             kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+            conversationRef = conversationRefUuid,
             connection = connection,
         )
-        val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef?.let { UUID.fromString(it) }
         if (utgaendeMelding != null) {
             storeDialogmeldingFromBehandler(
                 connection = connection,
@@ -80,7 +82,7 @@ class KafkaDialogmeldingFraBehandlerConsumer(
             handleHenvendelseTilNAV(
                 connection = connection,
                 kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                conversationRef = conversationRef,
+                conversationRef = conversationRefUuid,
             )
         } else {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA.increment()
@@ -97,22 +99,17 @@ class KafkaDialogmeldingFraBehandlerConsumer(
 
     private fun findUtgaendeMelding(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
+        conversationRef: UUID?,
         connection: Connection,
     ): PMelding? {
-        val utgaaende = kafkaDialogmeldingFraBehandler.conversationRef?.let {
-            val uuid = try {
-                UUID.fromString(it)
-            } catch (e: IllegalArgumentException) {
-                log.error("Failed to parse conversationRef to UUID: '$it', msgId: ${kafkaDialogmeldingFraBehandler.msgId}")
-                throw e
-            }
+        val utgaaende = conversationRef?.let {
             connection.getUtgaendeMeldingerInConversation(
-                uuidParam = uuid,
+                uuidParam = conversationRef,
                 arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
             )
         } ?: mutableListOf()
 
-        if (utgaaende.isEmpty() && kafkaDialogmeldingFraBehandler.parentRef != null) {
+        if (utgaaende.isEmpty() && !kafkaDialogmeldingFraBehandler.parentRef.isNullOrBlank()) {
             val parentRef = UUID.fromString(kafkaDialogmeldingFraBehandler.parentRef)
             utgaaende.addAll(
                 connection.getUtgaendeMeldingerInConversation(
