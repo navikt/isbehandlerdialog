@@ -85,6 +85,30 @@ class KafkaDialogmeldingFraBehandlerConsumerSpek : Spek({
 
                     database.getMeldingerForArbeidstaker(personIdent).size shouldBeEqualTo 0
                 }
+                it("Receive dialogmelding DIALOG_SVAR with empty string as conversationRef doesn't fail") {
+                    val dialogmelding = generateDialogmeldingFraBehandlerForesporselSvarDTO().copy(
+                        conversationRef = "",
+                    )
+                    val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+
+                    runBlocking {
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+                }
+                it("Receive dialogmelding DIALOG_SVAR with empty string as parentRef doesn't fail") {
+                    val dialogmelding = generateDialogmeldingFraBehandlerForesporselSvarDTO().copy(
+                        parentRef = "",
+                    )
+                    val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+
+                    runBlocking {
+                        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                            kafkaConsumer = mockConsumer,
+                        )
+                    }
+                }
                 it("Receive dialogmelding DIALOG_NOTAT from behandler creates melding when person sykmeldt") {
                     val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO()
                     val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
