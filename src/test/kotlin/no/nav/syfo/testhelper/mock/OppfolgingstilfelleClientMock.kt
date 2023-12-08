@@ -10,8 +10,7 @@ import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import java.time.LocalDate
 
 fun MockRequestHandleScope.oppfolgingstilfelleClientMockResponse(request: HttpRequestData): HttpResponseData {
-    val requestPersonIdent = request.headers[NAV_PERSONIDENT_HEADER]
-    return when (requestPersonIdent) {
+    return when (val requestPersonIdent = request.headers[NAV_PERSONIDENT_HEADER]) {
         null -> respond(HttpStatusCode.BadRequest)
         UserConstants.ARBEIDSTAKER_PERSONIDENT.value -> respond(
             OppfolgingstilfellePersonDTO(

@@ -24,6 +24,8 @@ fun mockHttpClient(environment: Environment) = HttpClient(MockEngine) {
 
                 requestUrl.startsWith("/${environment.clients.oppfolgingstilfelle.baseUrl}") -> oppfolgingstilfelleClientMockResponse(request)
 
+                requestUrl.startsWith("/${environment.clients.dokarkiv.baseUrl}") -> dokarkivMockResponse(request)
+
                 else -> error("Unhandled ${request.url.encodedPath}")
             }
         }

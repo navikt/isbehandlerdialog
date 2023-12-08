@@ -220,6 +220,7 @@ fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) =
             )
         ),
         overstyrInnsynsregler = this.createOverstyrInnsynsregler(),
+        eksternReferanseId = uuid.toString(),
     )
 
 fun MeldingTilBehandler.createTittel(): String {
