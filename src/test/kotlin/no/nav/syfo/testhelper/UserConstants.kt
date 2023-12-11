@@ -29,4 +29,6 @@ object UserConstants {
     const val HERID = 404
     const val HPRID = 1337
     const val VIRKSOMHETSNUMMER = "987654321"
+
+    val EXISTING_EKSTERN_REFERANSE_UUID = UUID.randomUUID().toString()
 }

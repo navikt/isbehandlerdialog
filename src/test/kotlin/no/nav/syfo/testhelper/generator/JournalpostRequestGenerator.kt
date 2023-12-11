@@ -7,6 +7,7 @@ fun journalpostRequestGenerator(
     pdf: ByteArray,
     brevkodeType: BrevkodeType,
     tittel: String,
+    eksternReferanseId: String,
     overstyrInnsynsregler: String?,
 ) = JournalpostRequest(
     avsenderMottaker = AvsenderMottaker.create(
@@ -31,4 +32,5 @@ fun journalpostRequestGenerator(
         )
     ),
     overstyrInnsynsregler = overstyrInnsynsregler,
+    eksternReferanseId = eksternReferanseId,
 )

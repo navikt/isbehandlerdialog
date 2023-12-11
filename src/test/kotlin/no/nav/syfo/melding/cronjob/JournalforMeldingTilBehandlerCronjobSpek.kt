@@ -43,20 +43,32 @@ class JournalforDialogmeldingCronjobSpek : Spek({
                 val meldingTilBehandlerTilleggsopplysninger = defaultMeldingTilBehandler
                 val meldingTilBehandlerLegeerklaring =
                     generateMeldingTilBehandler(type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
+                val meldingTilBehandlerPaminnelse = MeldingTilBehandler.createForesporselPasientPaminnelse(
+                    opprinneligMelding = meldingTilBehandlerTilleggsopplysninger,
+                    veilederIdent = UserConstants.VEILEDER_IDENT,
+                    document = generatePaminnelseRequestDTO().document,
+                )
+
                 val journalpostId = 1
                 val journalpostResponse = createJournalpostResponse(journalpostId)
                 val pdf = byteArrayOf(0x6b, 0X61, 0x6b, 0x65)
-                val expectedJournalpostRequestMeldingTilBehandler = journalpostRequestGenerator(
+                val expectedJournalpostRequestMeldingTilBehandlerTilleggsopplysninger = journalpostRequestGenerator(
                     pdf = pdf,
                     brevkodeType = BrevkodeType.FORESPORSEL_OM_PASIENT,
                     tittel = MeldingTittel.DIALOGMELDING_DEFAULT.value,
-                    overstyrInnsynsregler = OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value
+                    overstyrInnsynsregler = OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value,
+                    eksternReferanseId = meldingTilBehandlerTilleggsopplysninger.uuid.toString(),
                 )
+                val expectedJournalpostRequestMeldingTilBehandlerLegeerklaring = expectedJournalpostRequestMeldingTilBehandlerTilleggsopplysninger
+                    .copy(
+                        eksternReferanseId = meldingTilBehandlerLegeerklaring.uuid.toString()
+                    )
                 val expectedJournalpostRequestPaminnelse = journalpostRequestGenerator(
                     pdf = pdf,
                     brevkodeType = BrevkodeType.FORESPORSEL_OM_PASIENT_PAMINNELSE,
                     tittel = MeldingTittel.DIALOGMELDING_PAMINNELSE.value,
-                    overstyrInnsynsregler = null
+                    overstyrInnsynsregler = null,
+                    eksternReferanseId = meldingTilBehandlerPaminnelse.uuid.toString(),
                 )
 
                 coEvery { dokarkivClient.journalfor(any()) } returns journalpostResponse
@@ -77,11 +89,7 @@ class JournalforDialogmeldingCronjobSpek : Spek({
                         )
                     }
                     val paminnelseId = connection.createMeldingTilBehandler(
-                        meldingTilBehandler = MeldingTilBehandler.createForesporselPasientPaminnelse(
-                            opprinneligMelding = meldingTilBehandlerTilleggsopplysninger,
-                            veilederIdent = UserConstants.VEILEDER_IDENT,
-                            document = generatePaminnelseRequestDTO().document,
-                        ),
+                        meldingTilBehandler = meldingTilBehandlerPaminnelse,
                         commit = false,
                     )
                     connection.createPdf(
@@ -105,8 +113,8 @@ class JournalforDialogmeldingCronjobSpek : Spek({
                 }
 
                 coVerifyAll {
-                    dokarkivClient.journalfor(expectedJournalpostRequestMeldingTilBehandler)
-                    dokarkivClient.journalfor(expectedJournalpostRequestMeldingTilBehandler)
+                    dokarkivClient.journalfor(expectedJournalpostRequestMeldingTilBehandlerTilleggsopplysninger)
+                    dokarkivClient.journalfor(expectedJournalpostRequestMeldingTilBehandlerLegeerklaring)
                     dokarkivClient.journalfor(expectedJournalpostRequestPaminnelse)
                 }
             }
