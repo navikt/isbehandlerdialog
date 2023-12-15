@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy meldingfrabehandler topic to dev-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
@@ -24,7 +24,7 @@ jobs:
           VARS: .nais/kafka/dev.json
 
       - name: Deploy ubesvartmelding topic to dev-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
@@ -32,7 +32,7 @@ jobs:
           VARS: .nais/kafka/dev.json
 
       - name: Deploy avvistmelding topic to dev-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy meldingfrabehandler to prod-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
@@ -55,7 +55,7 @@ jobs:
           VARS: .nais/kafka/prod.json
 
       - name: Deploy ubesvartmelding to prod-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
@@ -63,7 +63,7 @@ jobs:
           VARS: .nais/kafka/prod.json
 
       - name: Deploy avvistmelding to prod-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
