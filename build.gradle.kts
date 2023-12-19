@@ -6,7 +6,7 @@ version = "0.0.1"
 
 object Versions {
     const val flyway = "9.22.3"
-    const val googleCloudStorage = "2.23.0"
+    const val googleCloudStorage = "2.30.1"
     const val hikari = "5.0.1"
     const val jacksonDataType = "2.16.0"
     const val kafka = "3.6.0"
