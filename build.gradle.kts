@@ -6,24 +6,24 @@ version = "0.0.1"
 
 object Versions {
     const val flyway = "9.22.3"
-    const val googleCloudStorage = "2.23.0"
+    const val googleCloudStorage = "2.30.1"
     const val hikari = "5.0.1"
-    const val jacksonDataType = "2.15.2"
+    const val jacksonDataType = "2.16.0"
     const val kafka = "3.6.0"
     const val kluent = "1.73"
-    const val ktor = "2.3.5"
-    const val logback = "1.4.7"
-    const val logstashEncoder = "7.3"
-    const val micrometerRegistry = "1.11.0"
-    const val mockk = "1.13.5"
-    const val nimbusJoseJwt = "9.31"
-    const val postgres = "42.5.1"
+    const val ktor = "2.3.7"
+    const val logback = "1.4.14"
+    const val logstashEncoder = "7.4"
+    const val micrometerRegistry = "1.12.0"
+    const val mockk = "1.13.8"
+    const val nimbusJoseJwt = "9.37.2"
+    const val postgres = "42.6.0"
     val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
     const val spek = "2.0.19"
 }
 
 plugins {
-    kotlin("jvm") version "1.9.20"
+    kotlin("jvm") version "1.9.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jlleitschuh.gradle.ktlint") version "11.5.0"
 }
@@ -75,6 +75,14 @@ dependencies {
         exclude(group = "log4j")
     }
     implementation("org.apache.kafka:kafka_2.13:${Versions.kafka}", excludeLog4j)
+    constraints {
+        implementation("org.apache.zookeeper:zookeeper") {
+            because("org.apache.kafka:kafka_2.13:${Versions.kafka} -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
+            version {
+                require("3.8.3")
+            }
+        }
+    }
     implementation("com.google.cloud:google-cloud-storage:${Versions.googleCloudStorage}")
 
     // Tests
