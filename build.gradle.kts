@@ -10,7 +10,7 @@ object Versions {
     const val hikari = "5.0.1"
     const val jacksonDataType = "2.16.0"
     const val kafka = "3.6.0"
-    const val kluent = "1.74"
+    const val kluent = "1.73"
     const val ktor = "2.3.7"
     const val logback = "1.4.14"
     const val logstashEncoder = "7.4"
