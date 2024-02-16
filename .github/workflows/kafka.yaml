@@ -8,6 +8,9 @@ on:
       - '.github/workflows/kafka.yaml'
       - '.nais/kafka/**'
 
+permissions:
+  id-token: write
+
 jobs:
   deploy-kafka-dev:
     name: Deploy Kafka topic to NAIS dev-gcp
@@ -16,25 +19,22 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy meldingfrabehandler topic to dev-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: .nais/kafka/meldingfrabehandler.yaml
           VARS: .nais/kafka/dev.json
 
       - name: Deploy ubesvartmelding topic to dev-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: .nais/kafka/ubesvartmelding.yaml
           VARS: .nais/kafka/dev.json
 
       - name: Deploy avvistmelding topic to dev-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: .nais/kafka/avvistmelding.yaml
           VARS: .nais/kafka/dev.json
@@ -47,25 +47,22 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy meldingfrabehandler to prod-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: .nais/kafka/meldingfrabehandler.yaml
           VARS: .nais/kafka/prod.json
 
       - name: Deploy ubesvartmelding to prod-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: .nais/kafka/ubesvartmelding.yaml
           VARS: .nais/kafka/prod.json
 
       - name: Deploy avvistmelding to prod-gcp
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: .nais/kafka/avvistmelding.yaml
           VARS: .nais/kafka/prod.json
