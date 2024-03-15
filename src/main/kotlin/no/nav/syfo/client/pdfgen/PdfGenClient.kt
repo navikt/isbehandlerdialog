@@ -187,12 +187,12 @@ class PdfGenClient(
     companion object {
         private const val API_BASE_PATH = "/api/v1/genpdf/isbehandlerdialog"
         const val FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_PATH =
-            "$API_BASE_PATH/foresporselompasient-tilleggsopplysninger"
-        const val FORESPORSEL_OM_PASIENT_LEGEERKLARING_PATH = "$API_BASE_PATH/foresporselompasient-legeerklaring"
-        const val FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH = "$API_BASE_PATH/foresporselompasient-paminnelse"
+            "$API_BASE_PATH/foresporselompasient-tilleggsopplysninger-v2"
+        const val FORESPORSEL_OM_PASIENT_LEGEERKLARING_PATH = "$API_BASE_PATH/foresporselompasient-legeerklaring-v2"
+        const val FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH = "$API_BASE_PATH/foresporselompasient-paminnelse-v2"
         const val LEGEERKLARING_PATH = "/api/v1/genpdf/pale-2/pale-2"
-        const val RETUR_LEGEERKLARING_PATH = "$API_BASE_PATH/henvendelse-retur-legeerklaring"
-        const val HENVENDELSE_MELDING_FRA_NAV_PATH = "$API_BASE_PATH/henvendelse-meldingfranav"
+        const val RETUR_LEGEERKLARING_PATH = "$API_BASE_PATH/henvendelse-retur-legeerklaring-v2"
+        const val HENVENDELSE_MELDING_FRA_NAV_PATH = "$API_BASE_PATH/henvendelse-meldingfranav-v2"
 
         val log: Logger = LoggerFactory.getLogger(PdfGenClient::class.java)
         val illegalCharacters = listOf('\u0002')
