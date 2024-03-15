@@ -19,8 +19,10 @@ import no.nav.syfo.util.NAV_CALL_ID_HEADER
 import no.nav.syfo.util.callIdArgument
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 class PdfGenClient(
     pdfGenBaseUrl: String,
@@ -46,37 +48,53 @@ class PdfGenClient(
 
     suspend fun generateForesporselOmPasientTilleggsopplysinger(
         callId: String,
+        mottakerNavn: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList.sanitizeForPdfGen(),
+        payload = PdfModel.create(
+            mottakerNavn = mottakerNavn,
+            documentComponents = documentComponentDTOList,
+        ),
         pdfUrl = foresporselOmPasientTilleggsopplysningerUrl,
     )
 
     suspend fun generateForesporselOmPasientPaminnelse(
         callId: String,
+        mottakerNavn: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList.sanitizeForPdfGen(),
+        payload = PdfModel.create(
+            mottakerNavn = mottakerNavn,
+            documentComponents = documentComponentDTOList,
+        ),
         pdfUrl = foresporselOmPasientPaminnelseUrl,
     )
 
     suspend fun generateForesporselOmPasientLegeerklaring(
         callId: String,
+        mottakerNavn: String,
         documentComponentDTOList: List<DocumentComponentDTO>
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList.sanitizeForPdfGen(),
+        payload = PdfModel.create(
+            mottakerNavn = mottakerNavn,
+            documentComponents = documentComponentDTOList,
+        ),
         pdfUrl = foresporselOmPasientLegeerklaringUrl,
     )
 
     suspend fun generateReturAvLegeerklaring(
         callId: String,
+        mottakerNavn: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList.sanitizeForPdfGen(),
+        payload = PdfModel.create(
+            mottakerNavn = mottakerNavn,
+            documentComponents = documentComponentDTOList,
+        ),
         pdfUrl = returLegeerklaringPdfUrl,
     )
 
@@ -84,7 +102,7 @@ class PdfGenClient(
         legeerklaringDTO: LegeerklaringDTO,
     ): ByteArray? = getPdf(
         callId = UUID.randomUUID().toString(),
-        payload = PdfModel(
+        payload = PdfModelLegeerklaring(
             legeerklaering = legeerklaringDTO.legeerklaering,
             validationResult = ValidationResult(Status.OK),
             mottattDato = legeerklaringDTO.mottattDato,
@@ -94,10 +112,14 @@ class PdfGenClient(
 
     suspend fun generateMeldingFraNav(
         callId: String,
+        mottakerNavn: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
     ): ByteArray? = getPdf(
         callId = callId,
-        payload = documentComponentDTOList.sanitizeForPdfGen(),
+        payload = PdfModel.create(
+            mottakerNavn = mottakerNavn,
+            documentComponents = documentComponentDTOList,
+        ),
         pdfUrl = henvendelseMeldingFraNavPdfUrl,
     )
 
@@ -138,6 +160,25 @@ class PdfGenClient(
     }
 
     data class PdfModel(
+        val mottakerNavn: String,
+        val datoSendt: String,
+        val documentComponents: List<DocumentComponentDTO>,
+    ) {
+        companion object {
+            private val formatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy", Locale("no", "NO"))
+
+            fun create(
+                mottakerNavn: String,
+                documentComponents: List<DocumentComponentDTO>
+            ) = PdfModel(
+                mottakerNavn = mottakerNavn,
+                datoSendt = LocalDate.now().format(formatter),
+                documentComponents = documentComponents.sanitizeForPdfGen()
+            )
+        }
+    }
+
+    data class PdfModelLegeerklaring(
         val legeerklaering: Legeerklaering,
         val validationResult: ValidationResult,
         val mottattDato: LocalDateTime,
