@@ -169,11 +169,11 @@ class PdfGenClient(
 
             fun create(
                 mottakerNavn: String,
-                documentComponents: List<DocumentComponentDTO>
+                documentComponents: List<DocumentComponentDTO>,
             ) = PdfModel(
                 mottakerNavn = mottakerNavn,
                 datoSendt = LocalDate.now().format(formatter),
-                documentComponents = documentComponents.sanitizeForPdfGen()
+                documentComponents = documentComponents.sanitizeForPdfGen(),
             )
         }
     }
