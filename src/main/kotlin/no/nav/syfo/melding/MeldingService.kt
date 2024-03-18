@@ -171,26 +171,31 @@ class MeldingService(
         return when (meldingTilBehandler.type) {
             MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> pdfgenClient.generateForesporselOmPasientTilleggsopplysinger(
                 callId = callId,
+                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
                 documentComponentDTOList = meldingTilBehandler.document
             )
 
             MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> pdfgenClient.generateForesporselOmPasientPaminnelse(
                 callId = callId,
+                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
                 documentComponentDTOList = meldingTilBehandler.document
             )
 
             MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> pdfgenClient.generateForesporselOmPasientLegeerklaring(
                 callId = callId,
+                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
                 documentComponentDTOList = meldingTilBehandler.document
             )
 
             MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> pdfgenClient.generateReturAvLegeerklaring(
                 callId = callId,
+                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
                 documentComponentDTOList = meldingTilBehandler.document,
             )
 
             MeldingType.HENVENDELSE_MELDING_FRA_NAV -> pdfgenClient.generateMeldingFraNav(
                 callId = callId,
+                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
                 documentComponentDTOList = meldingTilBehandler.document,
             )
             MeldingType.HENVENDELSE_MELDING_TIL_NAV ->
