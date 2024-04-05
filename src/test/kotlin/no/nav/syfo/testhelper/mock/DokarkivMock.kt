@@ -12,12 +12,17 @@ val response = JournalpostResponse(
     journalpostferdigstilt = true,
     journalstatus = "status",
 )
+val conflictResponse = JournalpostResponse(
+    journalpostId = 2,
+    journalpostferdigstilt = true,
+    journalstatus = "conflict",
+)
 
 suspend fun MockRequestHandleScope.dokarkivMockResponse(request: HttpRequestData): HttpResponseData {
     val eksternReferanseId = request.receiveBody<JournalpostRequest>().eksternReferanseId
 
     return when (eksternReferanseId) {
-        UserConstants.EXISTING_EKSTERN_REFERANSE_UUID -> respondError(HttpStatusCode.Conflict)
+        UserConstants.EXISTING_EKSTERN_REFERANSE_UUID -> respond(conflictResponse, HttpStatusCode.Conflict)
         else -> respond(response)
     }
 }
