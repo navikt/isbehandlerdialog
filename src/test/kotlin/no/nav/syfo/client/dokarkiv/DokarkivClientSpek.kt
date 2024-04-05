@@ -8,8 +8,8 @@ import no.nav.syfo.client.dokarkiv.domain.OverstyrInnsynsregler
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.generator.journalpostRequestGenerator
-import org.amshove.kluent.shouldBeNull
-import org.amshove.kluent.shouldNotBeNull
+import no.nav.syfo.testhelper.mock.conflictResponse
+import org.amshove.kluent.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.util.UUID
@@ -46,7 +46,7 @@ class DokarkivClientSpek : Spek({
             response.shouldNotBeNull()
         }
 
-        it("returns null response when conflicting eksternReferanseId") {
+        it("returns existing journalpostResponse when conflicting eksternReferanseId") {
             val journalpostRequestWithConflictingEksternReferanseId =
                 journalpostRequest.copy(eksternReferanseId = UserConstants.EXISTING_EKSTERN_REFERANSE_UUID)
 
@@ -54,7 +54,8 @@ class DokarkivClientSpek : Spek({
                 dokarkivClient.journalfor(journalpostRequest = journalpostRequestWithConflictingEksternReferanseId)
             }
 
-            response.shouldBeNull()
+            response?.journalpostId shouldBeEqualTo conflictResponse.journalpostId
+            response?.journalstatus shouldBeEqualTo conflictResponse.journalstatus
         }
     }
 })
