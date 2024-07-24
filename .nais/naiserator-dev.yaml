@@ -48,7 +48,7 @@ spec:
       external:
         - host: "dokarkiv.dev-fss-pub.nais.io"
       rules:
-        - application: dialogmeldingpdfgen
+        - application: ispdfgen
         - application: padm2
         - application: istilgangskontroll
         - application: isoppfolgingstilfelle

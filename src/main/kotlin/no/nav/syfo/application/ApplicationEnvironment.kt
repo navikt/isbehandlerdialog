@@ -44,7 +44,7 @@ data class Environment(
             clientId = getEnvVar("ISTILGANGSKONTROLL_CLIENT_ID"),
         ),
         dialogmeldingpdfgen = OpenClientEnvironment(
-            baseUrl = "http://dialogmeldingpdfgen",
+            baseUrl = "http://ispdfgen",
         ),
         legeerklaringpdfgen = OpenClientEnvironment(
             baseUrl = "http://pale-2-pdfgen.teamsykmelding",

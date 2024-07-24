@@ -11,6 +11,7 @@ import no.nav.syfo.client.httpClientDefault
 import no.nav.syfo.client.pdfgen.PdfGenClient.Companion.illegalCharacters
 import no.nav.syfo.client.pdfgen.PdfGenClient.Companion.log
 import no.nav.syfo.melding.domain.DocumentComponentDTO
+import no.nav.syfo.melding.domain.MeldingType
 import no.nav.syfo.melding.kafka.domain.Status
 import no.nav.syfo.melding.kafka.domain.ValidationResult
 import no.nav.syfo.melding.kafka.legeerklaring.Legeerklaering
@@ -25,103 +26,43 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 class PdfGenClient(
-    pdfGenBaseUrl: String,
-    legeerklaringPdfGenBaseUrl: String,
-    private val httpClient: HttpClient = httpClientDefault()
+    private val pdfGenBaseUrl: String,
+    private val legeerklaringPdfGenBaseUrl: String,
+    private val httpClient: HttpClient = httpClientDefault(),
 ) {
-    private val foresporselOmPasientTilleggsopplysningerUrl: String
-    private val foresporselOmPasientLegeerklaringUrl: String
-    private val foresporselOmPasientPaminnelseUrl: String
-    private val legeerklaringPdfUrl: String
-    private val returLegeerklaringPdfUrl: String
-    private val henvendelseMeldingFraNavPdfUrl: String
 
-    init {
-        this.foresporselOmPasientTilleggsopplysningerUrl =
-            "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_PATH"
-        this.foresporselOmPasientLegeerklaringUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_LEGEERKLARING_PATH"
-        this.foresporselOmPasientPaminnelseUrl = "$pdfGenBaseUrl$FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH"
-        this.legeerklaringPdfUrl = "$legeerklaringPdfGenBaseUrl$LEGEERKLARING_PATH"
-        this.returLegeerklaringPdfUrl = "$pdfGenBaseUrl$RETUR_LEGEERKLARING_PATH"
-        this.henvendelseMeldingFraNavPdfUrl = "$pdfGenBaseUrl$HENVENDELSE_MELDING_FRA_NAV_PATH"
+    suspend fun generateDialogPdf(
+        callId: String,
+        mottakerNavn: String,
+        documentComponentDTOList: List<DocumentComponentDTO>,
+        meldingType: MeldingType,
+    ): ByteArray? {
+        val pdfUrl =
+            when (meldingType) {
+                MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_URL
+                MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> FORESPORSEL_OM_PASIENT_PAMINNELSE_URL
+                MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> FORESPORSEL_OM_PASIENT_LEGEERKLARING_URL
+                MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> RETUR_LEGEERKLARING_URL
+                MeldingType.HENVENDELSE_MELDING_FRA_NAV -> HENVENDELSE_MELDING_FRA_NAV_URL
+                MeldingType.HENVENDELSE_MELDING_TIL_NAV -> throw RuntimeException("Should only be used for incoming messages")
+            }
+        return getPdf(
+            callId = callId,
+            payload = PdfModel.create(mottakerNavn = mottakerNavn, documentComponents = documentComponentDTOList),
+            pdfUrl = pdfGenBaseUrl + pdfUrl,
+        )
     }
 
-    suspend fun generateForesporselOmPasientTilleggsopplysinger(
-        callId: String,
-        mottakerNavn: String,
-        documentComponentDTOList: List<DocumentComponentDTO>,
-    ): ByteArray? = getPdf(
-        callId = callId,
-        payload = PdfModel.create(
-            mottakerNavn = mottakerNavn,
-            documentComponents = documentComponentDTOList,
-        ),
-        pdfUrl = foresporselOmPasientTilleggsopplysningerUrl,
-    )
-
-    suspend fun generateForesporselOmPasientPaminnelse(
-        callId: String,
-        mottakerNavn: String,
-        documentComponentDTOList: List<DocumentComponentDTO>,
-    ): ByteArray? = getPdf(
-        callId = callId,
-        payload = PdfModel.create(
-            mottakerNavn = mottakerNavn,
-            documentComponents = documentComponentDTOList,
-        ),
-        pdfUrl = foresporselOmPasientPaminnelseUrl,
-    )
-
-    suspend fun generateForesporselOmPasientLegeerklaring(
-        callId: String,
-        mottakerNavn: String,
-        documentComponentDTOList: List<DocumentComponentDTO>
-    ): ByteArray? = getPdf(
-        callId = callId,
-        payload = PdfModel.create(
-            mottakerNavn = mottakerNavn,
-            documentComponents = documentComponentDTOList,
-        ),
-        pdfUrl = foresporselOmPasientLegeerklaringUrl,
-    )
-
-    suspend fun generateReturAvLegeerklaring(
-        callId: String,
-        mottakerNavn: String,
-        documentComponentDTOList: List<DocumentComponentDTO>,
-    ): ByteArray? = getPdf(
-        callId = callId,
-        payload = PdfModel.create(
-            mottakerNavn = mottakerNavn,
-            documentComponents = documentComponentDTOList,
-        ),
-        pdfUrl = returLegeerklaringPdfUrl,
-    )
-
-    suspend fun generateLegeerklaring(
-        legeerklaringDTO: LegeerklaringDTO,
-    ): ByteArray? = getPdf(
-        callId = UUID.randomUUID().toString(),
-        payload = PdfModelLegeerklaring(
-            legeerklaering = legeerklaringDTO.legeerklaering,
-            validationResult = ValidationResult(Status.OK),
-            mottattDato = legeerklaringDTO.mottattDato,
-        ),
-        pdfUrl = legeerklaringPdfUrl,
-    )
-
-    suspend fun generateMeldingFraNav(
-        callId: String,
-        mottakerNavn: String,
-        documentComponentDTOList: List<DocumentComponentDTO>,
-    ): ByteArray? = getPdf(
-        callId = callId,
-        payload = PdfModel.create(
-            mottakerNavn = mottakerNavn,
-            documentComponents = documentComponentDTOList,
-        ),
-        pdfUrl = henvendelseMeldingFraNavPdfUrl,
-    )
+    suspend fun generateLegeerklaring(legeerklaringDTO: LegeerklaringDTO): ByteArray? =
+        getPdf(
+            callId = UUID.randomUUID().toString(),
+            payload = PdfModelLegeerklaring(
+                legeerklaering = legeerklaringDTO.legeerklaering,
+                validationResult = ValidationResult(Status.OK),
+                mottattDato = legeerklaringDTO.mottattDato,
+            ),
+            pdfUrl = legeerklaringPdfGenBaseUrl + LEGEERKLARING_URL,
+        )
 
     private suspend fun getPdf(
         callId: String,
@@ -159,7 +100,7 @@ class PdfGenClient(
         return null
     }
 
-    data class PdfModel(
+    private data class PdfModel(
         val mottakerNavn: String,
         val datoSendt: String,
         val documentComponents: List<DocumentComponentDTO>,
@@ -178,7 +119,7 @@ class PdfGenClient(
         }
     }
 
-    data class PdfModelLegeerklaring(
+    private data class PdfModelLegeerklaring(
         val legeerklaering: Legeerklaering,
         val validationResult: ValidationResult,
         val mottattDato: LocalDateTime,
@@ -186,13 +127,13 @@ class PdfGenClient(
 
     companion object {
         private const val API_BASE_PATH = "/api/v1/genpdf/isbehandlerdialog"
-        const val FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_PATH =
-            "$API_BASE_PATH/foresporselompasient-tilleggsopplysninger-v2"
-        const val FORESPORSEL_OM_PASIENT_LEGEERKLARING_PATH = "$API_BASE_PATH/foresporselompasient-legeerklaring-v2"
-        const val FORESPORSEL_OM_PASIENT_PAMINNELSE_PATH = "$API_BASE_PATH/foresporselompasient-paminnelse-v2"
-        const val LEGEERKLARING_PATH = "/api/v1/genpdf/pale-2/pale-2"
-        const val RETUR_LEGEERKLARING_PATH = "$API_BASE_PATH/henvendelse-retur-legeerklaring-v2"
-        const val HENVENDELSE_MELDING_FRA_NAV_PATH = "$API_BASE_PATH/henvendelse-meldingfranav-v2"
+
+        private const val FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_URL = "$API_BASE_PATH/foresporselompasient-tilleggsopplysninger"
+        private const val FORESPORSEL_OM_PASIENT_LEGEERKLARING_URL = "$API_BASE_PATH/foresporselompasient-legeerklaring"
+        private const val FORESPORSEL_OM_PASIENT_PAMINNELSE_URL = "$API_BASE_PATH/foresporselompasient-paminnelse"
+        private const val RETUR_LEGEERKLARING_URL = "$API_BASE_PATH/henvendelse-retur-legeerklaring"
+        private const val HENVENDELSE_MELDING_FRA_NAV_URL = "$API_BASE_PATH/henvendelse-meldingfranav"
+        private const val LEGEERKLARING_URL = "/api/v1/genpdf/pale-2/pale-2"
 
         val log: Logger = LoggerFactory.getLogger(PdfGenClient::class.java)
         val illegalCharacters = listOf('\u0002')

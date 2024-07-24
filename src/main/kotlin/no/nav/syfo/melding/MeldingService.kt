@@ -72,7 +72,7 @@ class MeldingService(
 
     private fun getBehandlerRefForConversation(
         meldingFraBehandler: MeldingFraBehandler,
-        personIdent: PersonIdent
+        personIdent: PersonIdent,
     ): UUID? {
         val behandlerRef = getUtgaendeMeldingerInConversation(
             conversationRef = meldingFraBehandler.conversationRef,
@@ -120,7 +120,7 @@ class MeldingService(
         callId: String,
         meldingUuid: UUID,
         veilederIdent: String,
-        document: List<DocumentComponentDTO>
+        document: List<DocumentComponentDTO>,
     ) {
         val opprinneligMelding = getMeldingTilBehandler(meldingUuid = meldingUuid)
             ?: throw IllegalArgumentException("Failed to create påminnelse: Melding with uuid $meldingUuid does not exist")
@@ -166,42 +166,14 @@ class MeldingService(
 
     private suspend fun createPdf(
         callId: String,
-        meldingTilBehandler: MeldingTilBehandler
-    ): ByteArray {
-        return when (meldingTilBehandler.type) {
-            MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> pdfgenClient.generateForesporselOmPasientTilleggsopplysinger(
-                callId = callId,
-                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
-                documentComponentDTOList = meldingTilBehandler.document
-            )
-
-            MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> pdfgenClient.generateForesporselOmPasientPaminnelse(
-                callId = callId,
-                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
-                documentComponentDTOList = meldingTilBehandler.document
-            )
-
-            MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> pdfgenClient.generateForesporselOmPasientLegeerklaring(
-                callId = callId,
-                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
-                documentComponentDTOList = meldingTilBehandler.document
-            )
-
-            MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> pdfgenClient.generateReturAvLegeerklaring(
-                callId = callId,
-                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
-                documentComponentDTOList = meldingTilBehandler.document,
-            )
-
-            MeldingType.HENVENDELSE_MELDING_FRA_NAV -> pdfgenClient.generateMeldingFraNav(
-                callId = callId,
-                mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
-                documentComponentDTOList = meldingTilBehandler.document,
-            )
-            MeldingType.HENVENDELSE_MELDING_TIL_NAV ->
-                throw RuntimeException("Should only be used for incoming messages")
-        } ?: throw RuntimeException("Failed to request PDF - ${meldingTilBehandler.type}")
-    }
+        meldingTilBehandler: MeldingTilBehandler,
+    ): ByteArray =
+        pdfgenClient.generateDialogPdf(
+            callId = callId,
+            mottakerNavn = meldingTilBehandler.behandlerNavn ?: "",
+            documentComponentDTOList = meldingTilBehandler.document,
+            meldingType = meldingTilBehandler.type,
+        ) ?: throw RuntimeException("Failed to request PDF - ${meldingTilBehandler.type}")
 
     private fun createMeldingTilBehandlerAndSendDialogmeldingBestilling(
         meldingTilBehandler: MeldingTilBehandler,
