@@ -14,7 +14,7 @@ class KafkaUbesvartMeldingProducer(
     fun sendUbesvartMelding(
         meldingTilBehandler: MeldingTilBehandler,
         key: UUID,
-    ) {
+    ) =
         try {
             ubesvartMeldingKafkaProducer.send(
                 ProducerRecord(
@@ -22,7 +22,7 @@ class KafkaUbesvartMeldingProducer(
                     key.toString(),
                     meldingTilBehandler.toKafkaMeldingDTO(),
                 )
-            ).get()
+            ).also { it.get() }
         } catch (e: Exception) {
             log.error(
                 "Exception was thrown when attempting to send ubesvart melding with key {}: ${e.message}",
@@ -31,7 +31,6 @@ class KafkaUbesvartMeldingProducer(
             )
             throw e
         }
-    }
 
     companion object {
         const val UBESVART_MELDING_TOPIC = "teamsykefravr.ubesvart-melding"
