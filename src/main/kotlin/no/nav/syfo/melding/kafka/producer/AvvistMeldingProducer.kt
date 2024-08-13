@@ -19,7 +19,7 @@ class AvvistMeldingProducer(val kafkaProducer: KafkaProducer<String, KafkaMeldin
                     key.toString(),
                     meldingTilBehandler.toKafkaMeldingDTO(),
                 )
-            ).get()
+            ).also { it.get() }
         } catch (e: Exception) {
             log.error("Exception was thrown when attempting to send avvist melding with key $key: ${e.message}", e)
             throw e
