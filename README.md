@@ -20,7 +20,7 @@ Applikasjon for dialog mellom veileder og behandler i sykefraværsoppfølgingen.
 
 #### Requirements
 
-* JDK 17
+* JDK 21
 
 ### Build
 
