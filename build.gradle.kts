@@ -1,30 +1,25 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.apache.tools.ant.taskdefs.condition.Os
-
 group = "no.nav.syfo"
 version = "0.0.1"
 
-object Versions {
-    const val flyway = "9.22.3"
-    const val googleCloudStorage = "2.30.1"
-    const val hikari = "5.0.1"
-    const val jacksonDataType = "2.16.0"
-    const val kafka = "3.6.0"
-    const val kluent = "1.73"
-    const val ktor = "2.3.8"
-    const val logback = "1.4.14"
-    const val logstashEncoder = "7.4"
-    const val micrometerRegistry = "1.12.0"
-    const val mockk = "1.13.8"
-    const val nimbusJoseJwt = "9.37.2"
-    const val postgres = "42.7.2"
-    val postgresEmbedded = if (Os.isFamily(Os.FAMILY_MAC)) "1.0.0" else "0.13.4"
-    const val spek = "2.0.19"
-}
+val flywayVersion = "9.22.3"
+val googleCloudStorageVersion = "2.30.1"
+val hikariVersion = "5.0.1"
+val jacksonDataTypeVersion = "2.16.0"
+val kafkaVersion = "3.6.0"
+val kluentVersion = "1.73"
+val ktorVersion = "2.3.8"
+val logbackVersion = "1.4.14"
+val logstashEncoderVersion = "7.4"
+val micrometerRegistryVersion = "1.12.0"
+val mockkVersion = "1.13.8"
+val nimbusJoseJwtVersion = "9.37.2"
+val postgresVersion = "42.7.2"
+val postgresEmbeddedVersion = "2.0.7"
+val spekVersion = "2.0.19"
 
 plugins {
-    kotlin("jvm") version "2.0.10"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("jvm") version "2.0.20"
+    id("com.gradleup.shadow") version "8.3.0"
     id("org.jlleitschuh.gradle.ktlint") version "11.5.0"
 }
 
@@ -36,63 +31,55 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
-    implementation("io.ktor:ktor-client-apache:${Versions.ktor}")
-    implementation("io.ktor:ktor-client-content-negotiation:${Versions.ktor}")
-    implementation("io.ktor:ktor-serialization-jackson:${Versions.ktor}")
-    implementation("io.ktor:ktor-server-auth-jwt:${Versions.ktor}")
-    implementation("io.ktor:ktor-server-call-id:${Versions.ktor}")
-    implementation("io.ktor:ktor-server-content-negotiation:${Versions.ktor}")
-    implementation("io.ktor:ktor-server-netty:${Versions.ktor}")
-    implementation("io.ktor:ktor-server-status-pages:${Versions.ktor}")
+    implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
+    implementation("io.ktor:ktor-server-call-id:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:${Versions.logback}")
-    implementation("net.logstash.logback:logstash-logback-encoder:${Versions.logstashEncoder}")
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
 
     // Metrics and Prometheus
-    implementation("io.ktor:ktor-server-metrics-micrometer:${Versions.ktor}")
-    implementation("io.micrometer:micrometer-registry-prometheus:${Versions.micrometerRegistry}")
+    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
+    implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryVersion")
 
     // Database
-    implementation("org.postgresql:postgresql:${Versions.postgres}")
-    implementation("com.zaxxer:HikariCP:${Versions.hikari}")
-    implementation("org.flywaydb:flyway-core:${Versions.flyway}")
-    testImplementation("com.opentable.components:otj-pg-embedded:${Versions.postgresEmbedded}")
-    constraints {
-        implementation("org.apache.commons:commons-compress") {
-            because("com.opentable.components:otj-pg-embedded:${Versions.postgresEmbedded} -> https://www.cve.org/CVERecord?id=CVE-2021-36090")
-            version {
-                require("1.26.0")
-            }
-        }
-    }
+    implementation("org.postgresql:postgresql:$postgresVersion")
+    implementation("com.zaxxer:HikariCP:$hikariVersion")
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    testImplementation("io.zonky.test:embedded-postgres:$postgresEmbeddedVersion")
 
     // (De-)serialization
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${Versions.jacksonDataType}")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonDataTypeVersion")
 
     // Kafka
     val excludeLog4j = fun ExternalModuleDependency.() {
         exclude(group = "log4j")
     }
-    implementation("org.apache.kafka:kafka_2.13:${Versions.kafka}", excludeLog4j)
+    implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
     constraints {
         implementation("org.apache.zookeeper:zookeeper") {
-            because("org.apache.kafka:kafka_2.13:${Versions.kafka} -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
+            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
             version {
                 require("3.8.3")
             }
         }
     }
-    implementation("com.google.cloud:google-cloud-storage:${Versions.googleCloudStorage}")
+    implementation("com.google.cloud:google-cloud-storage:$googleCloudStorageVersion")
 
     // Tests
-    testImplementation("io.ktor:ktor-server-tests:${Versions.ktor}")
-    testImplementation("io.mockk:mockk:${Versions.mockk}")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:${Versions.nimbusJoseJwt}")
-    testImplementation("org.amshove.kluent:kluent:${Versions.kluent}")
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${Versions.spek}")
-    testImplementation("io.ktor:ktor-client-mock:${Versions.ktor}")
-    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spek}")
+    testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
+    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
+    testImplementation("org.amshove.kluent:kluent:$kluentVersion")
+    testImplementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
+    testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
+    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:$spekVersion")
 }
 
 kotlin {
@@ -100,7 +87,7 @@ kotlin {
 }
 
 tasks {
-    withType<Jar> {
+    jar {
         manifest.attributes["Main-Class"] = "no.nav.syfo.AppKt"
     }
 
@@ -110,13 +97,13 @@ tasks {
         }
     }
 
-    withType<ShadowJar> {
+    shadowJar {
         archiveBaseName.set("app")
         archiveClassifier.set("")
         archiveVersion.set("")
     }
 
-    withType<Test> {
+    test {
         useJUnitPlatform {
             includeEngines("spek2")
         }
