@@ -156,6 +156,7 @@ fun MeldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf: ByteArray) = Di
     dialogmeldingKode = this.getDialogmeldingKode().value,
     dialogmeldingTekst = this.document.serialize(),
     dialogmeldingVedlegg = meldingPdf,
+    kilde = "SYFO",
 )
 
 private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
