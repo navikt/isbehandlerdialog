@@ -105,6 +105,7 @@ class MeldingApiPostSpek : Spek({
                             dialogmeldingBestillingDTO.dialogmeldingRefConversation shouldBeEqualTo pMelding.conversationRef.toString()
                             dialogmeldingBestillingDTO.dialogmeldingRefParent shouldBeEqualTo pMelding.parentRef.toString()
                             dialogmeldingBestillingDTO.dialogmeldingVedlegg shouldNotBeEqualTo null
+                            dialogmeldingBestillingDTO.kilde shouldBeEqualTo "SYFO"
                         }
                     }
                 }
