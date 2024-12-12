@@ -1,13 +1,12 @@
 package no.nav.syfo.melding.cronjob
 
-import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.melding.domain.MeldingType
+import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.melding.kafka.producer.KafkaUbesvartMeldingProducer
 import no.nav.syfo.melding.kafka.producer.PublishUbesvartMeldingService
-import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.melding.status.database.createMeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatus
 import no.nav.syfo.melding.status.domain.MeldingStatusType
@@ -28,337 +27,333 @@ import java.util.concurrent.Future
 private val threeWeeksAgo = OffsetDateTime.now().minusDays(21)
 
 class UbesvartMeldingCronjobSpek : Spek({
+    val database = ExternalMockEnvironment.instance.database
 
-    with(TestApplicationEngine()) {
-        start()
-        val database = ExternalMockEnvironment.instance.database
+    val kafkaProducer = mockk<KafkaProducer<String, KafkaMeldingDTO>>()
+    val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
+        ubesvartMeldingKafkaProducer = kafkaProducer,
+    )
 
-        val kafkaProducer = mockk<KafkaProducer<String, KafkaMeldingDTO>>()
-        val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
-            ubesvartMeldingKafkaProducer = kafkaProducer,
-        )
+    val publishUbesvartMeldingService = PublishUbesvartMeldingService(
+        database = database,
+        kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
+        fristHours = ExternalMockEnvironment.instance.environment.cronjobUbesvartMeldingFristHours,
+    )
 
-        val publishUbesvartMeldingService = PublishUbesvartMeldingService(
-            database = database,
-            kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
-            fristHours = ExternalMockEnvironment.instance.environment.cronjobUbesvartMeldingFristHours,
-        )
+    val ubesvartMeldingCronjob = UbesvartMeldingCronjob(
+        publishUbesvartMeldingService = publishUbesvartMeldingService,
+        intervalDelayMinutes = ExternalMockEnvironment.instance.environment.cronjobUbesvartMeldingIntervalDelayMinutes,
+    )
 
-        val ubesvartMeldingCronjob = UbesvartMeldingCronjob(
-            publishUbesvartMeldingService = publishUbesvartMeldingService,
-            intervalDelayMinutes = ExternalMockEnvironment.instance.environment.cronjobUbesvartMeldingIntervalDelayMinutes,
-        )
+    describe(UbesvartMeldingCronjobSpek::class.java.simpleName) {
+        describe("Test cronjob") {
+            val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
 
-        describe(UbesvartMeldingCronjobSpek::class.java.simpleName) {
-            describe("Test cronjob") {
-                val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
+            beforeEachTest {
+                clearMocks(kafkaProducer)
+                coEvery {
+                    kafkaProducer.send(any())
+                } returns mockk<Future<RecordMetadata>>(relaxed = true)
+            }
 
-                beforeEachTest {
-                    clearMocks(kafkaProducer)
-                    coEvery {
-                        kafkaProducer.send(any())
-                    } returns mockk<Future<RecordMetadata>>(relaxed = true)
+            afterEachTest {
+                database.dropData()
+            }
+
+            it("Will publish ubesvart melding til behandler foresporsel pasient when cronjob has run") {
+                val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
+                val (_, idList) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandler,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idList.first(),
+                    createdAt = threeWeeksAgo
+                )
+
+                runBlocking {
+                    val result = ubesvartMeldingCronjob.runJob()
+
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 1
                 }
 
-                afterEachTest {
-                    database.dropData()
+                val melding = database.getMeldingerForArbeidstaker(personIdent).first()
+                melding.ubesvartPublishedAt shouldNotBeEqualTo null
+
+                val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
+                verify(exactly = 1) {
+                    kafkaProducer.send(capture(producerRecordSlot))
                 }
 
-                it("Will publish ubesvart melding til behandler foresporsel pasient when cronjob has run") {
-                    val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-                    val (_, idList) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandler,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idList.first(),
-                        createdAt = threeWeeksAgo
-                    )
+                val kafkaMeldingDTO = producerRecordSlot.captured.value()
+                kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
+                kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
+                kafkaMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
+            }
 
-                    runBlocking {
-                        val result = ubesvartMeldingCronjob.runJob()
+            it("Will publish all ubesvarte meldinger when cronjob has run") {
+                val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
+                val (_, idList) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandler,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idList.first(),
+                    createdAt = threeWeeksAgo
+                )
 
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 1
-                    }
+                val meldingTilBehandlerWithOtherConversationRef = generateMeldingTilBehandler(personIdent)
+                val (_, idListForMeldingWithOtherConversationRef) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandlerWithOtherConversationRef,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idListForMeldingWithOtherConversationRef.first(),
+                    createdAt = threeWeeksAgo
+                )
 
-                    val melding = database.getMeldingerForArbeidstaker(personIdent).first()
-                    melding.ubesvartPublishedAt shouldNotBeEqualTo null
+                runBlocking {
+                    val result = ubesvartMeldingCronjob.runJob()
 
-                    val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
-                    verify(exactly = 1) {
-                        kafkaProducer.send(capture(producerRecordSlot))
-                    }
-
-                    val kafkaMeldingDTO = producerRecordSlot.captured.value()
-                    kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
-                    kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
-                    kafkaMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 2
                 }
 
-                it("Will publish all ubesvarte meldinger when cronjob has run") {
-                    val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-                    val (_, idList) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandler,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idList.first(),
-                        createdAt = threeWeeksAgo
-                    )
+                val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                meldinger.first().ubesvartPublishedAt shouldNotBeEqualTo null
+                meldinger.last().ubesvartPublishedAt shouldNotBeEqualTo null
 
-                    val meldingTilBehandlerWithOtherConversationRef = generateMeldingTilBehandler(personIdent)
-                    val (_, idListForMeldingWithOtherConversationRef) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandlerWithOtherConversationRef,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idListForMeldingWithOtherConversationRef.first(),
-                        createdAt = threeWeeksAgo
-                    )
-
-                    runBlocking {
-                        val result = ubesvartMeldingCronjob.runJob()
-
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 2
-                    }
-
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    meldinger.first().ubesvartPublishedAt shouldNotBeEqualTo null
-                    meldinger.last().ubesvartPublishedAt shouldNotBeEqualTo null
-
-                    val producerRecordSlot1 = slot<ProducerRecord<String, KafkaMeldingDTO>>()
-                    val producerRecordSlot2 = slot<ProducerRecord<String, KafkaMeldingDTO>>()
-                    verifyOrder {
-                        kafkaProducer.send(capture(producerRecordSlot1))
-                        kafkaProducer.send(capture(producerRecordSlot2))
-                    }
-
-                    val firstKafkaMeldingDTO = producerRecordSlot1.captured.value()
-                    val secondKafkaMeldingDTO = producerRecordSlot2.captured.value()
-                    firstKafkaMeldingDTO.uuid shouldBeEqualTo meldinger.first().uuid.toString()
-                    secondKafkaMeldingDTO.uuid shouldBeEqualTo meldinger.last().uuid.toString()
+                val producerRecordSlot1 = slot<ProducerRecord<String, KafkaMeldingDTO>>()
+                val producerRecordSlot2 = slot<ProducerRecord<String, KafkaMeldingDTO>>()
+                verifyOrder {
+                    kafkaProducer.send(capture(producerRecordSlot1))
+                    kafkaProducer.send(capture(producerRecordSlot2))
                 }
 
-                it("Will not publish any ubesvart melding when no melding older than 3 weeks") {
-                    val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-                    val (_, idList) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandler,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idList.first(),
-                        createdAt = OffsetDateTime.now().minusDays(20)
-                    )
+                val firstKafkaMeldingDTO = producerRecordSlot1.captured.value()
+                val secondKafkaMeldingDTO = producerRecordSlot2.captured.value()
+                firstKafkaMeldingDTO.uuid shouldBeEqualTo meldinger.first().uuid.toString()
+                secondKafkaMeldingDTO.uuid shouldBeEqualTo meldinger.last().uuid.toString()
+            }
 
-                    runBlocking {
-                        val result = ubesvartMeldingCronjob.runJob()
+            it("Will not publish any ubesvart melding when no melding older than 3 weeks") {
+                val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
+                val (_, idList) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandler,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idList.first(),
+                    createdAt = OffsetDateTime.now().minusDays(20)
+                )
 
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 0
-                    }
+                runBlocking {
+                    val result = ubesvartMeldingCronjob.runJob()
 
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
-
-                    verify(exactly = 0) { kafkaProducer.send(any()) }
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 0
                 }
 
-                it("Will not publish ubesvart melding when melding is besvart") {
-                    val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-                    val (conversationRef, idList) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandler,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idList.first(),
-                        createdAt = threeWeeksAgo
-                    )
+                val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
 
-                    val meldingFraBehandler = generateMeldingFraBehandler(
-                        conversationRef = conversationRef,
-                        personIdent = personIdent,
-                    )
-                    database.createMeldingerFraBehandler(
-                        meldingFraBehandler = meldingFraBehandler,
-                    )
+                verify(exactly = 0) { kafkaProducer.send(any()) }
+            }
 
-                    runBlocking {
-                        val result = ubesvartMeldingCronjob.runJob()
+            it("Will not publish ubesvart melding when melding is besvart") {
+                val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
+                val (conversationRef, idList) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandler,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idList.first(),
+                    createdAt = threeWeeksAgo
+                )
 
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 0
-                    }
+                val meldingFraBehandler = generateMeldingFraBehandler(
+                    conversationRef = conversationRef,
+                    personIdent = personIdent,
+                )
+                database.createMeldingerFraBehandler(
+                    meldingFraBehandler = meldingFraBehandler,
+                )
 
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+                runBlocking {
+                    val result = ubesvartMeldingCronjob.runJob()
 
-                    verify(exactly = 0) { kafkaProducer.send(any()) }
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 0
                 }
 
-                it("Will publish ubesvart melding when newest melding in conversation is ubesvart") {
-                    val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-                    val (conversationRef, idListUtgaende) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandler,
-                        numberOfMeldinger = 2,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idListUtgaende.first(),
-                        createdAt = OffsetDateTime.now().minusDays(40)
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idListUtgaende.last(),
-                        createdAt = threeWeeksAgo
-                    )
+                val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
 
-                    val meldingFraBehandler = generateMeldingFraBehandler(
-                        conversationRef = conversationRef,
-                        personIdent = personIdent,
-                    )
-                    val (_, idListInnkommende) = database.createMeldingerFraBehandler(
-                        meldingFraBehandler = meldingFraBehandler,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idListInnkommende.first(),
-                        createdAt = OffsetDateTime.now().minusDays(30)
-                    )
+                verify(exactly = 0) { kafkaProducer.send(any()) }
+            }
 
-                    runBlocking {
-                        val result = ubesvartMeldingCronjob.runJob()
+            it("Will publish ubesvart melding when newest melding in conversation is ubesvart") {
+                val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
+                val (conversationRef, idListUtgaende) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandler,
+                    numberOfMeldinger = 2,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idListUtgaende.first(),
+                    createdAt = OffsetDateTime.now().minusDays(40)
+                )
+                database.updateMeldingCreatedAt(
+                    id = idListUtgaende.last(),
+                    createdAt = threeWeeksAgo
+                )
 
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 1
-                    }
+                val meldingFraBehandler = generateMeldingFraBehandler(
+                    conversationRef = conversationRef,
+                    personIdent = personIdent,
+                )
+                val (_, idListInnkommende) = database.createMeldingerFraBehandler(
+                    meldingFraBehandler = meldingFraBehandler,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idListInnkommende.first(),
+                    createdAt = OffsetDateTime.now().minusDays(30)
+                )
 
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    val utgaendeMeldinger = meldinger.filter { !it.innkommende }
-                    utgaendeMeldinger.first().ubesvartPublishedAt shouldBeEqualTo null
-                    utgaendeMeldinger.last().ubesvartPublishedAt shouldNotBeEqualTo null
+                runBlocking {
+                    val result = ubesvartMeldingCronjob.runJob()
 
-                    val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
-                    verify(exactly = 1) {
-                        kafkaProducer.send(capture(producerRecordSlot))
-                    }
-
-                    val kafkaMeldingDTO = producerRecordSlot.captured.value()
-                    kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
-                    kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
-                    kafkaMeldingDTO.uuid shouldBeEqualTo utgaendeMeldinger.last().uuid.toString()
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 1
                 }
 
-                it("Will publish ubesvart melding when melding is of type legeeklaring and cronjob has run") {
-                    val meldingTilBehandler = generateMeldingTilBehandler(personIdent = personIdent, type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
-                    val (_, idList) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandler,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idList.first(),
-                        createdAt = threeWeeksAgo
-                    )
+                val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                val utgaendeMeldinger = meldinger.filter { !it.innkommende }
+                utgaendeMeldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+                utgaendeMeldinger.last().ubesvartPublishedAt shouldNotBeEqualTo null
 
-                    runBlocking {
-                        val result = ubesvartMeldingCronjob.runJob()
-
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 1
-                    }
-
-                    val melding = database.getMeldingerForArbeidstaker(personIdent).first()
-                    melding.ubesvartPublishedAt shouldNotBeEqualTo null
-
-                    val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
-                    verify(exactly = 1) {
-                        kafkaProducer.send(capture(producerRecordSlot))
-                    }
-
-                    val kafkaMeldingDTO = producerRecordSlot.captured.value()
-                    kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
-                    kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
-                    kafkaMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
+                val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
+                verify(exactly = 1) {
+                    kafkaProducer.send(capture(producerRecordSlot))
                 }
 
-                it("Will not publish ubesvart melding when melding is of type paminnelse") {
-                    val meldingTilBehandler = generateMeldingTilBehandler(
-                        personIdent = personIdent,
-                        type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
-                    )
-                    val (_, idList) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandler,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idList.first(),
-                        createdAt = threeWeeksAgo
-                    )
+                val kafkaMeldingDTO = producerRecordSlot.captured.value()
+                kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name
+                kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
+                kafkaMeldingDTO.uuid shouldBeEqualTo utgaendeMeldinger.last().uuid.toString()
+            }
 
-                    runBlocking {
-                        val result = ubesvartMeldingCronjob.runJob()
+            it("Will publish ubesvart melding when melding is of type legeeklaring and cronjob has run") {
+                val meldingTilBehandler = generateMeldingTilBehandler(personIdent = personIdent, type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
+                val (_, idList) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandler,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idList.first(),
+                    createdAt = threeWeeksAgo
+                )
 
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 0
-                    }
+                runBlocking {
+                    val result = ubesvartMeldingCronjob.runJob()
 
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
-
-                    verify(exactly = 0) { kafkaProducer.send(any()) }
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 1
                 }
 
-                it("Will not publish ubesvart melding when melding is of type henvendelse melding fra NAV") {
-                    val meldingTilBehandler = generateMeldingTilBehandler(
-                        personIdent = personIdent,
-                        type = MeldingType.HENVENDELSE_MELDING_FRA_NAV,
-                    )
-                    val (_, idList) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandler,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idList.first(),
-                        createdAt = threeWeeksAgo
-                    )
+                val melding = database.getMeldingerForArbeidstaker(personIdent).first()
+                melding.ubesvartPublishedAt shouldNotBeEqualTo null
 
-                    runBlocking {
-                        val result = ubesvartMeldingCronjob.runJob()
-
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 0
-                    }
-
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
-
-                    verify(exactly = 0) { kafkaProducer.send(any()) }
+                val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
+                verify(exactly = 1) {
+                    kafkaProducer.send(capture(producerRecordSlot))
                 }
 
-                it("Will not publish ubesvart melding when melding has avvist apprec status") {
-                    val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-                    val (_, idList) = database.createMeldingerTilBehandler(
-                        meldingTilBehandler = meldingTilBehandler,
-                    )
-                    database.updateMeldingCreatedAt(
-                        id = idList.first(),
-                        createdAt = threeWeeksAgo
-                    )
-                    val meldingStatus = MeldingStatus(
-                        uuid = UUID.randomUUID(),
-                        status = MeldingStatusType.AVVIST,
-                        tekst = "Noe gikk galt",
-                    )
-                    database.connection.use { connection ->
-                        connection.createMeldingStatus(
-                            meldingStatus = meldingStatus,
-                            meldingId = idList.first(),
-                        )
-                        connection.commit()
-                    }
+                val kafkaMeldingDTO = producerRecordSlot.captured.value()
+                kafkaMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name
+                kafkaMeldingDTO.personIdent shouldBeEqualTo personIdent.value
+                kafkaMeldingDTO.uuid shouldBeEqualTo melding.uuid.toString()
+            }
 
-                    runBlocking {
-                        val result = ubesvartMeldingCronjob.runJob()
+            it("Will not publish ubesvart melding when melding is of type paminnelse") {
+                val meldingTilBehandler = generateMeldingTilBehandler(
+                    personIdent = personIdent,
+                    type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
+                )
+                val (_, idList) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandler,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idList.first(),
+                    createdAt = threeWeeksAgo
+                )
 
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 0
-                    }
+                runBlocking {
+                    val result = ubesvartMeldingCronjob.runJob()
 
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
-
-                    verify(exactly = 0) { kafkaProducer.send(any()) }
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 0
                 }
+
+                val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+
+                verify(exactly = 0) { kafkaProducer.send(any()) }
+            }
+
+            it("Will not publish ubesvart melding when melding is of type henvendelse melding fra NAV") {
+                val meldingTilBehandler = generateMeldingTilBehandler(
+                    personIdent = personIdent,
+                    type = MeldingType.HENVENDELSE_MELDING_FRA_NAV,
+                )
+                val (_, idList) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandler,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idList.first(),
+                    createdAt = threeWeeksAgo
+                )
+
+                runBlocking {
+                    val result = ubesvartMeldingCronjob.runJob()
+
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 0
+                }
+
+                val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+
+                verify(exactly = 0) { kafkaProducer.send(any()) }
+            }
+
+            it("Will not publish ubesvart melding when melding has avvist apprec status") {
+                val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
+                val (_, idList) = database.createMeldingerTilBehandler(
+                    meldingTilBehandler = meldingTilBehandler,
+                )
+                database.updateMeldingCreatedAt(
+                    id = idList.first(),
+                    createdAt = threeWeeksAgo
+                )
+                val meldingStatus = MeldingStatus(
+                    uuid = UUID.randomUUID(),
+                    status = MeldingStatusType.AVVIST,
+                    tekst = "Noe gikk galt",
+                )
+                database.connection.use { connection ->
+                    connection.createMeldingStatus(
+                        meldingStatus = meldingStatus,
+                        meldingId = idList.first(),
+                    )
+                    connection.commit()
+                }
+
+                runBlocking {
+                    val result = ubesvartMeldingCronjob.runJob()
+
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 0
+                }
+
+                val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                meldinger.first().ubesvartPublishedAt shouldBeEqualTo null
+
+                verify(exactly = 0) { kafkaProducer.send(any()) }
             }
         }
     }
