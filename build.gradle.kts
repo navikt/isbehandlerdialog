@@ -7,7 +7,7 @@ val hikariVersion = "5.1.0"
 val jacksonDataTypeVersion = "2.17.2"
 val kafkaVersion = "3.7.0"
 val kluentVersion = "1.73"
-val ktorVersion = "2.3.12"
+val ktorVersion = "3.0.2"
 val logbackVersion = "1.5.7"
 val logstashEncoderVersion = "7.4"
 val micrometerRegistryVersion = "1.12.2"
@@ -73,7 +73,7 @@ dependencies {
     implementation("com.google.cloud:google-cloud-storage:$googleCloudStorageVersion")
 
     // Tests
-    testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
+    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
     testImplementation("org.amshove.kluent:kluent:$kluentVersion")

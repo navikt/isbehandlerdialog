@@ -1,6 +1,5 @@
 package no.nav.syfo.melding.cronjob
 
-import io.ktor.server.testing.*
 import io.mockk.clearMocks
 import io.mockk.justRun
 import io.mockk.mockk
@@ -23,78 +22,75 @@ import java.util.*
 
 class MeldingFraBehandlerCronjobSpek : Spek({
 
-    with(TestApplicationEngine()) {
-        start()
-        val database = ExternalMockEnvironment.instance.database
+    val database = ExternalMockEnvironment.instance.database
 
-        val kafkaMeldingFraBehandlerProducer = mockk<KafkaMeldingFraBehandlerProducer>()
-        justRun {
-            kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(
-                kafkaMeldingDTO = any(),
-                key = any(),
-            )
-        }
-
-        val publishMeldingFraBehandlerService = PublishMeldingFraBehandlerService(
-            database = database,
-            kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducer,
+    val kafkaMeldingFraBehandlerProducer = mockk<KafkaMeldingFraBehandlerProducer>()
+    justRun {
+        kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(
+            kafkaMeldingDTO = any(),
+            key = any(),
         )
+    }
 
-        val meldingFraBehandlerCronjob = MeldingFraBehandlerCronjob(
-            publishMeldingFraBehandlerService = publishMeldingFraBehandlerService,
-        )
+    val publishMeldingFraBehandlerService = PublishMeldingFraBehandlerService(
+        database = database,
+        kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducer,
+    )
 
-        describe(MeldingFraBehandlerCronjob::class.java.simpleName) {
-            describe("Test cronjob") {
-                afterEachTest {
-                    database.dropData()
-                    clearMocks(kafkaMeldingFraBehandlerProducer)
+    val meldingFraBehandlerCronjob = MeldingFraBehandlerCronjob(
+        publishMeldingFraBehandlerService = publishMeldingFraBehandlerService,
+    )
+
+    describe(MeldingFraBehandlerCronjob::class.java.simpleName) {
+        describe("Test cronjob") {
+            afterEachTest {
+                database.dropData()
+                clearMocks(kafkaMeldingFraBehandlerProducer)
+            }
+
+            it("Will update innkommende_published_at when cronjob publish on kafka") {
+                val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
+                val meldingFraBehandler = generateMeldingFraBehandler(
+                    conversationRef = UUID.randomUUID(),
+                    personIdent = personIdent,
+                )
+                database.createMeldingerFraBehandler(
+                    meldingFraBehandler = meldingFraBehandler,
+                )
+
+                runBlocking {
+                    val result = meldingFraBehandlerCronjob.runJob()
+
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 1
                 }
 
-                it("Will update innkommende_published_at when cronjob publish on kafka") {
-                    val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
-                    val meldingFraBehandler = generateMeldingFraBehandler(
-                        conversationRef = UUID.randomUUID(),
-                        personIdent = personIdent,
-                    )
-                    database.createMeldingerFraBehandler(
-                        meldingFraBehandler = meldingFraBehandler,
-                    )
+                verify(exactly = 1) { kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(any(), any()) }
 
-                    runBlocking {
-                        val result = meldingFraBehandlerCronjob.runJob()
+                val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                meldinger.first().innkommendePublishedAt shouldNotBeEqualTo null
+            }
 
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 1
-                    }
+            it("Will not send to kafka if no unpublished meldingFraBehandler") {
+                val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
+                val meldingFraBehandler = generateMeldingFraBehandler(
+                    conversationRef = UUID.randomUUID(),
+                    personIdent = personIdent,
+                )
+                database.createMeldingerFraBehandler(
+                    meldingFraBehandler = meldingFraBehandler,
+                )
+                val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+                database.updateInnkommendePublishedAt(uuid = meldinger.first().uuid)
 
-                    verify(exactly = 1) { kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(any(), any()) }
+                runBlocking {
+                    val result = meldingFraBehandlerCronjob.runJob()
 
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    meldinger.first().innkommendePublishedAt shouldNotBeEqualTo null
+                    result.failed shouldBeEqualTo 0
+                    result.updated shouldBeEqualTo 0
                 }
 
-                it("Will not send to kafka if no unpublished meldingFraBehandler") {
-                    val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
-                    val meldingFraBehandler = generateMeldingFraBehandler(
-                        conversationRef = UUID.randomUUID(),
-                        personIdent = personIdent,
-                    )
-                    database.createMeldingerFraBehandler(
-                        meldingFraBehandler = meldingFraBehandler,
-                    )
-                    val meldinger = database.getMeldingerForArbeidstaker(personIdent)
-                    database.updateInnkommendePublishedAt(uuid = meldinger.first().uuid)
-
-                    runBlocking {
-                        val result = meldingFraBehandlerCronjob.runJob()
-
-                        result.failed shouldBeEqualTo 0
-                        result.updated shouldBeEqualTo 0
-                    }
-
-                    verify(exactly = 0) { kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(any(), any()) }
-                }
+                verify(exactly = 0) { kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(any(), any()) }
             }
         }
     }

@@ -65,13 +65,22 @@ fun main() {
     )
     lateinit var meldingService: MeldingService
 
-    val applicationEngineEnvironment = applicationEngineEnvironment {
+    val applicationEngineEnvironment = applicationEnvironment {
         log = logger
         config = HoconApplicationConfig(ConfigFactory.load())
-        connector {
-            port = applicationPort
-        }
-        module {
+    }
+    val server = embeddedServer(
+        factory = Netty,
+        environment = applicationEngineEnvironment,
+        configure = {
+            connector {
+                port = applicationPort
+            }
+            connectionGroupSize = 8
+            workerGroupSize = 8
+            callGroupSize = 16
+        },
+        module = {
             databaseModule(
                 databaseEnvironment = environment.database,
             )
@@ -94,45 +103,37 @@ fun main() {
                 environment = environment,
                 azureAdClient = azureAdClient,
             )
+
+            monitor.subscribe(ApplicationStarted) {
+                applicationState.ready = true
+                logger.info("Application is ready, running Java VM ${Runtime.version()}")
+
+                launchKafkaTaskDialogmeldingFraBehandler(
+                    applicationState = applicationState,
+                    kafkaEnvironment = environment.kafka,
+                    database = applicationDatabase,
+                    padm2Client = padm2Client,
+                    oppfolgingstilfelleClient = oppfolgingstilfelleClient,
+                )
+
+                launchKafkaTaskDialogmeldingStatus(
+                    applicationState = applicationState,
+                    kafkaEnvironment = environment.kafka,
+                    database = applicationDatabase,
+                    meldingService = meldingService,
+                )
+
+                launchKafkaTaskLegeerklaring(
+                    applicationState = applicationState,
+                    kafkaEnvironment = environment.kafka,
+                    bucketName = environment.legeerklaringBucketName,
+                    bucketNameVedlegg = environment.legeerklaringVedleggBucketName,
+                    database = applicationDatabase,
+                    pdfgenClient = pdfgenClient,
+                )
+            }
         }
-    }
-
-    applicationEngineEnvironment.monitor.subscribe(ApplicationStarted) {
-        applicationState.ready = true
-        logger.info("Application is ready, running Java VM ${Runtime.version()}")
-        launchKafkaTaskDialogmeldingFraBehandler(
-            applicationState = applicationState,
-            kafkaEnvironment = environment.kafka,
-            database = applicationDatabase,
-            padm2Client = padm2Client,
-            oppfolgingstilfelleClient = oppfolgingstilfelleClient,
-        )
-
-        launchKafkaTaskDialogmeldingStatus(
-            applicationState = applicationState,
-            kafkaEnvironment = environment.kafka,
-            database = applicationDatabase,
-            meldingService = meldingService,
-        )
-
-        launchKafkaTaskLegeerklaring(
-            applicationState = applicationState,
-            kafkaEnvironment = environment.kafka,
-            bucketName = environment.legeerklaringBucketName,
-            bucketNameVedlegg = environment.legeerklaringVedleggBucketName,
-            database = applicationDatabase,
-            pdfgenClient = pdfgenClient,
-        )
-    }
-
-    val server = embeddedServer(
-        factory = Netty,
-        environment = applicationEngineEnvironment,
-    ) {
-        connectionGroupSize = 8
-        workerGroupSize = 8
-        callGroupSize = 16
-    }
+    )
 
     Runtime.getRuntime().addShutdownHook(
         Thread {
