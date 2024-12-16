@@ -34,14 +34,19 @@ fun Application.cronjobModule(
         clientEnvironment = environment.clients.dokarkiv,
     )
 
-    val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
-        database = database,
-    )
+    val allCronjobs = mutableListOf<Cronjob>()
 
-    val journalforMeldingTilBehandlerCronjob = JournalforMeldingTilBehandlerCronjob(
-        dokarkivClient = dokarkivClient,
-        journalforMeldingTilBehandlerService = journalforMeldingTilBehandlerService,
-    )
+    if (environment.journalforingCronjobEnabled) {
+        val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
+            database = database,
+        )
+
+        val journalforMeldingTilBehandlerCronjob = JournalforMeldingTilBehandlerCronjob(
+            dokarkivClient = dokarkivClient,
+            journalforMeldingTilBehandlerService = journalforMeldingTilBehandlerService,
+        )
+        allCronjobs.add(journalforMeldingTilBehandlerCronjob)
+    }
 
     val kafkaMeldingFraBehandlerProducer = KafkaMeldingFraBehandlerProducer(
         kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducerConfig(
@@ -89,11 +94,12 @@ fun Application.cronjobModule(
         intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
     )
 
-    val allCronjobs = mutableListOf(
-        journalforMeldingTilBehandlerCronjob,
-        meldingFraBehandlerCronjob,
-        ubesvartMeldingCronjob,
-        avvistMeldingStatusCronjob,
+    allCronjobs.addAll(
+        listOf(
+            meldingFraBehandlerCronjob,
+            ubesvartMeldingCronjob,
+            avvistMeldingStatusCronjob,
+        )
     )
 
     allCronjobs.forEach {
