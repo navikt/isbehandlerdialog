@@ -58,7 +58,7 @@ fun testEnvironment() = Environment(
             clientId = "dev-fss.teamdokumenthandtering.dokarkiv-q1"
         )
     ),
-    journalforingCronjobEnabled = true,
+    isJournalforingRetryEnabled = true,
     electorPath = "electorPath",
     cronjobUbesvartMeldingIntervalDelayMinutes = 60L * 4,
     cronjobUbesvartMeldingFristHours = 24L * 21,

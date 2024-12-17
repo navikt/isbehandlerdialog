@@ -36,17 +36,16 @@ fun Application.cronjobModule(
 
     val allCronjobs = mutableListOf<Cronjob>()
 
-    if (environment.journalforingCronjobEnabled) {
-        val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
-            database = database,
-        )
+    val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
+        database = database,
+    )
 
-        val journalforMeldingTilBehandlerCronjob = JournalforMeldingTilBehandlerCronjob(
-            dokarkivClient = dokarkivClient,
-            journalforMeldingTilBehandlerService = journalforMeldingTilBehandlerService,
-        )
-        allCronjobs.add(journalforMeldingTilBehandlerCronjob)
-    }
+    val journalforMeldingTilBehandlerCronjob = JournalforMeldingTilBehandlerCronjob(
+        dokarkivClient = dokarkivClient,
+        journalforMeldingTilBehandlerService = journalforMeldingTilBehandlerService,
+        isJournalforingRetryEnabled = environment.isJournalforingRetryEnabled,
+    )
+    allCronjobs.add(journalforMeldingTilBehandlerCronjob)
 
     val kafkaMeldingFraBehandlerProducer = KafkaMeldingFraBehandlerProducer(
         kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducerConfig(

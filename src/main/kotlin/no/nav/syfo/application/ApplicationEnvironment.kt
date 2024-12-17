@@ -58,7 +58,7 @@ data class Environment(
             clientId = getEnvVar("ISOPPFOLGINGSTILFELLE_CLIENT_ID"),
         ),
     ),
-    val journalforingCronjobEnabled: Boolean = getEnvVar("JOURNALFORING_CRONJOB_ENABLED").toBoolean(),
+    val isJournalforingRetryEnabled: Boolean = getEnvVar("JOURNALFORING_RETRY_ENABLED").toBoolean(),
     val cronjobUbesvartMeldingIntervalDelayMinutes: Long = getEnvVar("CRONJOB_UBESVART_MELDING_INTERVAL_DELAY_MINUTES").toLong(),
     val cronjobUbesvartMeldingFristHours: Long = getEnvVar("CRONJOB_UBESVART_MELDING_FRIST_HOURS").toLong(),
     val legeerklaringBucketName: String = getEnvVar("LEGEERKLARING_BUCKET_NAME"),
