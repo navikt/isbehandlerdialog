@@ -66,7 +66,7 @@ class JournalforMeldingTilBehandlerCronjob(
     }
 
     companion object {
-        const val DEFAULT_FAILED_JP_ID = "0"
+        private const val DEFAULT_FAILED_JP_ID = "0"
         private val log = LoggerFactory.getLogger(JournalforMeldingTilBehandlerCronjob::class.java)
     }
 }
