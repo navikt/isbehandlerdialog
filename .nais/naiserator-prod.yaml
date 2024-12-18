@@ -73,6 +73,8 @@ spec:
   env:
     - name: KTOR_ENV
       value: "production"
+    - name: JOURNALFORING_RETRY_ENABLED
+      value: "true"
     - name: LEGEERKLARING_BUCKET_NAME
       value: teamsykmelding-pale2-legeerklaring-bucket-prod
     - name: LEGEERKLARING_VEDLEGG_BUCKET_NAME

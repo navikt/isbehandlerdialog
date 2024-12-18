@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 class JournalforMeldingTilBehandlerCronjob(
     private val dokarkivClient: DokarkivClient,
     private val journalforMeldingTilBehandlerService: JournalforMeldingTilBehandlerService,
+    private val isJournalforingRetryEnabled: Boolean,
 ) : Cronjob {
     override val initialDelayMinutes: Long = 2
     override val intervalDelayMinutes: Long = 10
@@ -33,9 +34,21 @@ class JournalforMeldingTilBehandlerCronjob(
             try {
                 val journalpostRequest = meldingTilBehandler.toJournalpostRequest(pdf = pdf)
 
-                val journalpostId = dokarkivClient.journalfor(
-                    journalpostRequest = journalpostRequest,
-                )?.journalpostId?.toString()
+                val journalpostId = try {
+                    dokarkivClient.journalfor(
+                        journalpostRequest = journalpostRequest,
+                    )?.journalpostId?.toString()
+                } catch (exc: Exception) {
+                    if (isJournalforingRetryEnabled) {
+                        throw exc
+                    } else {
+                        log.error("Journalføring failed, skipping retry (should only happen in dev-gcp)", exc)
+                        // Defaulting'en til DEFAULT_FAILED_JP_ID skal bare forekomme i dev-gcp:
+                        // Har dette fordi vi ellers spammer ned dokarkiv med forsøk på å journalføre
+                        // på personer som mangler aktør-id.
+                        DEFAULT_FAILED_JP_ID
+                    }
+                }
 
                 journalpostId?.let {
                     journalforMeldingTilBehandlerService.updateJournalpostId(
@@ -53,6 +66,7 @@ class JournalforMeldingTilBehandlerCronjob(
     }
 
     companion object {
+        private const val DEFAULT_FAILED_JP_ID = "0"
         private val log = LoggerFactory.getLogger(JournalforMeldingTilBehandlerCronjob::class.java)
     }
 }

@@ -41,6 +41,7 @@ fun Application.cronjobModule(
     val journalforMeldingTilBehandlerCronjob = JournalforMeldingTilBehandlerCronjob(
         dokarkivClient = dokarkivClient,
         journalforMeldingTilBehandlerService = journalforMeldingTilBehandlerService,
+        isJournalforingRetryEnabled = environment.isJournalforingRetryEnabled,
     )
 
     val kafkaMeldingFraBehandlerProducer = KafkaMeldingFraBehandlerProducer(

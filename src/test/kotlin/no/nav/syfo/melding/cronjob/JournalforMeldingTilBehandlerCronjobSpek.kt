@@ -37,6 +37,7 @@ class JournalforDialogmeldingCronjobSpek : Spek({
     val journalforDialogmeldingCronjob = JournalforMeldingTilBehandlerCronjob(
         dokarkivClient = dokarkivClient,
         journalforMeldingTilBehandlerService = journalforMeldingTilBehandlerService,
+        isJournalforingRetryEnabled = ExternalMockEnvironment.instance.environment.isJournalforingRetryEnabled,
     )
 
     beforeEachTest {
