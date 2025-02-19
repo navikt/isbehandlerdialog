@@ -393,6 +393,26 @@ fun DatabaseInterface.updateMeldingJournalpostId(melding: MeldingTilBehandler, j
     }
 }
 
+const val queryUpdateArbeidstakerPersonident = """
+    UPDATE melding
+    SET arbeidstaker_personident = ?
+    WHERE id = ?
+"""
+
+fun DatabaseInterface.updateArbeidstakerPersonident(melding: PMelding, personident: PersonIdent) {
+    connection.use { connection ->
+        connection.prepareStatement(queryUpdateArbeidstakerPersonident).use {
+            it.setString(1, personident.value)
+            it.setInt(2, melding.id.id)
+            val updated = it.executeUpdate()
+            if (updated != 1) {
+                throw SQLException("Expected a single row to be updated, got update count $updated")
+            }
+        }
+        connection.commit()
+    }
+}
+
 fun ResultSet.toPMelding() =
     PMelding(
         id = PMelding.Id(getInt("id")),

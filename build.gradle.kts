@@ -1,6 +1,7 @@
 group = "no.nav.syfo"
 version = "0.0.1"
 
+val confluent = "7.8.0"
 val flywayVersion = "11.3.0"
 val googleCloudStorageVersion = "2.48.0"
 val hikariVersion = "6.2.1"
@@ -25,6 +26,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven(url = "https://packages.confluent.io/maven/")
 }
 
 dependencies {
@@ -67,6 +69,21 @@ dependencies {
             because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
             version {
                 require("3.9.3")
+            }
+        }
+    }
+    implementation("io.confluent:kafka-avro-serializer:$confluent", excludeLog4j)
+    constraints {
+        implementation("org.apache.avro:avro") {
+            because("io.confluent:kafka-schema-registry:$confluent -> https://www.cve.org/CVERecord?id=CVE-2023-39410")
+            version {
+                require("1.12.0")
+            }
+        }
+        implementation("org.apache.commons:commons-compress") {
+            because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
+            version {
+                require("1.27.1")
             }
         }
     }
