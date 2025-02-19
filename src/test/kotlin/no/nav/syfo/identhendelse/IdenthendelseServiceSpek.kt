@@ -1,6 +1,5 @@
 package no.nav.syfo.identhendelse
 
-import kotlinx.coroutines.*
 import no.nav.syfo.melding.database.createMeldingFraBehandler
 import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
 import no.nav.syfo.testhelper.ExternalMockEnvironment
