@@ -18,6 +18,7 @@ import no.nav.syfo.client.padm2.Padm2Client
 import no.nav.syfo.client.pdfgen.PdfGenClient
 import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.client.wellknown.getWellKnown
+import no.nav.syfo.identhendelse.kafka.launchKafkaTaskIdenthendelse
 import no.nav.syfo.melding.MeldingService
 import no.nav.syfo.melding.kafka.config.KafkaBehandlerDialogmeldingSerializer
 import no.nav.syfo.melding.kafka.dialogmelding.launchKafkaTaskDialogmeldingFraBehandler
@@ -130,6 +131,12 @@ fun main() {
                     bucketNameVedlegg = environment.legeerklaringVedleggBucketName,
                     database = applicationDatabase,
                     pdfgenClient = pdfgenClient,
+                )
+
+                launchKafkaTaskIdenthendelse(
+                    applicationState = applicationState,
+                    kafkaEnvironment = environment.kafka,
+                    database = applicationDatabase,
                 )
             }
         }
