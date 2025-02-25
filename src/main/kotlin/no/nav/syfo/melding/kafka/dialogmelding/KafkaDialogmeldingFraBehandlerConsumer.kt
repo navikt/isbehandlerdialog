@@ -65,7 +65,9 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         connection: Connection,
     ) {
         val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef
-        val conversationRefUuid = if (conversationRef.isNullOrBlank()) null else UUID.fromString(conversationRef)
+        val conversationRefUuid = if (conversationRef.isNullOrBlank()) { null } else {
+            try { UUID.fromString(conversationRef) } catch (e: IllegalArgumentException) { null }
+        }
         val utgaendeMelding = findUtgaendeMelding(
             kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
             conversationRef = conversationRefUuid,
