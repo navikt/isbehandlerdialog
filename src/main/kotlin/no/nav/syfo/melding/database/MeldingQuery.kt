@@ -121,11 +121,11 @@ const val queryGetUtgaendeMeldingForTypeAndArbeidstakerident =
 
 fun Connection.getUtgaendeMeldingerWithType(
     meldingType: MeldingType,
-    arbeidstakerPersonIdent: PersonIdent,
+    arbeidstakerPersonIdent: String,
 ): List<PMelding> {
     return this.prepareStatement(queryGetUtgaendeMeldingForTypeAndArbeidstakerident).use {
         it.setString(1, meldingType.name)
-        it.setString(2, arbeidstakerPersonIdent.value)
+        it.setString(2, arbeidstakerPersonIdent)
         it.executeQuery().toList { toPMelding() }
     }
 }
@@ -387,6 +387,28 @@ fun DatabaseInterface.updateMeldingJournalpostId(melding: MeldingTilBehandler, j
             val updated = it.executeUpdate()
             if (updated != 1) {
                 throw SQLException("Expected a single row to be updated, got update count $updated")
+            }
+        }
+        connection.commit()
+    }
+}
+
+const val queryUpdateArbeidstakerPersonident = """
+    UPDATE melding
+    SET arbeidstaker_personident = ?
+    WHERE id = ?
+"""
+
+fun DatabaseInterface.updateArbeidstakerPersonident(meldinger: List<PMelding>, personident: PersonIdent) {
+    connection.use { connection ->
+        connection.prepareStatement(queryUpdateArbeidstakerPersonident).use {
+            meldinger.forEach { melding ->
+                it.setString(1, personident.value)
+                it.setInt(2, melding.id.id)
+                val updated = it.executeUpdate()
+                if (updated != 1) {
+                    throw SQLException("Expected a single row to be updated, got update count $updated")
+                }
             }
         }
         connection.commit()

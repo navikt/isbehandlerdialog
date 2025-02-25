@@ -124,7 +124,7 @@ class KafkaLegeerklaringConsumer(
         vedleggIds: List<String>,
         connection: Connection,
     ) {
-        val arbeidstakerPersonIdent = PersonIdent(legeerklaring.personNrPasient)
+        val arbeidstakerPersonIdent = legeerklaring.personNrPasient
         val utgaaende = connection.getUtgaendeMeldingerWithType(
             meldingType = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
             arbeidstakerPersonIdent = arbeidstakerPersonIdent

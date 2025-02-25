@@ -24,9 +24,7 @@ inline fun <reified Serializer> kafkaAivenProducerConfig(
     }
 }
 
-inline fun <reified Deserializer> kafkaConsumerConfig(
-    kafkaEnvironment: KafkaEnvironment,
-): Properties {
+inline fun <reified Deserializer> kafkaConsumerConfig(kafkaEnvironment: KafkaEnvironment): Properties {
     return Properties().apply {
         putAll(commonKafkaAivenConfig(kafkaEnvironment))
 
