@@ -45,7 +45,7 @@ object IdenthendelseServiceSpek : Spek({
                 val meldingerFraBehandler = database.getMeldingerForArbeidstaker(newIdent)
                 meldingerFraBehandler.size shouldBeEqualTo 1
             }
-            it("Skal ikke oppdatere database når melding allerede har ny iden") {
+            it("Skal ikke oppdatere database når melding allerede har ny ident") {
                 val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO()
                 val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
                 val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()

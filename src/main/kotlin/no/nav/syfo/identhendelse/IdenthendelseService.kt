@@ -23,9 +23,7 @@ class IdenthendelseService(
                 }
 
                 if (meldingerWithOldIdent.isNotEmpty()) {
-                    meldingerWithOldIdent.forEach {
-                        database.updateArbeidstakerPersonident(it, activeIdent)
-                    }
+                    database.updateArbeidstakerPersonident(meldingerWithOldIdent, activeIdent)
                     log.info("Identhendelse: Updated ${meldingerWithOldIdent.size} meldinger based on Identhendelse from PDL")
                 }
             } else {

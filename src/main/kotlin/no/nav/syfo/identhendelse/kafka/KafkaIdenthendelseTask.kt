@@ -26,7 +26,10 @@ fun launchKafkaTaskIdenthendelse(
     launchKafkaTask(
         applicationState = applicationState,
         topic = PDL_AKTOR_TOPIC,
-        consumerProperties = kafkaConsumerConfig<KafkaAvroDeserializer>(kafkaEnvironment = kafkaEnvironment),
+        consumerProperties = kafkaConsumerConfig<KafkaAvroDeserializer>(
+            kafkaEnvironment = kafkaEnvironment,
+            maxPollRecords = "1000",
+        ),
         kafkaConsumerService = kafkaIdenthendelseConsumerService,
     )
 }

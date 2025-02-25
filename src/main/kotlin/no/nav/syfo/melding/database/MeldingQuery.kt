@@ -399,14 +399,16 @@ const val queryUpdateArbeidstakerPersonident = """
     WHERE id = ?
 """
 
-fun DatabaseInterface.updateArbeidstakerPersonident(melding: PMelding, personident: PersonIdent) {
+fun DatabaseInterface.updateArbeidstakerPersonident(meldinger: List<PMelding>, personident: PersonIdent) {
     connection.use { connection ->
         connection.prepareStatement(queryUpdateArbeidstakerPersonident).use {
-            it.setString(1, personident.value)
-            it.setInt(2, melding.id.id)
-            val updated = it.executeUpdate()
-            if (updated != 1) {
-                throw SQLException("Expected a single row to be updated, got update count $updated")
+            meldinger.forEach { melding ->
+                it.setString(1, personident.value)
+                it.setInt(2, melding.id.id)
+                val updated = it.executeUpdate()
+                if (updated != 1) {
+                    throw SQLException("Expected a single row to be updated, got update count $updated")
+                }
             }
         }
         connection.commit()
