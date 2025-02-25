@@ -121,11 +121,11 @@ const val queryGetUtgaendeMeldingForTypeAndArbeidstakerident =
 
 fun Connection.getUtgaendeMeldingerWithType(
     meldingType: MeldingType,
-    arbeidstakerPersonIdent: PersonIdent,
+    arbeidstakerPersonIdent: String,
 ): List<PMelding> {
     return this.prepareStatement(queryGetUtgaendeMeldingForTypeAndArbeidstakerident).use {
         it.setString(1, meldingType.name)
-        it.setString(2, arbeidstakerPersonIdent.value)
+        it.setString(2, arbeidstakerPersonIdent)
         it.executeQuery().toList { toPMelding() }
     }
 }
