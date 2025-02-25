@@ -112,13 +112,19 @@ class KafkaDialogmeldingFraBehandlerConsumer(
         } ?: mutableListOf()
 
         if (utgaaende.isEmpty() && !kafkaDialogmeldingFraBehandler.parentRef.isNullOrBlank()) {
-            val parentRef = UUID.fromString(kafkaDialogmeldingFraBehandler.parentRef)
-            utgaaende.addAll(
-                connection.getUtgaendeMeldingerInConversation(
-                    uuidParam = parentRef,
-                    arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
+            val parentRef = try {
+                UUID.fromString(kafkaDialogmeldingFraBehandler.parentRef)
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+            if (parentRef != null) {
+                utgaaende.addAll(
+                    connection.getUtgaendeMeldingerInConversation(
+                        uuidParam = parentRef,
+                        arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
+                    )
                 )
-            )
+            }
         }
         return utgaaende.firstOrNull()
     }
