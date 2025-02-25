@@ -26,8 +26,6 @@ class IdenthendelseService(
                     database.updateArbeidstakerPersonident(meldingerWithOldIdent, activeIdent)
                     log.info("Identhendelse: Updated ${meldingerWithOldIdent.size} meldinger based on Identhendelse from PDL")
                 }
-            } else {
-                log.warn("Mangler gyldig ident fra identhendelse-topic fra PDL")
             }
         }
     }
