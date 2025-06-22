@@ -14,7 +14,7 @@ val logstashEncoderVersion = "8.1"
 val micrometerRegistryVersion = "1.12.13"
 val mockkVersion = "1.13.17"
 val nimbusJoseJwtVersion = "10.2"
-val postgresVersion = "42.7.5"
+val postgresVersion = "42.7.7"
 val postgresEmbeddedVersion = "2.1.0"
 val spekVersion = "2.0.19"
 
