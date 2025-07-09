@@ -1,6 +1,3 @@
-import jdk.tools.jlink.resources.plugins
-import sun.tools.jar.resources.jar
-
 group = "no.nav.syfo"
 version = "0.0.1"
 
