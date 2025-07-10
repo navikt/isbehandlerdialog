@@ -16,6 +16,7 @@ val mockkVersion = "1.14.4"
 val nimbusJoseJwtVersion = "10.3"
 val postgresVersion = "42.7.7"
 val postgresEmbeddedVersion = "2.1.0"
+val postgresRuntimeVersion = "17.5.0"
 val spekVersion = "2.0.19"
 
 plugins {
@@ -55,6 +56,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     testImplementation("io.zonky.test:embedded-postgres:$postgresEmbeddedVersion")
+    testImplementation(platform("io.zonky.test.postgres:embedded-postgres-binaries-bom:$postgresRuntimeVersion"))
 
     // (De-)serialization
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonDataTypeVersion")
