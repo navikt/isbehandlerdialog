@@ -1,7 +1,7 @@
 group = "no.nav.syfo"
 version = "0.0.1"
 
-val confluent = "7.9.0"
+val confluent = "8.0.0"
 val flywayVersion = "11.10.0"
 val googleCloudStorageVersion = "2.53.2"
 val hikariVersion = "6.3.0"
