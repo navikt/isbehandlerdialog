@@ -1,5 +1,8 @@
 package no.nav.syfo.client.oppfolgingstilfelle
 
+import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfelleDTO
+import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfellePersonDTO
+import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.toLatestOppfolgingstilfelle
 import no.nav.syfo.testhelper.UserConstants
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek

@@ -3,8 +3,8 @@ package no.nav.syfo.testhelper.mock
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.syfo.client.oppfolgingstilfelle.OppfolgingstilfelleDTO
-import no.nav.syfo.client.oppfolgingstilfelle.OppfolgingstilfellePersonDTO
+import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfelleDTO
+import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import java.time.LocalDate

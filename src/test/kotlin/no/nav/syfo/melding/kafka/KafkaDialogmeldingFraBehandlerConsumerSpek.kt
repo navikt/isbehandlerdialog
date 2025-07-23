@@ -2,15 +2,15 @@ package no.nav.syfo.melding.kafka
 
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.oppfolgingstilfelle.OppfolgingstilfelleClient
-import no.nav.syfo.client.padm2.Padm2Client
-import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
-import no.nav.syfo.melding.database.getVedlegg
-import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.domain.MeldingType
-import no.nav.syfo.melding.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
-import no.nav.syfo.melding.kafka.dialogmelding.KafkaDialogmeldingFraBehandlerConsumer
+import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfelleClient
+import no.nav.syfo.infrastructure.client.padm2.Padm2Client
+import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
+import no.nav.syfo.infrastructure.database.getVedlegg
+import no.nav.syfo.infrastructure.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
+import no.nav.syfo.infrastructure.kafka.dialogmelding.KafkaDialogmeldingFraBehandlerConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.createMeldingerTilBehandler

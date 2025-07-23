@@ -1,10 +1,11 @@
 package no.nav.syfo.client.dokarkiv
 
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.dokarkiv.domain.BrevkodeType
-import no.nav.syfo.client.dokarkiv.domain.MeldingTittel
-import no.nav.syfo.client.dokarkiv.domain.OverstyrInnsynsregler
+import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.dokarkiv.DokarkivClient
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrevkodeType
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.MeldingTittel
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.OverstyrInnsynsregler
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.generator.journalpostRequestGenerator
@@ -12,7 +13,7 @@ import no.nav.syfo.testhelper.mock.conflictResponse
 import org.amshove.kluent.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.util.UUID
+import java.util.*
 
 val journalpostRequest = journalpostRequestGenerator(
     pdf = UserConstants.PDF_LEGEERKLARING,

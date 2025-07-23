@@ -2,14 +2,15 @@ package no.nav.syfo.melding.cronjob
 
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
-import no.nav.syfo.melding.domain.MeldingType
-import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
-import no.nav.syfo.melding.kafka.producer.KafkaUbesvartMeldingProducer
-import no.nav.syfo.melding.kafka.producer.PublishUbesvartMeldingService
-import no.nav.syfo.melding.status.database.createMeldingStatus
-import no.nav.syfo.melding.status.domain.MeldingStatus
-import no.nav.syfo.melding.status.domain.MeldingStatusType
+import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.infrastructure.cronjob.UbesvartMeldingCronjob
+import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
+import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
+import no.nav.syfo.infrastructure.kafka.producer.KafkaUbesvartMeldingProducer
+import no.nav.syfo.infrastructure.kafka.producer.PublishUbesvartMeldingService
+import no.nav.syfo.infrastructure.database.createMeldingStatus
+import no.nav.syfo.domain.MeldingStatus
+import no.nav.syfo.domain.MeldingStatusType
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
@@ -239,7 +240,8 @@ class UbesvartMeldingCronjobSpek : Spek({
             }
 
             it("Will publish ubesvart melding when melding is of type legeeklaring and cronjob has run") {
-                val meldingTilBehandler = generateMeldingTilBehandler(personIdent = personIdent, type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
+                val meldingTilBehandler =
+                    generateMeldingTilBehandler(personIdent = personIdent, type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
                 val (_, idList) = database.createMeldingerTilBehandler(
                     meldingTilBehandler = meldingTilBehandler,
                 )

@@ -1,12 +1,12 @@
 package no.nav.syfo.testhelper
 
 import io.ktor.server.application.*
-import no.nav.syfo.application.api.apiModule
-import no.nav.syfo.client.azuread.AzureAdClient
-import no.nav.syfo.client.pdfgen.PdfGenClient
-import no.nav.syfo.client.veiledertilgang.VeilederTilgangskontrollClient
-import no.nav.syfo.melding.MeldingService
-import no.nav.syfo.melding.kafka.producer.DialogmeldingBestillingProducer
+import no.nav.syfo.api.apiModule
+import no.nav.syfo.application.MeldingService
+import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
+import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
+import no.nav.syfo.infrastructure.kafka.producer.DialogmeldingBestillingProducer
 
 fun Application.testApiModule(
     externalMockEnvironment: ExternalMockEnvironment,

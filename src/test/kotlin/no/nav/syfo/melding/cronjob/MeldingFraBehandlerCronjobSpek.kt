@@ -5,10 +5,11 @@ import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
-import no.nav.syfo.melding.database.updateInnkommendePublishedAt
-import no.nav.syfo.melding.kafka.producer.KafkaMeldingFraBehandlerProducer
-import no.nav.syfo.melding.kafka.producer.PublishMeldingFraBehandlerService
+import no.nav.syfo.infrastructure.cronjob.MeldingFraBehandlerCronjob
+import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
+import no.nav.syfo.infrastructure.database.updateInnkommendePublishedAt
+import no.nav.syfo.infrastructure.kafka.producer.KafkaMeldingFraBehandlerProducer
+import no.nav.syfo.infrastructure.kafka.producer.PublishMeldingFraBehandlerService
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.createMeldingerFraBehandler

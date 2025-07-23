@@ -1,8 +1,8 @@
 package no.nav.syfo.testhelper.generator
 
-import no.nav.syfo.melding.status.domain.MeldingStatus
-import no.nav.syfo.melding.status.domain.MeldingStatusType
-import no.nav.syfo.melding.status.kafka.KafkaDialogmeldingStatusDTO
+import no.nav.syfo.domain.MeldingStatus
+import no.nav.syfo.domain.MeldingStatusType
+import no.nav.syfo.infrastructure.kafka.KafkaDialogmeldingStatusDTO
 import java.time.OffsetDateTime
 import java.util.UUID
 
