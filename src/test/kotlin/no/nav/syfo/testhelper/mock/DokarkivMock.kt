@@ -3,8 +3,8 @@ package no.nav.syfo.testhelper.mock
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.syfo.client.dokarkiv.domain.JournalpostRequest
-import no.nav.syfo.client.dokarkiv.domain.JournalpostResponse
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.JournalpostRequest
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.JournalpostResponse
 import no.nav.syfo.testhelper.UserConstants
 
 val response = JournalpostResponse(

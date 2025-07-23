@@ -1,8 +1,8 @@
 package no.nav.syfo.testhelper.generator
 
-import no.nav.syfo.melding.api.PaminnelseRequestDTO
-import no.nav.syfo.melding.domain.DocumentComponentDTO
-import no.nav.syfo.melding.domain.DocumentComponentType
+import no.nav.syfo.api.models.PaminnelseRequestDTO
+import no.nav.syfo.domain.DocumentComponentDTO
+import no.nav.syfo.domain.DocumentComponentType
 
 fun generatePaminnelseRequestDTO(): PaminnelseRequestDTO = PaminnelseRequestDTO(
     document = listOf(

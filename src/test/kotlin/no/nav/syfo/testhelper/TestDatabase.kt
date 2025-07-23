@@ -1,15 +1,17 @@
 package no.nav.syfo.testhelper
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
-import no.nav.syfo.application.database.DatabaseInterface
-import no.nav.syfo.application.database.toList
-import no.nav.syfo.melding.database.*
-import no.nav.syfo.melding.database.domain.PMelding
-import no.nav.syfo.melding.database.domain.PPdf
-import no.nav.syfo.melding.domain.MeldingFraBehandler
-import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.status.database.PMeldingStatus
-import no.nav.syfo.melding.status.database.toPMeldingStatus
+import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.toList
+import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
+import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
+import no.nav.syfo.infrastructure.database.domain.PMelding
+import no.nav.syfo.infrastructure.database.domain.PPdf
+import no.nav.syfo.infrastructure.database.toPPdf
+import no.nav.syfo.domain.MeldingFraBehandler
+import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.infrastructure.database.PMeldingStatus
+import no.nav.syfo.infrastructure.database.toPMeldingStatus
 import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.sql.SQLException

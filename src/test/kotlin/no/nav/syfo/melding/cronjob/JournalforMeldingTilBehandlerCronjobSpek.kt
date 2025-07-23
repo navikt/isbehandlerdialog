@@ -4,18 +4,19 @@ import io.mockk.coEvery
 import io.mockk.coVerifyAll
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.application.cronjob.CronjobResult
-import no.nav.syfo.client.dokarkiv.DokarkivClient
-import no.nav.syfo.client.dokarkiv.domain.BrevkodeType
-import no.nav.syfo.client.dokarkiv.domain.JournalpostResponse
-import no.nav.syfo.client.dokarkiv.domain.MeldingTittel
-import no.nav.syfo.client.dokarkiv.domain.OverstyrInnsynsregler
-import no.nav.syfo.melding.JournalforMeldingTilBehandlerService
-import no.nav.syfo.melding.database.createMeldingTilBehandler
-import no.nav.syfo.melding.database.createPdf
-import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
-import no.nav.syfo.melding.domain.MeldingTilBehandler
-import no.nav.syfo.melding.domain.MeldingType
+import no.nav.syfo.application.JournalforMeldingTilBehandlerService
+import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.infrastructure.client.dokarkiv.DokarkivClient
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrevkodeType
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.JournalpostResponse
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.MeldingTittel
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.OverstyrInnsynsregler
+import no.nav.syfo.infrastructure.cronjob.CronjobResult
+import no.nav.syfo.infrastructure.cronjob.JournalforMeldingTilBehandlerCronjob
+import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
+import no.nav.syfo.infrastructure.database.createPdf
+import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.dropData
@@ -69,10 +70,9 @@ class JournalforDialogmeldingCronjobSpek : Spek({
                 overstyrInnsynsregler = OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT.value,
                 eksternReferanseId = meldingTilBehandlerTilleggsopplysninger.uuid.toString(),
             )
-            val expectedJournalpostRequestMeldingTilBehandlerLegeerklaring = expectedJournalpostRequestMeldingTilBehandlerTilleggsopplysninger
-                .copy(
-                    eksternReferanseId = meldingTilBehandlerLegeerklaring.uuid.toString()
-                )
+            val expectedJournalpostRequestMeldingTilBehandlerLegeerklaring =
+                expectedJournalpostRequestMeldingTilBehandlerTilleggsopplysninger
+                    .copy(eksternReferanseId = meldingTilBehandlerLegeerklaring.uuid.toString())
             val expectedJournalpostRequestPaminnelse = journalpostRequestGenerator(
                 pdf = pdf,
                 brevkodeType = BrevkodeType.FORESPORSEL_OM_PASIENT_PAMINNELSE,

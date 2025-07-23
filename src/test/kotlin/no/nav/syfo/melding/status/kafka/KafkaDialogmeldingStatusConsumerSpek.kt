@@ -2,11 +2,13 @@ package no.nav.syfo.melding.status.kafka
 
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.syfo.melding.MeldingService
-import no.nav.syfo.melding.database.createMeldingTilBehandler
-import no.nav.syfo.melding.status.database.createMeldingStatus
-import no.nav.syfo.melding.status.domain.MeldingStatus
-import no.nav.syfo.melding.status.domain.MeldingStatusType
+import no.nav.syfo.application.MeldingService
+import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
+import no.nav.syfo.infrastructure.database.createMeldingStatus
+import no.nav.syfo.domain.MeldingStatus
+import no.nav.syfo.domain.MeldingStatusType
+import no.nav.syfo.infrastructure.kafka.DIALOGMELDING_STATUS_TOPIC
+import no.nav.syfo.infrastructure.kafka.KafkaDialogmeldingStatusConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler

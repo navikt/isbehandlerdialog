@@ -1,6 +1,9 @@
 package no.nav.syfo.melding.domain
 
-import no.nav.syfo.client.pdfgen.sanitizeForPdfGen
+import no.nav.syfo.domain.DocumentComponentDTO
+import no.nav.syfo.domain.DocumentComponentType
+import no.nav.syfo.domain.serialize
+import no.nav.syfo.infrastructure.client.pdfgen.sanitizeForPdfGen
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe

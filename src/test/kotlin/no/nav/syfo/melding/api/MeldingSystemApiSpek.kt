@@ -3,6 +3,7 @@ package no.nav.syfo.melding.api
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import no.nav.syfo.api.endpoints.meldingerSystemApiBasePath
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import org.amshove.kluent.shouldBeEqualTo

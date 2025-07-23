@@ -1,6 +1,14 @@
 package no.nav.syfo.testhelper.generator
 
-import no.nav.syfo.client.dokarkiv.domain.*
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.AvsenderMottaker
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrevkodeType
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.Bruker
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrukerIdType
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.Dokument
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.Dokumentvariant
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.FiltypeType
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.JournalpostRequest
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.VariantformatType
 import no.nav.syfo.testhelper.UserConstants
 
 fun journalpostRequestGenerator(

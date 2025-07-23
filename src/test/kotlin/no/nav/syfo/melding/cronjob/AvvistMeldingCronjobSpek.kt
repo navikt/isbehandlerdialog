@@ -2,14 +2,15 @@ package no.nav.syfo.melding.cronjob
 
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.syfo.melding.database.createMeldingTilBehandler
-import no.nav.syfo.melding.database.domain.PMelding
-import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
-import no.nav.syfo.melding.kafka.domain.KafkaMeldingDTO
-import no.nav.syfo.melding.kafka.producer.AvvistMeldingProducer
-import no.nav.syfo.melding.kafka.producer.PublishAvvistMeldingService
-import no.nav.syfo.melding.status.database.createMeldingStatus
-import no.nav.syfo.melding.status.domain.MeldingStatusType
+import no.nav.syfo.infrastructure.cronjob.AvvistMeldingCronjob
+import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
+import no.nav.syfo.infrastructure.database.domain.PMelding
+import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
+import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
+import no.nav.syfo.infrastructure.kafka.producer.AvvistMeldingProducer
+import no.nav.syfo.infrastructure.kafka.producer.PublishAvvistMeldingService
+import no.nav.syfo.infrastructure.database.createMeldingStatus
+import no.nav.syfo.domain.MeldingStatusType
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.dropData

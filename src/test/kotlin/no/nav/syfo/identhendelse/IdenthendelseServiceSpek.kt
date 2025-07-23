@@ -1,7 +1,8 @@
 package no.nav.syfo.identhendelse
 
-import no.nav.syfo.melding.database.createMeldingFraBehandler
-import no.nav.syfo.melding.database.getMeldingerForArbeidstaker
+import no.nav.syfo.application.IdenthendelseService
+import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
+import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.generateKafkaIdenthendelseDTO

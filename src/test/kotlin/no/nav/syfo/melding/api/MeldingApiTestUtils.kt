@@ -7,7 +7,7 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import io.mockk.mockk
-import no.nav.syfo.melding.kafka.producer.DialogmeldingBestillingProducer
+import no.nav.syfo.infrastructure.kafka.producer.DialogmeldingBestillingProducer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.testApiModule
