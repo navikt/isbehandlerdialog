@@ -30,7 +30,7 @@ class KafkaLegeerklaringConsumer(
     override val pollDurationInMillis: Long = 1000
     private val mapper = configuredJacksonMapper()
 
-    override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KafkaLegeerklaeringMessage>) {
+    override suspend fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KafkaLegeerklaeringMessage>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
             processRecords(

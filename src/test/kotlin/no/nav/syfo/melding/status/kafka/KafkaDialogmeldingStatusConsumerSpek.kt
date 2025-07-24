@@ -1,12 +1,11 @@
 package no.nav.syfo.melding.status.kafka
 
-import io.mockk.mockk
 import io.mockk.verify
-import no.nav.syfo.application.MeldingService
-import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
-import no.nav.syfo.infrastructure.database.createMeldingStatus
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.MeldingStatusType
+import no.nav.syfo.infrastructure.database.createMeldingStatus
+import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.kafka.DIALOGMELDING_STATUS_TOPIC
 import no.nav.syfo.infrastructure.kafka.KafkaDialogmeldingStatusConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
@@ -26,11 +25,8 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
     val database = externalMockEnvironment.database
     val kafkaDialogmeldingStatusConsumer = KafkaDialogmeldingStatusConsumer(
         database = database,
-        meldingService = MeldingService(
-            database = externalMockEnvironment.database,
-            dialogmeldingBestillingProducer = mockk(),
-            pdfgenClient = mockk(),
-        )
+        meldingRepository = externalMockEnvironment.meldingRepository,
+        meldingService = externalMockEnvironment.meldingService,
     )
 
     afterEachTest {
@@ -45,7 +41,7 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
             )
             val mockConsumer = mockKafkaConsumer(kafkaDialogmeldingStatusDTO, DIALOGMELDING_STATUS_TOPIC)
 
-            kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
+            runBlocking { kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer) }
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
@@ -62,7 +58,7 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
             )
             val mockConsumer = mockKafkaConsumer(kafkaDialogmeldingStatusDTO, DIALOGMELDING_STATUS_TOPIC)
 
-            kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
+            runBlocking { kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer) }
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
@@ -79,7 +75,7 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
             )
             val mockConsumer = mockKafkaConsumer(kafkaDialogmeldingStatusDTO, DIALOGMELDING_STATUS_TOPIC)
 
-            kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
+            runBlocking { kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer) }
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
@@ -107,7 +103,7 @@ class KafkaDialogmeldingStatusConsumerSpek : Spek({
             )
             val mockConsumer = mockKafkaConsumer(kafkaDialogmeldingStatusDTO, DIALOGMELDING_STATUS_TOPIC)
 
-            kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
+            runBlocking { kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer) }
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 

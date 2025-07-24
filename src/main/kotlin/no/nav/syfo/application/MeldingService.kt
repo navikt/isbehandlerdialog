@@ -2,34 +2,19 @@ package no.nav.syfo.application
 
 import no.nav.syfo.api.models.MeldingDTO
 import no.nav.syfo.api.models.MeldingTilBehandlerRequestDTO
-import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.domain.DocumentComponentDTO
-import no.nav.syfo.domain.MeldingFraBehandler
-import no.nav.syfo.domain.MeldingTilBehandler
-import no.nav.syfo.domain.MeldingType
-import no.nav.syfo.domain.PdfContent
-import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.domain.toMeldingDTO
+import no.nav.syfo.domain.*
 import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
-import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
-import no.nav.syfo.infrastructure.database.createPdf
+import no.nav.syfo.infrastructure.database.*
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.toMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.domain.toMeldingTilBehandler
-import no.nav.syfo.infrastructure.database.getMelding
-import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
-import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
-import no.nav.syfo.infrastructure.database.getVedlegg
-import no.nav.syfo.infrastructure.database.hasMelding
 import no.nav.syfo.infrastructure.kafka.producer.DialogmeldingBestillingProducer
-import no.nav.syfo.infrastructure.database.getMeldingStatus
-import no.nav.syfo.infrastructure.database.toMeldingStatus
-import no.nav.syfo.domain.MeldingStatus
 import java.sql.Connection
 import java.util.*
 
 class MeldingService(
     private val database: DatabaseInterface,
+    private val meldingRepository: IMeldingRepository,
     private val dialogmeldingBestillingProducer: DialogmeldingBestillingProducer,
     private val pdfgenClient: PdfGenClient,
 ) {
@@ -98,8 +83,8 @@ class MeldingService(
         return behandlerRef
     }
 
-    fun getArbeidstakerPersonIdentForMelding(meldingUuid: UUID): PersonIdent {
-        val pMelding = database.getMelding(meldingUuid) ?: throw IllegalArgumentException("Melding not found")
+    suspend fun getArbeidstakerPersonIdentForMelding(meldingUuid: UUID): PersonIdent {
+        val pMelding = meldingRepository.getMelding(meldingUuid) ?: throw IllegalArgumentException("Melding not found")
         return PersonIdent(pMelding.arbeidstakerPersonIdent)
     }
 
@@ -110,12 +95,12 @@ class MeldingService(
 
     internal fun hasMelding(msgId: String): Boolean = database.hasMelding(msgId = msgId)
 
-    private fun getMeldingTilBehandler(meldingUuid: UUID): MeldingTilBehandler? {
-        return database.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
+    private suspend fun getMeldingTilBehandler(meldingUuid: UUID): MeldingTilBehandler? {
+        return meldingRepository.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
     }
 
-    private fun getMeldingFraBehandler(meldingUuid: UUID): MeldingFraBehandler? {
-        return database.getMelding(meldingUuid)?.takeUnless { !it.innkommende }?.toMeldingFraBehandler()
+    private suspend fun getMeldingFraBehandler(meldingUuid: UUID): MeldingFraBehandler? {
+        return meldingRepository.getMelding(meldingUuid)?.takeUnless { !it.innkommende }?.toMeldingFraBehandler()
     }
 
     private fun getUtgaendeMeldingerInConversation(

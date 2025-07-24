@@ -1,26 +1,27 @@
 package no.nav.syfo.infrastructure.kafka
 
-import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.kafka.config.KafkaConsumerService
 import no.nav.syfo.application.MeldingService
+import no.nav.syfo.domain.MeldingStatusType
+import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.createMeldingStatus
 import no.nav.syfo.infrastructure.database.domain.PMelding
-import no.nav.syfo.infrastructure.database.getMelding
+import no.nav.syfo.infrastructure.database.repository.MeldingRepository
 import no.nav.syfo.infrastructure.database.updateMeldingStatus
-import no.nav.syfo.domain.MeldingStatusType
+import no.nav.syfo.infrastructure.kafka.config.KafkaConsumerService
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.time.Duration
-import java.util.UUID
+import java.util.*
 
 class KafkaDialogmeldingStatusConsumer(
     private val database: DatabaseInterface,
+    private val meldingRepository: MeldingRepository,
     private val meldingService: MeldingService,
 ) : KafkaConsumerService<KafkaDialogmeldingStatusDTO> {
     override val pollDurationInMillis: Long = 1000
-    override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KafkaDialogmeldingStatusDTO>) {
+    override suspend fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KafkaDialogmeldingStatusDTO>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
             processRecords(
@@ -30,7 +31,7 @@ class KafkaDialogmeldingStatusConsumer(
         }
     }
 
-    private fun processRecords(consumerRecords: ConsumerRecords<String, KafkaDialogmeldingStatusDTO>) {
+    private suspend fun processRecords(consumerRecords: ConsumerRecords<String, KafkaDialogmeldingStatusDTO>) {
         database.connection.use { connection ->
             consumerRecords.forEach {
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_STATUS_READ.increment()
@@ -49,12 +50,12 @@ class KafkaDialogmeldingStatusConsumer(
         }
     }
 
-    private fun processDialogmeldingStatus(
+    private suspend fun processDialogmeldingStatus(
         kafkaDialogmeldingStatus: KafkaDialogmeldingStatusDTO,
         connection: Connection,
     ) {
         val meldingUuid = UUID.fromString(kafkaDialogmeldingStatus.bestillingUuid)
-        val meldingId = database.getMelding(uuid = meldingUuid)?.id
+        val meldingId = meldingRepository.getMelding(uuid = meldingUuid)?.id
         if (meldingId != null) {
             log.info("Received KafkaDialogmeldingStatusDTO for known melding: meldingUuid $meldingUuid")
             createOrUpdateMeldingStatus(

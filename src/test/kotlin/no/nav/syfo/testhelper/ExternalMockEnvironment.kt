@@ -1,7 +1,10 @@
 package no.nav.syfo.testhelper
 
+import io.mockk.mockk
 import no.nav.syfo.ApplicationState
+import no.nav.syfo.application.MeldingService
 import no.nav.syfo.infrastructure.client.wellknown.WellKnown
+import no.nav.syfo.infrastructure.database.repository.MeldingRepository
 import no.nav.syfo.testhelper.mock.mockHttpClient
 import java.nio.file.Paths
 
@@ -23,6 +26,15 @@ class ExternalMockEnvironment private constructor() {
     val mockHttpClient = mockHttpClient(environment = environment)
 
     val wellKnownInternalAzureAD = wellKnownInternalAzureAD()
+
+    val meldingRepository = MeldingRepository(database = database)
+
+    val meldingService = MeldingService(
+        database = database,
+        meldingRepository = MeldingRepository(database),
+        dialogmeldingBestillingProducer = mockk(),
+        pdfgenClient = mockk(),
+    )
 
     companion object {
         val instance: ExternalMockEnvironment = ExternalMockEnvironment()

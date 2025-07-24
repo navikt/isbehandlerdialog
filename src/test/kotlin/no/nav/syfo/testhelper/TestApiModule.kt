@@ -35,6 +35,7 @@ fun Application.testApiModule(
         veilederTilgangskontrollClient = veilederTilgangskontrollClient,
         meldingService = MeldingService(
             database = externalMockEnvironment.database,
+            meldingRepository = externalMockEnvironment.meldingRepository,
             dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
             pdfgenClient = pdfgenClient,
         )

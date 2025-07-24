@@ -16,6 +16,7 @@ import no.nav.syfo.infrastructure.client.wellknown.getWellKnown
 import no.nav.syfo.infrastructure.cronjob.cronjobModule
 import no.nav.syfo.infrastructure.database.applicationDatabase
 import no.nav.syfo.infrastructure.database.databaseModule
+import no.nav.syfo.infrastructure.database.repository.MeldingRepository
 import no.nav.syfo.infrastructure.kafka.config.KafkaBehandlerDialogmeldingSerializer
 import no.nav.syfo.infrastructure.kafka.config.kafkaAivenProducerConfig
 import no.nav.syfo.infrastructure.kafka.dialogmelding.launchKafkaTaskDialogmeldingFraBehandler
@@ -62,6 +63,7 @@ fun main() {
         pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,
         legeerklaringPdfGenBaseUrl = environment.clients.legeerklaringpdfgen.baseUrl,
     )
+    val meldingRepository = MeldingRepository(database = applicationDatabase)
     lateinit var meldingService: MeldingService
 
     val applicationEngineEnvironment = applicationEnvironment {
@@ -85,6 +87,7 @@ fun main() {
             )
             meldingService = MeldingService(
                 database = applicationDatabase,
+                meldingRepository = meldingRepository,
                 pdfgenClient = pdfgenClient,
                 dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
             )
@@ -119,6 +122,7 @@ fun main() {
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
                     database = applicationDatabase,
+                    meldingRepository = meldingRepository,
                     meldingService = meldingService,
                 )
 

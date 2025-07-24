@@ -14,7 +14,7 @@ class IdenthendelseConsumerService(
 ) : KafkaConsumerService<GenericRecord> {
     override val pollDurationInMillis: Long = 1000
 
-    override fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, GenericRecord>) {
+    override suspend fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, GenericRecord>) {
         val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
             records.forEach { record ->
