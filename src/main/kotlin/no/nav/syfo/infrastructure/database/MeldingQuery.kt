@@ -34,22 +34,6 @@ fun DatabaseInterface.getMeldingerForArbeidstaker(
     }
 }
 
-const val queryGetMeldingForUuid =
-    """
-        SELECT *
-        FROM MELDING
-        WHERE uuid = ?
-    """
-
-fun DatabaseInterface.getMelding(uuid: UUID): PMelding? {
-    return this.connection.use { connection ->
-        connection.prepareStatement(queryGetMeldingForUuid).use {
-            it.setString(1, uuid.toString())
-            it.executeQuery().toList { toPMelding() }.firstOrNull()
-        }
-    }
-}
-
 const val queryGetMeldingForMsgId =
     """
         SELECT *
@@ -258,7 +242,7 @@ fun DatabaseInterface.updateUbesvartPublishedAt(uuid: UUID) {
 
 const val queryCreateMelding =
     """
-        INSERT INTO MELDING ( 
+        INSERT INTO MELDING (
             id,
             uuid,
             created_at,
@@ -363,8 +347,8 @@ const val queryGetMeldingerTilBehandlerWithoutJournalpostId = """
     SELECT m.*, p.pdf as pdf
     FROM melding m
     INNER JOIN pdf p on m.id = p.melding_id
-    WHERE m.journalpost_id IS NULL 
-    AND m.innkommende = false 
+    WHERE m.journalpost_id IS NULL
+    AND m.innkommende = false
 """
 
 fun DatabaseInterface.getIkkeJournalforteMeldingerTilBehandler(): List<Pair<PMelding, ByteArray>> {
