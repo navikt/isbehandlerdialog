@@ -1,3 +1,5 @@
+import com.adarshr.gradle.testlogger.theme.ThemeType
+
 group = "no.nav.syfo"
 version = "0.0.1"
 
@@ -23,6 +25,7 @@ plugins {
     kotlin("jvm") version "2.2.0"
     id("com.gradleup.shadow") version "8.3.7"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
+    id("com.adarshr.test-logger") version "4.0.0"
 }
 
 repositories {
@@ -99,6 +102,7 @@ dependencies {
     testImplementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
     testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:$spekVersion")
+    testImplementation(kotlin("test"))
 }
 
 kotlin {
@@ -110,7 +114,7 @@ tasks {
         manifest.attributes["Main-Class"] = "no.nav.syfo.AppKt"
     }
 
-    create("printVersion") {
+    register("printVersion") {
         doLast {
             println(project.version)
         }
@@ -125,8 +129,12 @@ tasks {
 
     test {
         useJUnitPlatform {
-            includeEngines("spek2")
+            includeEngines("spek2", "junit-jupiter")
         }
-        testLogging.showStandardStreams = true
+        testlogger {
+            theme = ThemeType.STANDARD_PARALLEL
+            showFullStackTraces = true
+            showPassed = false
+        }
     }
 }

@@ -82,7 +82,7 @@ class MeldingApiGetSpek : Spek({
                         conversation.size shouldBeEqualTo 4
                         conversation.all { it.status == null } shouldBeEqualTo true
                         val firstMeldingDTO = conversation.first()
-                        firstMeldingDTO.tekst shouldBeEqualTo "${defaultMeldingTilBehandler.tekst}1"
+                        firstMeldingDTO.tekst shouldBeEqualTo defaultMeldingTilBehandler.tekst
                         firstMeldingDTO.document shouldBeEqualTo defaultMeldingTilBehandler.document
                         firstMeldingDTO.type shouldBeEqualTo MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER
                         firstMeldingDTO.conversationRef shouldBeEqualTo firstConversation
