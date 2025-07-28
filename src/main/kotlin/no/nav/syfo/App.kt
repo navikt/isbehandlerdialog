@@ -63,8 +63,9 @@ fun main() {
         pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,
         legeerklaringPdfGenBaseUrl = environment.clients.legeerklaringpdfgen.baseUrl,
     )
-    val meldingRepository = MeldingRepository(database = applicationDatabase)
+
     lateinit var meldingService: MeldingService
+    lateinit var meldingRepository: MeldingRepository
 
     val applicationEngineEnvironment = applicationEnvironment {
         log = logger
@@ -85,6 +86,7 @@ fun main() {
             databaseModule(
                 databaseEnvironment = environment.database,
             )
+            meldingRepository = MeldingRepository(database = applicationDatabase)
             meldingService = MeldingService(
                 database = applicationDatabase,
                 meldingRepository = meldingRepository,
