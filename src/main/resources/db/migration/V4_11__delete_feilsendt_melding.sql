@@ -1,0 +1,3 @@
+DELETE
+FROM melding
+WHERE uuid = '9e832b75-a0a1-4c64-a641-402d0a2d371c';
