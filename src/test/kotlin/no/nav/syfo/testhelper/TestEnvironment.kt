@@ -58,7 +58,11 @@ fun testEnvironment() = Environment(
         dokarkiv = ClientEnvironment(
             baseUrl = "dokarkivUrl",
             clientId = "dev-fss.teamdokumenthandtering.dokarkiv-q1"
-        )
+        ),
+        dialogmelding = ClientEnvironment(
+            baseUrl = "dialogmeldingUrl",
+            clientId = "dev-gcp.teamsykefravr.isdialogmelding",
+        ),
     ),
     isJournalforingRetryEnabled = true,
     electorPath = "electorPath",

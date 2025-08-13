@@ -7,6 +7,8 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.JournalforMeldingTilBehandlerService
 import no.nav.syfo.domain.MeldingTilBehandler
 import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.dialogmelding.DialogmeldingClient
 import no.nav.syfo.infrastructure.client.dokarkiv.DokarkivClient
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrevkodeType
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.JournalpostResponse
@@ -24,6 +26,7 @@ import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generatePaminnelseRequestDTO
 import no.nav.syfo.testhelper.generator.journalpostRequestGenerator
+import no.nav.syfo.testhelper.mock.mockHttpClient
 import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -35,8 +38,18 @@ class JournalforDialogmeldingCronjobSpek : Spek({
     val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
         database = database,
     )
+    val mockHttpClient = mockHttpClient(ExternalMockEnvironment.instance.environment)
+    val dialogmeldingClient = DialogmeldingClient(
+        azureAdClient = AzureAdClient(
+            azureEnvironment = ExternalMockEnvironment.instance.environment.azure,
+            httpClient = mockHttpClient,
+        ),
+        clientEnvironment = ExternalMockEnvironment.instance.environment.clients.dialogmelding,
+        client = mockHttpClient,
+    )
     val journalforDialogmeldingCronjob = JournalforMeldingTilBehandlerCronjob(
         dokarkivClient = dokarkivClient,
+        dialogmeldingClient = dialogmeldingClient,
         journalforMeldingTilBehandlerService = journalforMeldingTilBehandlerService,
         isJournalforingRetryEnabled = ExternalMockEnvironment.instance.environment.isJournalforingRetryEnabled,
     )

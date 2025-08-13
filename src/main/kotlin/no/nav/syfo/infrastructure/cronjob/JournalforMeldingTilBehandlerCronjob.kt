@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.cronjob
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.JournalforMeldingTilBehandlerService
 import no.nav.syfo.domain.toJournalpostRequest
+import no.nav.syfo.infrastructure.client.dialogmelding.DialogmeldingClient
 import no.nav.syfo.infrastructure.client.dokarkiv.DokarkivClient
 import org.slf4j.LoggerFactory
 
@@ -10,6 +11,7 @@ class JournalforMeldingTilBehandlerCronjob(
     private val dokarkivClient: DokarkivClient,
     private val journalforMeldingTilBehandlerService: JournalforMeldingTilBehandlerService,
     private val isJournalforingRetryEnabled: Boolean,
+    private val dialogmeldingClient: DialogmeldingClient,
 ) : Cronjob {
     override val initialDelayMinutes: Long = 2
     override val intervalDelayMinutes: Long = 10
@@ -30,7 +32,11 @@ class JournalforMeldingTilBehandlerCronjob(
 
         ikkeJournalforteMeldingerTilBehandler.forEach { (meldingTilBehandler, pdf) ->
             try {
-                val journalpostRequest = meldingTilBehandler.toJournalpostRequest(pdf = pdf)
+                val behandlerDTO = dialogmeldingClient.getBehandler(meldingTilBehandler.behandlerRef)
+                val journalpostRequest = meldingTilBehandler.toJournalpostRequest(
+                    behandlerHprId = behandlerDTO?.hprId,
+                    pdf = pdf,
+                )
 
                 val journalpostId = try {
                     dokarkivClient.journalfor(
@@ -55,6 +61,7 @@ class JournalforMeldingTilBehandlerCronjob(
                     )
                     journalforingResult.updated++
                 } ?: throw RuntimeException("Failed to Journalfor dialogmelding: response missing JournalpostId")
+                log.info("Journalfort dialogmelding ${meldingTilBehandler.uuid} til behandler: ${meldingTilBehandler.behandlerRef} med hprId: ${behandlerDTO?.hprId != null}")
             } catch (e: Exception) {
                 log.error("Exception caught while attempting Journalforing of dialogmelding", e)
                 journalforingResult.failed++

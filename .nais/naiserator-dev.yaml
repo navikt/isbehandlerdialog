@@ -49,6 +49,7 @@ spec:
         - host: "dokarkiv.dev-fss-pub.nais.io"
       rules:
         - application: ispdfgen
+        - application: isdialogmelding
         - application: padm2
         - application: istilgangskontroll
         - application: isoppfolgingstilfelle
@@ -95,6 +96,10 @@ spec:
       value: "dev-gcp.teamsykefravr.istilgangskontroll"
     - name: ISTILGANGSKONTROLL_URL
       value: "http://istilgangskontroll"
+    - name: DIALOGMELDING_URL
+      value: "http://isdialogmelding"
+    - name: DIALOGMELDING_CLIENT_ID
+      value: "dev-gcp.teamsykefravr.isdialogmelding"
     - name: DOKARKIV_CLIENT_ID
       value: "dev-fss.teamdokumenthandtering.dokarkiv-q1"
     - name: DOKARKIV_URL

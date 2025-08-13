@@ -25,6 +25,7 @@ object UserConstants {
 
     val BEHANDLER_PERSONIDENT = PersonIdent("12125678911")
     val BEHANDLER_NAVN = "Anne Legesen"
+    val BEHANDLER_REF = UUID.randomUUID().toString()
     val PARTNERID = PartnerId(321)
     const val HERID = 404
     const val HPRID = 1337
