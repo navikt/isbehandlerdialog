@@ -5,6 +5,7 @@ import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
 import no.nav.syfo.application.JournalforMeldingTilBehandlerService
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
+import no.nav.syfo.infrastructure.client.dialogmelding.DialogmeldingClient
 import no.nav.syfo.infrastructure.client.dokarkiv.DokarkivClient
 import no.nav.syfo.infrastructure.client.leaderelection.LeaderPodClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
@@ -35,12 +36,18 @@ fun Application.cronjobModule(
         clientEnvironment = environment.clients.dokarkiv,
     )
 
+    val dialogmeldingClient = DialogmeldingClient(
+        azureAdClient = azureAdClient,
+        clientEnvironment = environment.clients.dialogmelding,
+    )
+
     val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
         database = database,
     )
 
     val journalforMeldingTilBehandlerCronjob = JournalforMeldingTilBehandlerCronjob(
         dokarkivClient = dokarkivClient,
+        dialogmeldingClient = dialogmeldingClient,
         journalforMeldingTilBehandlerService = journalforMeldingTilBehandlerService,
         isJournalforingRetryEnabled = environment.isJournalforingRetryEnabled,
     )

@@ -195,31 +195,37 @@ private fun MeldingTilBehandler.kanHaPaminnelse(): Boolean = when (this.type) {
     MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_MELDING_FRA_NAV, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> false
 }
 
-fun MeldingTilBehandler.toJournalpostRequest(pdf: ByteArray) =
-    JournalpostRequest(
-        avsenderMottaker = createAvsenderMottaker(behandlerPersonIdent, behandlerNavn),
-        tittel = this.createTittel(),
-        bruker = Bruker.create(
-            id = arbeidstakerPersonIdent.value,
-            idType = BrukerIdType.PERSON_IDENT,
-        ),
-        dokumenter = listOf(
-            Dokument.create(
-                brevkode = this.getBrevKode(),
-                tittel = this.createTittel(),
-                dokumentvarianter = listOf(
-                    Dokumentvariant.create(
-                        filnavn = this.createTittel(),
-                        filtype = FiltypeType.PDFA,
-                        fysiskDokument = pdf,
-                        variantformat = VariantformatType.ARKIV,
-                    )
-                ),
-            )
-        ),
-        overstyrInnsynsregler = this.createOverstyrInnsynsregler(),
-        eksternReferanseId = uuid.toString(),
-    )
+fun MeldingTilBehandler.toJournalpostRequest(
+    behandlerHprId: Int?,
+    pdf: ByteArray,
+) = JournalpostRequest(
+    avsenderMottaker = createAvsenderMottaker(
+        behandlerPersonIdent = behandlerPersonIdent,
+        behandlerHprId = behandlerHprId,
+        behandlerNavn = behandlerNavn
+    ),
+    tittel = this.createTittel(),
+    bruker = Bruker.create(
+        id = arbeidstakerPersonIdent.value,
+        idType = BrukerIdType.PERSON_IDENT,
+    ),
+    dokumenter = listOf(
+        Dokument.create(
+            brevkode = this.getBrevKode(),
+            tittel = this.createTittel(),
+            dokumentvarianter = listOf(
+                Dokumentvariant.create(
+                    filnavn = this.createTittel(),
+                    filtype = FiltypeType.PDFA,
+                    fysiskDokument = pdf,
+                    variantformat = VariantformatType.ARKIV,
+                )
+            ),
+        )
+    ),
+    overstyrInnsynsregler = this.createOverstyrInnsynsregler(),
+    eksternReferanseId = uuid.toString(),
+)
 
 fun MeldingTilBehandler.createTittel(): String {
     return when (this.type) {
@@ -250,9 +256,16 @@ fun MeldingTilBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(
 
 fun createAvsenderMottaker(
     behandlerPersonIdent: PersonIdent?,
+    behandlerHprId: Int?,
     behandlerNavn: String?,
 ): AvsenderMottaker {
-    return if (behandlerPersonIdent == null) {
+    return if (behandlerHprId != null) {
+        AvsenderMottaker.create(
+            id = hprNrWithNineDigits(behandlerHprId),
+            idType = BrukerIdType.HPRNR,
+            navn = behandlerNavn,
+        )
+    } else if (behandlerPersonIdent == null) {
         AvsenderMottaker.create(
             id = null,
             idType = null,
@@ -265,4 +278,8 @@ fun createAvsenderMottaker(
             navn = behandlerNavn,
         )
     }
+}
+
+fun hprNrWithNineDigits(hprnummer: Int): String {
+    return hprnummer.toString().padStart(9, '0')
 }

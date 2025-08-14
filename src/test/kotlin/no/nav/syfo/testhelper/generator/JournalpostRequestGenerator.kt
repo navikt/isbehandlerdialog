@@ -1,5 +1,6 @@
 package no.nav.syfo.testhelper.generator
 
+import no.nav.syfo.domain.hprNrWithNineDigits
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.AvsenderMottaker
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrevkodeType
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.Bruker
@@ -19,8 +20,8 @@ fun journalpostRequestGenerator(
     overstyrInnsynsregler: String?,
 ) = JournalpostRequest(
     avsenderMottaker = AvsenderMottaker.create(
-        id = UserConstants.BEHANDLER_PERSONIDENT.value,
-        idType = BrukerIdType.PERSON_IDENT,
+        id = hprNrWithNineDigits(UserConstants.HPRID),
+        idType = BrukerIdType.HPRNR,
         navn = UserConstants.BEHANDLER_NAVN,
     ),
     bruker = Bruker.create(UserConstants.ARBEIDSTAKER_PERSONIDENT.value, BrukerIdType.PERSON_IDENT),

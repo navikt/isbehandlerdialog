@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.client.dokarkiv.domain
 enum class BrukerIdType(
     val value: String,
 ) {
+    HPRNR("HPRNR"),
     PERSON_IDENT("FNR"),
     VIRKSOMHETSNUMMER("ORGNR"),
 }

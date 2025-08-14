@@ -59,6 +59,10 @@ data class Environment(
             baseUrl = getEnvVar("ISOPPFOLGINGSTILFELLE_URL"),
             clientId = getEnvVar("ISOPPFOLGINGSTILFELLE_CLIENT_ID"),
         ),
+        dialogmelding = ClientEnvironment(
+            baseUrl = getEnvVar("DIALOGMELDING_URL"),
+            clientId = getEnvVar("DIALOGMELDING_CLIENT_ID"),
+        ),
     ),
     val isJournalforingRetryEnabled: Boolean = getEnvVar("JOURNALFORING_RETRY_ENABLED").toBoolean(),
     val cronjobUbesvartMeldingIntervalDelayMinutes: Long = getEnvVar("CRONJOB_UBESVART_MELDING_INTERVAL_DELAY_MINUTES").toLong(),
