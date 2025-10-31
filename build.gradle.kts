@@ -3,18 +3,18 @@ import com.adarshr.gradle.testlogger.theme.ThemeType
 group = "no.nav.syfo"
 version = "0.0.1"
 
-val confluent = "7.9.0"
-val flywayVersion = "11.13.1"
+val confluent = "8.1.0"
+val flywayVersion = "11.15.0"
 val googleCloudStorageVersion = "2.57.0"
-val hikariVersion = "6.3.0"
+val hikariVersion = "7.0.2"
 val jacksonDataTypeVersion = "2.20.0"
-val kafkaVersion = "3.9.0"
+val kafkaVersion = "3.9.1"
 val kluentVersion = "1.73"
-val ktorVersion = "3.3.0"
-val logbackVersion = "1.5.18"
-val logstashEncoderVersion = "8.1"
-val micrometerRegistryVersion = "1.15.4"
-val mockkVersion = "1.14.5"
+val ktorVersion = "3.3.1"
+val logbackVersion = "1.5.20"
+val logstashEncoderVersion = "9.0"
+val micrometerRegistryVersion = "1.12.13"
+val mockkVersion = "1.14.6"
 val nimbusJoseJwtVersion = "10.5"
 val postgresVersion = "42.7.8"
 val postgresEmbeddedVersion = "2.1.1"
@@ -69,26 +69,18 @@ dependencies {
         exclude(group = "log4j")
     }
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
-    constraints {
-        implementation("org.apache.zookeeper:zookeeper") {
-            because("org.apache.kafka:kafka_2.13:$kafkaVersion -> https://www.cve.org/CVERecord?id=CVE-2023-44981")
-            version {
-                require("3.9.3")
-            }
-        }
-    }
     implementation("io.confluent:kafka-avro-serializer:$confluent", excludeLog4j)
     constraints {
         implementation("org.apache.avro:avro") {
             because("io.confluent:kafka-schema-registry:$confluent -> https://www.cve.org/CVERecord?id=CVE-2023-39410")
             version {
-                require("1.12.0")
+                require("1.12.1")
             }
         }
         implementation("org.apache.commons:commons-compress") {
             because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
             version {
-                require("1.27.1")
+                require("1.28.0")
             }
         }
     }
