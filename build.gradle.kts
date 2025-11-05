@@ -83,6 +83,12 @@ dependencies {
                 require("1.28.0")
             }
         }
+        implementation("commons-beanutils:commons-beanutils") {
+            because("io.confluent:kafka-avro-serializer:$confluent -> https://www.cve.org/CVERecord?id=CVE-2025-48734")
+            version {
+                require("1.11.0")
+            }
+        }
     }
     implementation("com.google.cloud:google-cloud-storage:$googleCloudStorageVersion")
 
