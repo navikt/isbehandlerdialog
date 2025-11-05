@@ -67,7 +67,9 @@ dependencies {
     // Kafka
     val excludeLog4j = fun ExternalModuleDependency.() {
         exclude(group = "log4j")
+        exclude(group = "org.apache.logging.log4j")
     }
+
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
     implementation("io.confluent:kafka-avro-serializer:$confluent", excludeLog4j)
     constraints {
@@ -81,6 +83,12 @@ dependencies {
             because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
             version {
                 require("1.28.0")
+            }
+        }
+        implementation("commons-beanutils:commons-beanutils") {
+            because("io.confluent:kafka-avro-serializer:$confluent -> https://www.cve.org/CVERecord?id=CVE-2025-48734")
+            version {
+                require("1.11.0")
             }
         }
     }
