@@ -9,7 +9,6 @@ val googleCloudStorageVersion = "2.57.0"
 val hikariVersion = "7.0.2"
 val jacksonDataTypeVersion = "2.20.0"
 val kafkaVersion = "4.1.0"
-val kluentVersion = "1.73"
 val ktorVersion = "3.3.1"
 val logbackVersion = "1.5.20"
 val logstashEncoderVersion = "9.0"
@@ -19,7 +18,6 @@ val nimbusJoseJwtVersion = "10.5"
 val postgresVersion = "42.7.8"
 val postgresEmbeddedVersion = "2.1.1"
 val postgresRuntimeVersion = "17.6.0"
-val spekVersion = "2.0.19"
 
 plugins {
     kotlin("jvm") version "2.2.20"
@@ -98,10 +96,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
-    testImplementation("org.amshove.kluent:kluent:$kluentVersion")
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
-    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:$spekVersion")
     testImplementation(kotlin("test"))
 }
 
@@ -128,9 +123,7 @@ tasks {
     }
 
     test {
-        useJUnitPlatform {
-            includeEngines("spek2", "junit-jupiter")
-        }
+        useJUnitPlatform()
         testlogger {
             theme = ThemeType.STANDARD_PARALLEL
             showFullStackTraces = true

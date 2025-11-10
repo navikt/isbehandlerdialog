@@ -13,7 +13,7 @@ import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.testApiModule
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.configure
-import org.amshove.kluent.shouldBeEqualTo
+import kotlin.test.assertEquals
 
 fun ApplicationTestBuilder.setupApiAndClient(dialogmeldingBestillingProducer: DialogmeldingBestillingProducer = mockk()): HttpClient {
     application {
@@ -38,7 +38,7 @@ fun testMissingToken(url: String, httpMethod: HttpMethod) {
         } else {
             client.get(url) {}
         }
-        response.status shouldBeEqualTo HttpStatusCode.Unauthorized
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 }
 
@@ -58,7 +58,7 @@ fun testMissingPersonIdent(
                 bearerAuth(validToken)
             }
         }
-        response.status shouldBeEqualTo HttpStatusCode.BadRequest
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 }
 
@@ -80,7 +80,7 @@ fun testInvalidPersonIdent(
                 header(NAV_PERSONIDENT_HEADER, UserConstants.ARBEIDSTAKER_PERSONIDENT.value.drop(1))
             }
         }
-        response.status shouldBeEqualTo HttpStatusCode.BadRequest
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 }
 
@@ -102,6 +102,6 @@ fun testDeniedPersonAccess(
                 header(NAV_PERSONIDENT_HEADER, UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS.value)
             }
         }
-        response.status shouldBeEqualTo HttpStatusCode.Forbidden
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 }

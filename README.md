@@ -14,9 +14,8 @@ Applikasjon for dialog mellom veileder og behandler i sykefraværsoppfølgingen.
 
 ##### Test Libraries:
 
-* Kluent
+* JUnit
 * Mockk
-* Spek
 
 #### Requirements
 
