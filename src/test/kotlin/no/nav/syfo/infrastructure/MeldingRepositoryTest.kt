@@ -1,6 +1,6 @@
 package no.nav.syfo.infrastructure
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.syfo.infrastructure.database.repository.MeldingRepository
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
@@ -8,14 +8,9 @@ import no.nav.syfo.testhelper.createMeldingerTilBehandler
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
-import org.junit.jupiter.api.assertNull
-import java.util.UUID
+import java.util.*
 
 class MeldingRepositoryTest {
 
@@ -23,7 +18,7 @@ class MeldingRepositoryTest {
     private val meldingRepository = MeldingRepository(database)
 
     @AfterEach
-    fun cleanup() {
+    fun afterEach() {
         database.dropData()
     }
 
@@ -33,7 +28,7 @@ class MeldingRepositoryTest {
 
         @Test
         @DisplayName("Returns melding when it exists")
-        fun `returns melding when it exists`() {
+        fun `returns melding when it exists`() = runTest {
             val meldingTilBehandler = generateMeldingTilBehandler(
                 personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
             )
@@ -42,7 +37,7 @@ class MeldingRepositoryTest {
                 numberOfMeldinger = 1,
             )
 
-            val result = runBlocking { meldingRepository.getMelding(meldingTilBehandler.uuid) }
+            val result = meldingRepository.getMelding(meldingTilBehandler.uuid)
 
             assertNotNull(result)
             assertEquals(meldingTilBehandler.uuid, result.uuid)
@@ -54,7 +49,7 @@ class MeldingRepositoryTest {
 
         @Test
         @DisplayName("Returns melding with correct document content")
-        fun `returns melding with correct document content`() {
+        fun `returns melding with correct document content`() = runTest {
             val meldingTilBehandler = defaultMeldingTilBehandler.copy(
                 uuid = UUID.randomUUID(),
             )
@@ -63,7 +58,7 @@ class MeldingRepositoryTest {
                 numberOfMeldinger = 1,
             )
 
-            val result = runBlocking { meldingRepository.getMelding(meldingTilBehandler.uuid) }
+            val result = meldingRepository.getMelding(meldingTilBehandler.uuid)
 
             assertNotNull(result)
             assertNotNull(result.document)
@@ -73,16 +68,16 @@ class MeldingRepositoryTest {
 
         @Test
         @DisplayName("Returns null when melding does not exist")
-        fun `returns null when melding does not exist`() {
+        fun `returns null when melding does not exist`() = runTest {
             val nonExistentUuid = UUID.randomUUID()
-            val result = runBlocking { meldingRepository.getMelding(nonExistentUuid) }
+            val result = meldingRepository.getMelding(nonExistentUuid)
 
             assertNull(result)
         }
 
         @Test
         @DisplayName("Returns correct melding when multiple meldinger exist")
-        fun `returns correct melding when multiple meldinger exist`() {
+        fun `returns correct melding when multiple meldinger exist`() = runTest {
             val firstMelding = generateMeldingTilBehandler(
                 personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
             )
@@ -93,7 +88,7 @@ class MeldingRepositoryTest {
             database.createMeldingerTilBehandler(firstMelding, 1)
             database.createMeldingerTilBehandler(secondMelding, 1)
 
-            val result = runBlocking { meldingRepository.getMelding(secondMelding.uuid) }
+            val result = meldingRepository.getMelding(secondMelding.uuid)
 
             assertNotNull(result)
             assertEquals(secondMelding.uuid, result.uuid)
