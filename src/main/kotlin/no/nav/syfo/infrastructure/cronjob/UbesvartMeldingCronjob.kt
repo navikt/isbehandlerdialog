@@ -19,7 +19,7 @@ class UbesvartMeldingCronjob(
         )
     }
 
-    fun runJob(): CronjobResult {
+    suspend fun runJob(): CronjobResult {
         val result = CronjobResult()
         val unpublishedUbesvarteMeldinger = publishUbesvartMeldingService.getUnpublishedUbesvarteMeldinger()
 

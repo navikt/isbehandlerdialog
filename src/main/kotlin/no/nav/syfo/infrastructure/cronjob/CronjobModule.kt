@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.cronjob
 import io.ktor.server.application.*
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.Environment
+import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.application.JournalforMeldingTilBehandlerService
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.dialogmelding.DialogmeldingClient
@@ -20,6 +21,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 fun Application.cronjobModule(
     applicationState: ApplicationState,
     database: DatabaseInterface,
+    meldingRepository: IMeldingRepository,
     environment: Environment,
     azureAdClient: AzureAdClient,
 ) {
@@ -74,7 +76,7 @@ fun Application.cronjobModule(
     )
 
     val publishUbesvartMeldingService = PublishUbesvartMeldingService(
-        database = database,
+        meldingRepository = meldingRepository,
         kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
         fristHours = environment.cronjobUbesvartMeldingFristHours,
     )
