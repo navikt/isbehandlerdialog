@@ -104,6 +104,7 @@ fun main() {
             cronjobModule(
                 applicationState = applicationState,
                 database = applicationDatabase,
+                meldingRepository = meldingRepository,
                 environment = environment,
                 azureAdClient = azureAdClient,
             )

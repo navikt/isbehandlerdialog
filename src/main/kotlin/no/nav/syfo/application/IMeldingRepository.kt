@@ -1,8 +1,11 @@
 package no.nav.syfo.application
 
 import no.nav.syfo.infrastructure.database.domain.PMelding
+import java.time.OffsetDateTime
 import java.util.UUID
 
 interface IMeldingRepository {
     suspend fun getMelding(uuid: UUID): PMelding?
+    suspend fun getUbesvarteMeldinger(fristDato: OffsetDateTime): List<PMelding>
+    suspend fun updateUbesvartPublishedAt(uuid: UUID)
 }

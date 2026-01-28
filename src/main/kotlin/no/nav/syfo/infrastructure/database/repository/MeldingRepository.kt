@@ -23,11 +23,62 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
+    override suspend fun getUbesvarteMeldinger(fristDato: OffsetDateTime): List<PMelding> =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_GET_UBESVARTE_MELDINGER).use {
+                it.setObject(1, fristDato)
+                it.executeQuery().toList { toPMelding() }
+            }
+        }
+
+    override suspend fun updateUbesvartPublishedAt(uuid: UUID) {
+        database.connection.use { connection ->
+            val rowCount = connection.prepareStatement(QUERY_UPDATE_UBESVART_PUBLISHED_AT).use {
+                it.setObject(1, OffsetDateTime.now())
+                it.setString(2, uuid.toString())
+                it.executeUpdate()
+            }
+            if (rowCount != 1) {
+                throw SQLException("Failed to update published_at for ubesvart melding with uuid: $uuid ")
+            }
+            connection.commit()
+        }
+    }
+
     companion object {
         private const val QUERY_GET_MELDING_FOR_UUID =
             """
                 SELECT *
                 FROM MELDING
+                WHERE uuid = ?
+            """
+
+        private const val QUERY_GET_UBESVARTE_MELDINGER =
+            """
+                SELECT DISTINCT m_utgaende.*
+                FROM MELDING m_utgaende
+                WHERE NOT m_utgaende.innkommende
+                    AND m_utgaende.ubesvart_published_at IS NULL
+                    AND m_utgaende.created_at <= ?
+                    AND m_utgaende.type not in ('FORESPORSEL_PASIENT_PAMINNELSE', 'HENVENDELSE_MELDING_FRA_NAV')
+                    AND NOT EXISTS (
+                        SELECT melding_id
+                        FROM melding_status
+                        WHERE melding_id = m_utgaende.id AND status = 'AVVIST'
+                    )
+                    AND NOT EXISTS (
+                        SELECT id
+                        FROM MELDING m_innkommende
+                        WHERE m_innkommende.conversation_ref = m_utgaende.conversation_ref
+                            AND m_innkommende.innkommende
+                            AND m_innkommende.created_at > m_utgaende.created_at
+                    )
+            """
+
+        private const val QUERY_UPDATE_UBESVART_PUBLISHED_AT =
+            """
+                UPDATE MELDING
+                SET ubesvart_published_at = ?
                 WHERE uuid = ?
             """
     }

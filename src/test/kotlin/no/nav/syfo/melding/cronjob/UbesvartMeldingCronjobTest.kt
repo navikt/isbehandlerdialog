@@ -1,6 +1,7 @@
 package no.nav.syfo.melding.cronjob
 
 import io.mockk.*
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.MeldingStatusType
 import no.nav.syfo.domain.MeldingType
@@ -27,13 +28,14 @@ private val threeWeeksAgo = OffsetDateTime.now().minusDays(21)
 class UbesvartMeldingCronjobTest {
 
     private val database = ExternalMockEnvironment.instance.database
+    private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
     private val kafkaProducer = mockk<KafkaProducer<String, KafkaMeldingDTO>>()
     private val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
         ubesvartMeldingKafkaProducer = kafkaProducer,
     )
 
     private val publishUbesvartMeldingService = PublishUbesvartMeldingService(
-        database = database,
+        meldingRepository = meldingRepository,
         kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
         fristHours = ExternalMockEnvironment.instance.environment.cronjobUbesvartMeldingFristHours,
     )
@@ -68,7 +70,7 @@ class UbesvartMeldingCronjobTest {
             createdAt = threeWeeksAgo
         )
 
-        val result = ubesvartMeldingCronjob.runJob()
+        val result = runBlocking { ubesvartMeldingCronjob.runJob() }
 
         assertEquals(0, result.failed)
         assertEquals(1, result.updated)
@@ -107,7 +109,7 @@ class UbesvartMeldingCronjobTest {
             createdAt = threeWeeksAgo
         )
 
-        val result = ubesvartMeldingCronjob.runJob()
+        val result = runBlocking { ubesvartMeldingCronjob.runJob() }
 
         assertEquals(0, result.failed)
         assertEquals(2, result.updated)
@@ -140,7 +142,7 @@ class UbesvartMeldingCronjobTest {
             createdAt = OffsetDateTime.now().minusDays(20)
         )
 
-        val result = ubesvartMeldingCronjob.runJob()
+        val result = runBlocking { ubesvartMeldingCronjob.runJob() }
 
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
@@ -170,7 +172,7 @@ class UbesvartMeldingCronjobTest {
             meldingFraBehandler = meldingFraBehandler,
         )
 
-        val result = ubesvartMeldingCronjob.runJob()
+        val result = runBlocking { ubesvartMeldingCronjob.runJob() }
 
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
@@ -209,7 +211,7 @@ class UbesvartMeldingCronjobTest {
             createdAt = OffsetDateTime.now().minusDays(30)
         )
 
-        val result = ubesvartMeldingCronjob.runJob()
+        val result = runBlocking { ubesvartMeldingCronjob.runJob() }
 
         assertEquals(0, result.failed)
         assertEquals(1, result.updated)
@@ -242,7 +244,7 @@ class UbesvartMeldingCronjobTest {
             createdAt = threeWeeksAgo
         )
 
-        val result = ubesvartMeldingCronjob.runJob()
+        val result = runBlocking { ubesvartMeldingCronjob.runJob() }
 
         assertEquals(0, result.failed)
         assertEquals(1, result.updated)
@@ -275,7 +277,7 @@ class UbesvartMeldingCronjobTest {
             createdAt = threeWeeksAgo
         )
 
-        val result = ubesvartMeldingCronjob.runJob()
+        val result = runBlocking { ubesvartMeldingCronjob.runJob() }
 
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
@@ -300,7 +302,7 @@ class UbesvartMeldingCronjobTest {
             createdAt = threeWeeksAgo
         )
 
-        val result = ubesvartMeldingCronjob.runJob()
+        val result = runBlocking { ubesvartMeldingCronjob.runJob() }
 
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
@@ -334,7 +336,7 @@ class UbesvartMeldingCronjobTest {
             connection.commit()
         }
 
-        val result = ubesvartMeldingCronjob.runJob()
+        val result = runBlocking { ubesvartMeldingCronjob.runJob() }
 
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
