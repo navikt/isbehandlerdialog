@@ -15,25 +15,6 @@ import java.util.*
 
 private val mapper = configuredJacksonMapper()
 
-const val queryGetMeldingForArbeidstakerPersonIdent =
-    """
-        SELECT *
-        FROM MELDING
-        WHERE arbeidstaker_personident = ?
-        ORDER BY id ASC
-    """
-
-fun DatabaseInterface.getMeldingerForArbeidstaker(
-    arbeidstakerPersonIdent: PersonIdent,
-): List<PMelding> {
-    return connection.use { connection ->
-        connection.prepareStatement(queryGetMeldingForArbeidstakerPersonIdent).use {
-            it.setString(1, arbeidstakerPersonIdent.value)
-            it.executeQuery().toList { toPMelding() }
-        }
-    }
-}
-
 const val queryGetMeldingForMsgId =
     """
         SELECT *

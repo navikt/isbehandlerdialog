@@ -35,6 +35,7 @@ class MeldingApiGetTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = ExternalMockEnvironment.instance.database
+    private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
     private val apiUrl = meldingApiBasePath
     private val validToken = generateJWT(
         audience = externalMockEnvironment.environment.azure.appClientId,
@@ -104,7 +105,7 @@ class MeldingApiGetTest {
 
                     assertEquals(1, respons.conversations[secondConversation]?.size)
 
-                    val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                    val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
                     assertEquals(5, pMeldinger.size)
                     assertEquals(personIdent.value, pMeldinger.first().arbeidstakerPersonIdent)
                     assertEquals(veilederIdent, pMeldinger.first().veilederIdent)

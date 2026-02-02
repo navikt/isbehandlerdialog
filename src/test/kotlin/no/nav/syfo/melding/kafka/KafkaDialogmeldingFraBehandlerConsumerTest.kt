@@ -7,7 +7,6 @@ import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfelleClient
 import no.nav.syfo.infrastructure.client.padm2.Padm2Client
-import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.infrastructure.database.getVedlegg
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
 import no.nav.syfo.infrastructure.kafka.dialogmelding.KafkaDialogmeldingFraBehandlerConsumer
@@ -28,6 +27,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
+    private val meldingRepository = externalMockEnvironment.meldingRepository
     private val mockHttpClient = externalMockEnvironment.mockHttpClient
     private val azureAdClient = AzureAdClient(
         azureEnvironment = externalMockEnvironment.environment.azure,
@@ -67,7 +67,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        assertEquals(0, database.getMeldingerForArbeidstaker(personIdent).size)
+        assertEquals(0, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
     }
 
     @Test
@@ -81,7 +81,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        assertEquals(0, database.getMeldingerForArbeidstaker(personIdent).size)
+        assertEquals(0, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
     }
 
     @Test
@@ -119,7 +119,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        assertEquals(1, database.getMeldingerForArbeidstaker(personIdent).size)
+        assertEquals(1, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
     }
 
     @Test
@@ -135,7 +135,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        assertEquals(0, database.getMeldingerForArbeidstaker(personIdent).size)
+        assertEquals(0, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
     }
 
     @Test
@@ -151,7 +151,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        assertEquals(0, database.getMeldingerForArbeidstaker(personIdent).size)
+        assertEquals(0, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
     }
 
     @Nested
@@ -159,35 +159,36 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
     inner class ForesporselPasientTilleggsopplysninger {
 
         @Test
-        fun `Receive dialogmelding DIALOG_SVAR and known conversationRef creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER`() = runTest {
-            val (conversationRef, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
-            val msgId = UUID.randomUUID()
-            val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
-                uuid = msgId,
-                conversationRef = conversationRef.toString(),
-            )
-            val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+        fun `Receive dialogmelding DIALOG_SVAR and known conversationRef creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER`() =
+            runTest {
+                val (conversationRef, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
+                val msgId = UUID.randomUUID()
+                val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
+                    uuid = msgId,
+                    conversationRef = conversationRef.toString(),
+                )
+                val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
-            )
+                kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                    kafkaConsumer = mockConsumer,
+                )
 
-            verify(exactly = 1) { mockConsumer.commitSync() }
+                verify(exactly = 1) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
-            assertEquals(2, pMeldingListAfter.size)
-            val pSvar = pMeldingListAfter.last()
-            assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
-            assertTrue(pSvar.innkommende)
-            assertEquals(msgId.toString(), pSvar.msgId)
-            assertEquals(UserConstants.BEHANDLER_PERSONIDENT.value, pSvar.behandlerPersonIdent)
-            assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
-            assertEquals(0, pSvar.antallVedlegg)
-            assertNull(pSvar.veilederIdent)
-            assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
-            val vedlegg = database.getVedlegg(pSvar.uuid, 0)
-            assertNull(vedlegg)
-        }
+                val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
+                assertEquals(2, pMeldingListAfter.size)
+                val pSvar = pMeldingListAfter.last()
+                assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
+                assertTrue(pSvar.innkommende)
+                assertEquals(msgId.toString(), pSvar.msgId)
+                assertEquals(UserConstants.BEHANDLER_PERSONIDENT.value, pSvar.behandlerPersonIdent)
+                assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
+                assertEquals(0, pSvar.antallVedlegg)
+                assertNull(pSvar.veilederIdent)
+                assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
+                val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                assertNull(vedlegg)
+            }
 
         @Test
         @DisplayName("Receive dialogmelding DIALOG_SVAR and known conversationRef matching uuid of sent message creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER")
@@ -207,7 +208,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+            val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
             assertEquals(2, pMeldingListAfter.size)
             val pMelding = pMeldingListAfter.first()
             val pSvar = pMeldingListAfter.last()
@@ -217,30 +218,31 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         }
 
         @Test
-        fun `Receive dialogmelding DIALOG_SVAR and parentRef matching uuid of sent message creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER`() = runTest {
-            database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
-            val msgId = UUID.randomUUID()
-            val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
-                uuid = msgId,
-                conversationRef = UUID.randomUUID().toString(),
-                parentRef = defaultMeldingTilBehandler.uuid.toString(),
-            )
-            val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+        fun `Receive dialogmelding DIALOG_SVAR and parentRef matching uuid of sent message creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER`() =
+            runTest {
+                database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
+                val msgId = UUID.randomUUID()
+                val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
+                    uuid = msgId,
+                    conversationRef = UUID.randomUUID().toString(),
+                    parentRef = defaultMeldingTilBehandler.uuid.toString(),
+                )
+                val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
-            )
+                kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                    kafkaConsumer = mockConsumer,
+                )
 
-            verify(exactly = 1) { mockConsumer.commitSync() }
+                verify(exactly = 1) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
-            assertEquals(2, pMeldingListAfter.size)
-            val pMelding = pMeldingListAfter.first()
-            val pSvar = pMeldingListAfter.last()
-            assertTrue(pSvar.innkommende)
-            assertEquals(msgId.toString(), pSvar.msgId)
-            assertEquals(pMelding.conversationRef, pSvar.conversationRef)
-        }
+                val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
+                assertEquals(2, pMeldingListAfter.size)
+                val pMelding = pMeldingListAfter.first()
+                val pSvar = pMeldingListAfter.last()
+                assertTrue(pSvar.innkommende)
+                assertEquals(msgId.toString(), pSvar.msgId)
+                assertEquals(pMelding.conversationRef, pSvar.conversationRef)
+            }
 
         @Test
         fun `Receive dialogmelding DIALOG_SVAR and known conversationRef and with vedlegg creates melding with vedlegg`() = runTest {
@@ -259,7 +261,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+            val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
             assertEquals(2, pMeldingListAfter.size)
             val pSvar = pMeldingListAfter.last()
             assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
@@ -289,7 +291,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             )
             verify(exactly = 2) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+            val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
             assertEquals(2, pMeldingListAfter.size)
         }
 
@@ -317,7 +319,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             )
             verify(exactly = 1) { mockConsumerAgain.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+            val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
             assertEquals(3, pMeldingListAfter.size)
         }
 
@@ -333,7 +335,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
-            assertEquals(1, database.getMeldingerForArbeidstaker(personIdent).size)
+            assertEquals(1, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
         }
 
         @Test
@@ -349,7 +351,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+            val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
             assertEquals(2, pMeldingListAfter.size)
 
             val pSvar = pMeldingListAfter.last()
@@ -364,38 +366,39 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
     inner class ForesporselPasientTilleggsopplysningerAndPaminnelse {
 
         @Test
-        fun `Receive dialogmelding DIALOG_SVAR and known conversationRef creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER`() = runTest {
-            val meldingTilBehandler = defaultMeldingTilBehandler
-            val (conversationRef, _) = database.createMeldingerTilBehandler(meldingTilBehandler)
-            database.createMeldingerTilBehandler(
-                MeldingTilBehandler.createForesporselPasientPaminnelse(
-                    opprinneligMelding = meldingTilBehandler,
-                    veilederIdent = UserConstants.VEILEDER_IDENT,
-                    document = emptyList(),
+        fun `Receive dialogmelding DIALOG_SVAR and known conversationRef creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER`() =
+            runTest {
+                val meldingTilBehandler = defaultMeldingTilBehandler
+                val (conversationRef, _) = database.createMeldingerTilBehandler(meldingTilBehandler)
+                database.createMeldingerTilBehandler(
+                    MeldingTilBehandler.createForesporselPasientPaminnelse(
+                        opprinneligMelding = meldingTilBehandler,
+                        veilederIdent = UserConstants.VEILEDER_IDENT,
+                        document = emptyList(),
+                    )
                 )
-            )
 
-            val msgId = UUID.randomUUID()
-            val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
-                uuid = msgId,
-                conversationRef = conversationRef.toString(),
-            )
-            val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+                val msgId = UUID.randomUUID()
+                val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
+                    uuid = msgId,
+                    conversationRef = conversationRef.toString(),
+                )
+                val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
-            )
+                kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                    kafkaConsumer = mockConsumer,
+                )
 
-            verify(exactly = 1) { mockConsumer.commitSync() }
+                verify(exactly = 1) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
-            assertEquals(3, pMeldingListAfter.size)
-            val pSvar = pMeldingListAfter.last()
-            assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
-            assertTrue(pSvar.innkommende)
-            assertEquals(msgId.toString(), pSvar.msgId)
-            assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
-        }
+                val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
+                assertEquals(3, pMeldingListAfter.size)
+                val pSvar = pMeldingListAfter.last()
+                assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
+                assertTrue(pSvar.innkommende)
+                assertEquals(msgId.toString(), pSvar.msgId)
+                assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
+            }
     }
 
     @Nested
@@ -403,37 +406,38 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
     inner class HenvendelseMeldingFraNAV {
 
         @Test
-        fun `Receive dialogmelding DIALOG_NOTAT and known conversationRef creates MeldingFraBehandler with type HENVENDELSE_MELDING_FRA_NAV`() = runTest {
-            val (conversationRef, _) = database.createMeldingerTilBehandler(generateMeldingTilBehandler(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV))
-            val msgId = UUID.randomUUID()
-            val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDialogNotatDTO(
-                uuid = msgId,
-                conversationRef = conversationRef.toString(),
-            )
-            val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+        fun `Receive dialogmelding DIALOG_NOTAT and known conversationRef creates MeldingFraBehandler with type HENVENDELSE_MELDING_FRA_NAV`() =
+            runTest {
+                val (conversationRef, _) = database.createMeldingerTilBehandler(generateMeldingTilBehandler(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV))
+                val msgId = UUID.randomUUID()
+                val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDialogNotatDTO(
+                    uuid = msgId,
+                    conversationRef = conversationRef.toString(),
+                )
+                val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
-            )
+                kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                    kafkaConsumer = mockConsumer,
+                )
 
-            verify(exactly = 1) { mockConsumer.commitSync() }
+                verify(exactly = 1) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
-            assertEquals(2, pMeldingListAfter.size)
-            val pSvar = pMeldingListAfter.last()
+                val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
+                assertEquals(2, pMeldingListAfter.size)
+                val pSvar = pMeldingListAfter.last()
 
-            assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
-            assertTrue(pSvar.innkommende)
-            assertEquals(msgId.toString(), pSvar.msgId)
-            assertEquals(UserConstants.BEHANDLER_PERSONIDENT.value, pSvar.behandlerPersonIdent)
-            assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
-            assertEquals(0, pSvar.antallVedlegg)
-            assertNull(pSvar.veilederIdent)
-            assertEquals(MeldingType.HENVENDELSE_MELDING_FRA_NAV.name, pSvar.type)
-            assertFalse(pSvar.tekst.isNullOrEmpty())
-            val vedlegg = database.getVedlegg(pSvar.uuid, 0)
-            assertNull(vedlegg)
-        }
+                assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
+                assertTrue(pSvar.innkommende)
+                assertEquals(msgId.toString(), pSvar.msgId)
+                assertEquals(UserConstants.BEHANDLER_PERSONIDENT.value, pSvar.behandlerPersonIdent)
+                assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
+                assertEquals(0, pSvar.antallVedlegg)
+                assertNull(pSvar.veilederIdent)
+                assertEquals(MeldingType.HENVENDELSE_MELDING_FRA_NAV.name, pSvar.type)
+                assertFalse(pSvar.tekst.isNullOrEmpty())
+                val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                assertNull(vedlegg)
+            }
 
         @Test
         fun `Receive DIALOG_NOTAT and unknown conversationref creates no MeldingFraBehandler`() = runTest {
@@ -447,7 +451,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
-            assertEquals(1, database.getMeldingerForArbeidstaker(personIdent).size)
+            assertEquals(1, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
         }
 
         @Test
@@ -463,7 +467,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+            val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
             assertEquals(2, pMeldingListAfter.size)
 
             val pSvar = pMeldingListAfter.last()
@@ -487,6 +491,6 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
-        assertEquals(0, database.getMeldingerForArbeidstaker(personIdent).size)
+        assertEquals(0, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
     }
 }

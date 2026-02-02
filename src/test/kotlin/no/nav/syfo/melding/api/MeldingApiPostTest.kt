@@ -10,7 +10,6 @@ import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.serialize
 import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
-import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingBestillingDTO
 import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingKode
 import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingKodeverk
@@ -40,6 +39,7 @@ class MeldingApiPostTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = ExternalMockEnvironment.instance.database
+    private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
     private val kafkaProducer = mockk<KafkaProducer<String, DialogmeldingBestillingDTO>>()
     private val dialogmeldingBestillingProducer = DialogmeldingBestillingProducer(
         dialogmeldingBestillingKafkaProducer = kafkaProducer,
@@ -95,7 +95,7 @@ class MeldingApiPostTest {
 
                     assertEquals(HttpStatusCode.OK, response.status)
 
-                    val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                    val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
                     assertEquals(2, pMeldinger.size)
                     val pMelding = pMeldinger.last()
                     assertTrue(pMelding.tekst!!.isEmpty())
@@ -283,7 +283,7 @@ class MeldingApiPostTest {
 
                         assertEquals(HttpStatusCode.OK, response.status)
 
-                        val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                        val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
                         assertEquals(1, pMeldinger.size)
                         val pMelding = pMeldinger.first()
                         assertEquals(meldingTilBehandlerDTO.tekst, pMelding.tekst)
@@ -342,7 +342,7 @@ class MeldingApiPostTest {
 
                         assertEquals(HttpStatusCode.OK, response.status)
 
-                        val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                        val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
                         val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
                         assertArrayEquals(UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER, pPdf.pdf)
                     }
@@ -369,7 +369,7 @@ class MeldingApiPostTest {
 
                         assertEquals(HttpStatusCode.OK, response.status)
 
-                        val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                        val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
                         assertEquals(1, pMeldinger.size)
                         val pMelding = pMeldinger.first()
                         assertEquals(meldingTilBehandlerDTO.tekst, pMelding.tekst)
@@ -428,7 +428,7 @@ class MeldingApiPostTest {
 
                         assertEquals(HttpStatusCode.OK, response.status)
 
-                        val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                        val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
                         val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
                         assertArrayEquals(UserConstants.PDF_FORESPORSEL_OM_PASIENT_LEGEERKLARING, pPdf.pdf)
                     }
@@ -455,7 +455,7 @@ class MeldingApiPostTest {
 
                         assertEquals(HttpStatusCode.OK, response.status)
 
-                        val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                        val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
                         assertEquals(1, pMeldinger.size)
                         val pMelding = pMeldinger.first()
                         assertEquals(meldingTilBehandlerDTO.tekst, pMelding.tekst)
@@ -508,7 +508,7 @@ class MeldingApiPostTest {
 
                         assertEquals(HttpStatusCode.OK, response.status)
 
-                        val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                        val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
                         val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
                         assertArrayEquals(UserConstants.PDF_HENVENDELSE_MELDING_FRA_NAV, pPdf.pdf)
                     }
@@ -589,7 +589,7 @@ class MeldingApiPostTest {
 
                     assertEquals(HttpStatusCode.OK, response.status)
 
-                    val pMeldinger = database.getMeldingerForArbeidstaker(personIdent)
+                    val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
                     assertEquals(4, pMeldinger.size)
                     val pMelding = pMeldinger.last()
                     assertEquals(returDTO.tekst, pMelding.tekst)

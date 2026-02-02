@@ -7,7 +7,6 @@ import no.nav.syfo.domain.MeldingStatusType
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.cronjob.UbesvartMeldingCronjob
 import no.nav.syfo.infrastructure.database.createMeldingStatus
-import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.infrastructure.kafka.producer.KafkaUbesvartMeldingProducer
 import no.nav.syfo.infrastructure.kafka.producer.PublishUbesvartMeldingService
@@ -75,7 +74,7 @@ class UbesvartMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(1, result.updated)
 
-        val melding = database.getMeldingerForArbeidstaker(personIdent).first()
+        val melding = meldingRepository.getMeldingerForArbeidstaker(personIdent).first()
         assertNotNull(melding.ubesvartPublishedAt)
 
         val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
@@ -114,7 +113,7 @@ class UbesvartMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(2, result.updated)
 
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertNotNull(meldinger.first().ubesvartPublishedAt)
         assertNotNull(meldinger.last().ubesvartPublishedAt)
 
@@ -147,14 +146,14 @@ class UbesvartMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
 
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertNull(meldinger.first().ubesvartPublishedAt)
 
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
     @Test
-    fun `Will not publish ubesvart melding when melding is besvart`() {
+    fun `Will not publish melding to behandler when cronjob has run but melding is less than 3 weeks old`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
         val (conversationRef, idList) = database.createMeldingerTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
@@ -177,7 +176,7 @@ class UbesvartMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
 
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertNull(meldinger.first().ubesvartPublishedAt)
 
         verify(exactly = 0) { kafkaProducer.send(any()) }
@@ -216,7 +215,8 @@ class UbesvartMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(1, result.updated)
 
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
+
         val utgaendeMeldinger = meldinger.filter { !it.innkommende }
         assertNull(utgaendeMeldinger.first().ubesvartPublishedAt)
         assertNotNull(utgaendeMeldinger.last().ubesvartPublishedAt)
@@ -249,7 +249,7 @@ class UbesvartMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(1, result.updated)
 
-        val melding = database.getMeldingerForArbeidstaker(personIdent).first()
+        val melding = meldingRepository.getMeldingerForArbeidstaker(personIdent).first()
         assertNotNull(melding.ubesvartPublishedAt)
 
         val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
@@ -282,7 +282,7 @@ class UbesvartMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
 
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertNull(meldinger.first().ubesvartPublishedAt)
 
         verify(exactly = 0) { kafkaProducer.send(any()) }
@@ -307,14 +307,14 @@ class UbesvartMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
 
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertNull(meldinger.first().ubesvartPublishedAt)
 
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
     @Test
-    fun `Will not publish ubesvart melding when melding has avvist apprec status`() {
+    fun `Will publish one ubesvart melding to behandler when first answered and second not answered`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
         val (_, idList) = database.createMeldingerTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
@@ -341,7 +341,7 @@ class UbesvartMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
 
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertNull(meldinger.first().ubesvartPublishedAt)
 
         verify(exactly = 0) { kafkaProducer.send(any()) }

@@ -39,7 +39,7 @@ class MeldingService(
     }
 
     fun getConversations(personIdent: PersonIdent): Map<UUID, List<MeldingDTO>> {
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         return meldinger.groupBy(
             keySelector = { it.conversationRef },
             valueTransform = {

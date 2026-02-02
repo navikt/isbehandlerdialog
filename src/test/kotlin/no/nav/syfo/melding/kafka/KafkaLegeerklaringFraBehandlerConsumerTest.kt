@@ -8,7 +8,6 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
-import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.infrastructure.database.getVedlegg
 import no.nav.syfo.infrastructure.kafka.domain.KafkaLegeerklaeringMessage
 import no.nav.syfo.infrastructure.kafka.domain.Status
@@ -34,6 +33,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
+    private val meldingRepository = externalMockEnvironment.meldingRepository
     private val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
     private val behandlerPersonIdent = UserConstants.BEHANDLER_PERSONIDENT
     private val behandlerNavn = UserConstants.BEHANDLER_NAVN
@@ -83,7 +83,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        assertEquals(0, database.getMeldingerForArbeidstaker(personIdent).size)
+        assertEquals(0, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
     }
 
     @Test
@@ -109,7 +109,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        assertEquals(0, database.getMeldingerForArbeidstaker(personIdent).size)
+        assertEquals(0, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
     }
 
     @Test
@@ -147,7 +147,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+        val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertEquals(2, pMeldingListAfter.size)
         val pSvar = pMeldingListAfter.last()
         assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
@@ -200,7 +200,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+        val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertEquals(2, pMeldingListAfter.size)
         val pSvar = pMeldingListAfter.last()
         assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
@@ -266,7 +266,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+        val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertEquals(2, pMeldingListAfter.size)
         val pSvar = pMeldingListAfter.last()
         assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
@@ -333,7 +333,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+        val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertEquals(2, pMeldingListAfter.size)
         val pSvar = pMeldingListAfter.last()
         assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
@@ -388,7 +388,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
             verify(exactly = 1) { mockConsumer.commitSync() }
 
-            val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+            val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
             assertEquals(2, pMeldingListAfter.size)
             val pSvar = pMeldingListAfter.last()
             assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
@@ -440,7 +440,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
-        val pMeldingListAfter = database.getMeldingerForArbeidstaker(personIdent)
+        val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertEquals(1, pMeldingListAfter.size)
     }
 }
