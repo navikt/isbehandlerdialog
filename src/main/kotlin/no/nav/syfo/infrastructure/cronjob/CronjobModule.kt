@@ -61,6 +61,7 @@ fun Application.cronjobModule(
     )
 
     val publishMeldingFraBehandlerService = PublishMeldingFraBehandlerService(
+        meldingRepository = meldingRepository,
         database = database,
         kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducer,
     )

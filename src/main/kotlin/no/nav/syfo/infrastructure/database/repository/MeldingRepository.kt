@@ -3,10 +3,12 @@ package no.nav.syfo.infrastructure.database.repository
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.domain.DocumentComponentDTO
+import no.nav.syfo.domain.MeldingFraBehandler
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.PVedlegg
+import no.nav.syfo.infrastructure.database.domain.toMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.toList
 import no.nav.syfo.util.configuredJacksonMapper
 import java.sql.*
@@ -64,6 +66,13 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
+    override fun getUnpublishedMeldingerFraBehandler(): List<MeldingFraBehandler> =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_GET_UNPUBLISHED_MELDINGER_FRA_BEHANDLER).use {
+                it.executeQuery().toList { toPMelding().toMeldingFraBehandler() }
+            }
+        }
+
     companion object {
         private const val QUERY_GET_MELDING_FOR_UUID =
             """
@@ -115,6 +124,14 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 FROM vedlegg INNER JOIN melding ON (vedlegg.melding_id = melding.id) 
                 WHERE melding.uuid = ? 
                 AND vedlegg.number=?
+            """
+
+        private const val QUERY_GET_UNPUBLISHED_MELDINGER_FRA_BEHANDLER =
+            """
+                SELECT *
+                FROM MELDING
+                WHERE innkommende AND innkommende_published_at IS NULL
+                ORDER BY created_at ASC
             """
     }
 }
