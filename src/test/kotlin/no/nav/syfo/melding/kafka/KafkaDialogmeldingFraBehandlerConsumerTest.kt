@@ -7,7 +7,6 @@ import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfelleClient
 import no.nav.syfo.infrastructure.client.padm2.Padm2Client
-import no.nav.syfo.infrastructure.database.getVedlegg
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
 import no.nav.syfo.infrastructure.kafka.dialogmelding.KafkaDialogmeldingFraBehandlerConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
@@ -186,7 +185,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 assertEquals(0, pSvar.antallVedlegg)
                 assertNull(pSvar.veilederIdent)
                 assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
-                val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                val vedlegg = meldingRepository.getVedlegg(pSvar.uuid, 0)
                 assertNull(vedlegg)
             }
 
@@ -269,7 +268,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             assertEquals(UserConstants.MSG_ID_WITH_VEDLEGG.toString(), pSvar.msgId)
             assertEquals(1, pSvar.antallVedlegg)
             assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
-            val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+            val vedlegg = meldingRepository.getVedlegg(pSvar.uuid, 0)
             assertArrayEquals(UserConstants.VEDLEGG_BYTEARRAY, vedlegg!!.pdf)
         }
 
@@ -435,7 +434,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 assertNull(pSvar.veilederIdent)
                 assertEquals(MeldingType.HENVENDELSE_MELDING_FRA_NAV.name, pSvar.type)
                 assertFalse(pSvar.tekst.isNullOrEmpty())
-                val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+                val vedlegg = meldingRepository.getVedlegg(pSvar.uuid, 0)
                 assertNull(vedlegg)
             }
 

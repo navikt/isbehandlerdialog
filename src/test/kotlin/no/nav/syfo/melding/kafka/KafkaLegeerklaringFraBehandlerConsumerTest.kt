@@ -8,7 +8,6 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
-import no.nav.syfo.infrastructure.database.getVedlegg
 import no.nav.syfo.infrastructure.kafka.domain.KafkaLegeerklaeringMessage
 import no.nav.syfo.infrastructure.kafka.domain.Status
 import no.nav.syfo.infrastructure.kafka.domain.ValidationResult
@@ -161,7 +160,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         assertEquals(conversationRef, pSvar.conversationRef)
         assertEquals(meldingTilBehandler.uuid, pSvar.parentRef)
         assertEquals(expectedMeldingTekst, pSvar.tekst)
-        val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+        val vedlegg = meldingRepository.getVedlegg(pSvar.uuid, 0)
         assertArrayEquals(UserConstants.PDF_LEGEERKLARING, vedlegg!!.pdf)
     }
 
@@ -214,7 +213,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         assertEquals(conversationRef, pSvar.conversationRef)
         assertEquals(meldingTilBehandler.uuid, pSvar.parentRef)
         assertEquals(expectedMeldingTekst, pSvar.tekst)
-        val vedlegg = database.getVedlegg(pSvar.uuid, 0)
+        val vedlegg = meldingRepository.getVedlegg(pSvar.uuid, 0)
         assertArrayEquals(UserConstants.PDF_LEGEERKLARING, vedlegg!!.pdf)
     }
 
@@ -280,9 +279,9 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         assertEquals(conversationRef, pSvar.conversationRef)
         assertEquals(meldingTilBehandler.uuid, pSvar.parentRef)
         assertEquals(expectedMeldingTekst, pSvar.tekst)
-        val vedlegg1 = database.getVedlegg(pSvar.uuid, 0)
+        val vedlegg1 = meldingRepository.getVedlegg(pSvar.uuid, 0)
         assertArrayEquals(UserConstants.PDF_LEGEERKLARING, vedlegg1!!.pdf)
-        val vedlegg2 = database.getVedlegg(pSvar.uuid, 1)
+        val vedlegg2 = meldingRepository.getVedlegg(pSvar.uuid, 1)
         assertArrayEquals(vedleggPdf, vedlegg2!!.pdf)
     }
 
@@ -347,9 +346,9 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         assertEquals(conversationRef, pSvar.conversationRef)
         assertEquals(legeerklaring.conversationRef?.refToParent, pSvar.parentRef.toString())
         assertEquals(expectedMeldingTekst, pSvar.tekst)
-        val vedlegg1 = database.getVedlegg(pSvar.uuid, 0)
+        val vedlegg1 = meldingRepository.getVedlegg(pSvar.uuid, 0)
         assertArrayEquals(UserConstants.PDF_LEGEERKLARING, vedlegg1!!.pdf)
-        val vedlegg2 = database.getVedlegg(pSvar.uuid, 1)
+        val vedlegg2 = meldingRepository.getVedlegg(pSvar.uuid, 1)
         assertArrayEquals(vedleggPdf, vedlegg2!!.pdf)
     }
 
@@ -402,7 +401,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
             assertEquals(conversationRef, pSvar.conversationRef)
             assertEquals(legeerklaring.conversationRef?.refToParent, pSvar.parentRef.toString())
             assertEquals(expectedMeldingTekst, pSvar.tekst)
-            val vedlegg1 = database.getVedlegg(pSvar.uuid, 0)
+            val vedlegg1 = meldingRepository.getVedlegg(pSvar.uuid, 0)
             assertArrayEquals(UserConstants.PDF_LEGEERKLARING, vedlegg1!!.pdf)
         }
 

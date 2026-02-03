@@ -1,7 +1,6 @@
 package no.nav.syfo.infrastructure.database
 
 import no.nav.syfo.infrastructure.database.domain.PMelding
-import no.nav.syfo.infrastructure.database.domain.PVedlegg
 import java.sql.*
 import java.time.OffsetDateTime
 import java.util.*
@@ -43,34 +42,3 @@ fun Connection.createVedlegg(
     }
     return idList.first()
 }
-
-const val queryGetVedlegg =
-    """
-    SELECT vedlegg.* 
-        FROM vedlegg INNER JOIN melding ON (vedlegg.melding_id = melding.id) 
-        WHERE melding.uuid = ? 
-        AND vedlegg.number=?
-    """
-
-fun DatabaseInterface.getVedlegg(
-    uuid: UUID,
-    number: Int,
-): PVedlegg? =
-    this.connection.use { connection ->
-        connection.prepareStatement(queryGetVedlegg).use {
-            it.setString(1, uuid.toString())
-            it.setInt(2, number)
-            it.executeQuery().toList { toPVedlegg() }.firstOrNull()
-        }
-    }
-
-fun ResultSet.toPVedlegg() =
-    PVedlegg(
-        id = getInt("id"),
-        uuid = UUID.fromString(getString("uuid")),
-        melding_id = getInt("melding_id"),
-        createdAt = getObject("created_at", OffsetDateTime::class.java),
-        updatedAt = getObject("updated_at", OffsetDateTime::class.java),
-        number = getInt("number"),
-        pdf = getBytes("pdf"),
-    )

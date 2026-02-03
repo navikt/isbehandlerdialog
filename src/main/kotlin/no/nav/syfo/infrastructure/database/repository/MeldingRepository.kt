@@ -6,6 +6,7 @@ import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
+import no.nav.syfo.infrastructure.database.domain.PVedlegg
 import no.nav.syfo.infrastructure.database.toList
 import no.nav.syfo.util.configuredJacksonMapper
 import java.sql.*
@@ -54,6 +55,15 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         }
     }
 
+    override fun getVedlegg(uuid: UUID, number: Int): PVedlegg? =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_GET_VEDLEGG).use {
+                it.setString(1, uuid.toString())
+                it.setInt(2, number)
+                it.executeQuery().toList { toPVedlegg() }.firstOrNull()
+            }
+        }
+
     companion object {
         private const val QUERY_GET_MELDING_FOR_UUID =
             """
@@ -98,6 +108,14 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 SET ubesvart_published_at = ?
                 WHERE uuid = ?
             """
+
+        private const val QUERY_GET_VEDLEGG =
+            """
+                SELECT vedlegg.* 
+                FROM vedlegg INNER JOIN melding ON (vedlegg.melding_id = melding.id) 
+                WHERE melding.uuid = ? 
+                AND vedlegg.number=?
+            """
     }
 }
 
@@ -124,4 +142,15 @@ private fun ResultSet.toPMelding() =
         ubesvartPublishedAt = getObject("ubesvart_published_at", OffsetDateTime::class.java),
         veilederIdent = getString("veileder_ident"),
         avvistPublishedAt = getObject("avvist_published_at", OffsetDateTime::class.java),
+    )
+
+private fun ResultSet.toPVedlegg() =
+    PVedlegg(
+        id = getInt("id"),
+        uuid = UUID.fromString(getString("uuid")),
+        melding_id = getInt("melding_id"),
+        createdAt = getObject("created_at", OffsetDateTime::class.java),
+        updatedAt = getObject("updated_at", OffsetDateTime::class.java),
+        number = getInt("number"),
+        pdf = getBytes("pdf"),
     )

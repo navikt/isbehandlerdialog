@@ -62,7 +62,7 @@ class MeldingService(
         uuid: UUID,
         vedleggNumber: Int,
     ): PdfContent? =
-        database.getVedlegg(
+        meldingRepository.getVedlegg(
             uuid = uuid,
             number = vedleggNumber,
         )?.let {
