@@ -1,8 +1,8 @@
 package no.nav.syfo.identhendelse
 
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.IdenthendelseService
 import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
-import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.generateKafkaIdenthendelseDTO
@@ -15,8 +15,10 @@ class IdenthendelseServiceTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
+    private val meldingRepository = externalMockEnvironment.meldingRepository
     private val identhendelseService = IdenthendelseService(
         database = database,
+        meldingRepository = meldingRepository,
     )
 
     @AfterEach
@@ -25,7 +27,7 @@ class IdenthendelseServiceTest {
     }
 
     @Test
-    fun `Skal oppdatere database når person har fått ny ident`() {
+    fun `Skal oppdatere database når person har fått ny ident`() = runBlocking {
         val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO()
         val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
         val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
@@ -40,14 +42,14 @@ class IdenthendelseServiceTest {
 
         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
 
-        val meldingerFraBehandlerForOldIdent = database.getMeldingerForArbeidstaker(oldIdent)
+        val meldingerFraBehandlerForOldIdent = meldingRepository.getMeldingerForArbeidstaker(oldIdent)
         assertEquals(0, meldingerFraBehandlerForOldIdent.size)
-        val meldingerFraBehandler = database.getMeldingerForArbeidstaker(newIdent)
+        val meldingerFraBehandler = meldingRepository.getMeldingerForArbeidstaker(newIdent)
         assertEquals(1, meldingerFraBehandler.size)
     }
 
     @Test
-    fun `Skal ikke oppdatere database når melding allerede har ny ident`() {
+    fun `Skal ikke oppdatere database når melding allerede har ny ident`() = runBlocking {
         val kafkaIdenthendelseDTO = generateKafkaIdenthendelseDTO()
         val newIdent = kafkaIdenthendelseDTO.getActivePersonident()!!
         val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
@@ -62,9 +64,9 @@ class IdenthendelseServiceTest {
 
         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
 
-        val meldingerFraBehandlerForOldIdent = database.getMeldingerForArbeidstaker(oldIdent)
+        val meldingerFraBehandlerForOldIdent = meldingRepository.getMeldingerForArbeidstaker(oldIdent)
         assertEquals(0, meldingerFraBehandlerForOldIdent.size)
-        val meldingerFraBehandler = database.getMeldingerForArbeidstaker(newIdent)
+        val meldingerFraBehandler = meldingRepository.getMeldingerForArbeidstaker(newIdent)
         assertEquals(1, meldingerFraBehandler.size)
     }
 }

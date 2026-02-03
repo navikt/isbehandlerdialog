@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.kafka.identhendelse
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import no.nav.syfo.ApplicationState
+import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.kafka.config.KafkaEnvironment
 import no.nav.syfo.infrastructure.kafka.config.kafkaConsumerConfig
@@ -17,9 +18,11 @@ fun launchKafkaTaskIdenthendelse(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
     database: DatabaseInterface,
+    meldingRepository: IMeldingRepository,
 ) {
     val identhendelseService = IdenthendelseService(
         database = database,
+        meldingRepository = meldingRepository,
     )
 
     val kafkaIdenthendelseConsumerService = IdenthendelseConsumerService(

@@ -3,6 +3,7 @@ package no.nav.syfo.melding.cronjob
 import io.mockk.coEvery
 import io.mockk.coVerifyAll
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.application.JournalforMeldingTilBehandlerService
 import no.nav.syfo.domain.MeldingTilBehandler
@@ -18,7 +19,6 @@ import no.nav.syfo.infrastructure.cronjob.CronjobResult
 import no.nav.syfo.infrastructure.cronjob.JournalforMeldingTilBehandlerCronjob
 import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.createPdf
-import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.dropData
@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test
 class JournalforDialogmeldingCronjobTest {
 
     private val database = ExternalMockEnvironment.instance.database
+    private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
     private val dokarkivClient = mockk<DokarkivClient>()
     private val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
         database = database,
@@ -121,9 +122,9 @@ class JournalforDialogmeldingCronjobTest {
         var result: CronjobResult
         result = journalforDialogmeldingCronjob.runJournalforDialogmeldingJob()
 
-        val meldinger = database.getMeldingerForArbeidstaker(
-            arbeidstakerPersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
-        )
+        val meldinger = runBlocking {
+            meldingRepository.getMeldingerForArbeidstaker(arbeidstakerPersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT)
+        }
         assertEquals(3, result.updated)
         assertEquals(0, result.failed)
         meldinger.forEach {

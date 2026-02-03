@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.database.repository
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.domain.DocumentComponentDTO
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.toList
@@ -20,6 +21,14 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             connection.prepareStatement(QUERY_GET_MELDING_FOR_UUID).use {
                 it.setString(1, uuid.toString())
                 it.executeQuery().toList { toPMelding() }.firstOrNull()
+            }
+        }
+
+    override fun getMeldingerForArbeidstaker(arbeidstakerPersonIdent: PersonIdent): List<PMelding> =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_GET_MELDING_FOR_ARBEIDSTAKER_PERSONIDENT).use {
+                it.setString(1, arbeidstakerPersonIdent.value)
+                it.executeQuery().toList { toPMelding() }
             }
         }
 
@@ -51,6 +60,14 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 SELECT *
                 FROM MELDING
                 WHERE uuid = ?
+            """
+
+        private const val QUERY_GET_MELDING_FOR_ARBEIDSTAKER_PERSONIDENT =
+            """
+                SELECT *
+                FROM MELDING
+                WHERE arbeidstaker_personident = ?
+                ORDER BY id ASC
             """
 
         private const val QUERY_GET_UBESVARTE_MELDINGER =

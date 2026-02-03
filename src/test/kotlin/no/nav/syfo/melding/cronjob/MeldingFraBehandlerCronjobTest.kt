@@ -5,7 +5,6 @@ import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.syfo.infrastructure.cronjob.MeldingFraBehandlerCronjob
-import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.infrastructure.database.updateInnkommendePublishedAt
 import no.nav.syfo.infrastructure.kafka.producer.KafkaMeldingFraBehandlerProducer
 import no.nav.syfo.infrastructure.kafka.producer.PublishMeldingFraBehandlerService
@@ -24,6 +23,7 @@ import java.util.*
 class MeldingFraBehandlerCronjobTest {
 
     private val database = ExternalMockEnvironment.instance.database
+    private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
     private val kafkaMeldingFraBehandlerProducer = mockk<KafkaMeldingFraBehandlerProducer>()
 
     private val publishMeldingFraBehandlerService = PublishMeldingFraBehandlerService(
@@ -69,7 +69,7 @@ class MeldingFraBehandlerCronjobTest {
 
         verify(exactly = 1) { kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(any(), any()) }
 
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertNotNull(meldinger.first().innkommendePublishedAt)
     }
 
@@ -83,7 +83,7 @@ class MeldingFraBehandlerCronjobTest {
         database.createMeldingerFraBehandler(
             meldingFraBehandler = meldingFraBehandler,
         )
-        val meldinger = database.getMeldingerForArbeidstaker(personIdent)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         database.updateInnkommendePublishedAt(uuid = meldinger.first().uuid)
 
         val result = meldingFraBehandlerCronjob.runJob()

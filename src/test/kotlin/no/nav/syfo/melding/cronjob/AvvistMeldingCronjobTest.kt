@@ -6,7 +6,6 @@ import no.nav.syfo.infrastructure.cronjob.AvvistMeldingCronjob
 import no.nav.syfo.infrastructure.database.createMeldingStatus
 import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.domain.PMelding
-import no.nav.syfo.infrastructure.database.getMeldingerForArbeidstaker
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.infrastructure.kafka.producer.AvvistMeldingProducer
 import no.nav.syfo.infrastructure.kafka.producer.PublishAvvistMeldingService
@@ -27,6 +26,7 @@ class AvvistMeldingCronjobTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
+    private val meldingRepository = externalMockEnvironment.meldingRepository
     private val kafkaProducer = mockk<KafkaProducer<String, KafkaMeldingDTO>>()
     private val avvistMeldingProducer = AvvistMeldingProducer(kafkaProducer = kafkaProducer)
 
@@ -76,7 +76,7 @@ class AvvistMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(1, result.updated)
 
-        val melding = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT).first()
+        val melding = meldingRepository.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT).first()
         assertNotNull(melding.avvistPublishedAt)
 
         val producerRecordSlot = slot<ProducerRecord<String, KafkaMeldingDTO>>()
@@ -136,7 +136,7 @@ class AvvistMeldingCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
 
-        val meldinger = database.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(UserConstants.ARBEIDSTAKER_PERSONIDENT)
         assertNull(meldinger.first().avvistPublishedAt)
     }
 }
