@@ -3,7 +3,6 @@ package no.nav.syfo.melding.cronjob
 import io.mockk.coEvery
 import io.mockk.coVerifyAll
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.application.JournalforMeldingTilBehandlerService
 import no.nav.syfo.domain.MeldingTilBehandler
@@ -122,9 +121,7 @@ class JournalforDialogmeldingCronjobTest {
         var result: CronjobResult
         result = journalforDialogmeldingCronjob.runJournalforDialogmeldingJob()
 
-        val meldinger = runBlocking {
-            meldingRepository.getMeldingerForArbeidstaker(arbeidstakerPersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT)
-        }
+        val meldinger = meldingRepository.getMeldingerForArbeidstaker(arbeidstakerPersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT)
         assertEquals(3, result.updated)
         assertEquals(0, result.failed)
         meldinger.forEach {

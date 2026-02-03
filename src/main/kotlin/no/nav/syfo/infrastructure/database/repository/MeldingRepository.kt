@@ -57,6 +57,20 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         }
     }
 
+    override fun updateInnkommendePublishedAt(uuid: UUID) {
+        database.connection.use { connection ->
+            val rowCount = connection.prepareStatement(QUERY_UPDATE_INNKOMMENDE_PUBLISHED_AT).use {
+                it.setObject(1, OffsetDateTime.now())
+                it.setString(2, uuid.toString())
+                it.executeUpdate()
+            }
+            if (rowCount != 1) {
+                throw SQLException("Failed to save published at for meldingFraBehandler with uuid: $uuid ")
+            }
+            connection.commit()
+        }
+    }
+
     override fun getVedlegg(uuid: UUID, number: Int): PVedlegg? =
         database.connection.use { connection ->
             connection.prepareStatement(QUERY_GET_VEDLEGG).use {
@@ -115,6 +129,13 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             """
                 UPDATE MELDING
                 SET ubesvart_published_at = ?
+                WHERE uuid = ?
+            """
+
+        private const val QUERY_UPDATE_INNKOMMENDE_PUBLISHED_AT =
+            """
+                UPDATE MELDING
+                SET innkommende_published_at = ?
                 WHERE uuid = ?
             """
 
