@@ -27,6 +27,7 @@ class MeldingFraBehandlerCronjobTest {
     private val kafkaMeldingFraBehandlerProducer = mockk<KafkaMeldingFraBehandlerProducer>()
 
     private val publishMeldingFraBehandlerService = PublishMeldingFraBehandlerService(
+        meldingRepository = meldingRepository,
         database = database,
         kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducer,
     )

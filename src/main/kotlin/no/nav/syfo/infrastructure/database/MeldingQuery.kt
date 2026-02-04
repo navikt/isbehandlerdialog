@@ -97,22 +97,6 @@ fun Connection.getUtgaendeMeldingerWithType(
     }
 }
 
-const val queryGetUnpublishedMeldingerFraBehandler =
-    """
-        SELECT *
-        FROM MELDING
-        WHERE innkommende AND innkommende_published_at IS NULL
-        ORDER BY created_at ASC
-    """
-
-fun DatabaseInterface.getUnpublishedMeldingerFraBehandler(): List<PMelding> {
-    return connection.use { connection ->
-        connection.prepareStatement(queryGetUnpublishedMeldingerFraBehandler).use {
-            it.executeQuery().toList { toPMelding() }
-        }
-    }
-}
-
 const val queryGetUnpublishedAvvisteMeldinger =
     """
         SELECT *
