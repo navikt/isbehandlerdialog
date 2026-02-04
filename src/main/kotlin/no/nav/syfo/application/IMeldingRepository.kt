@@ -12,6 +12,7 @@ interface IMeldingRepository {
     fun getMeldingerForArbeidstaker(arbeidstakerPersonIdent: PersonIdent): List<PMelding>
     suspend fun getUbesvarteMeldinger(fristDato: OffsetDateTime): List<PMelding>
     suspend fun updateUbesvartPublishedAt(uuid: UUID)
+    fun updateInnkommendePublishedAt(uuid: UUID)
     fun getVedlegg(uuid: UUID, number: Int): PVedlegg?
     fun getUnpublishedMeldingerFraBehandler(): List<MeldingFraBehandler>
 }

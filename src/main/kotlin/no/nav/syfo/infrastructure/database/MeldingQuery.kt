@@ -112,27 +112,6 @@ fun DatabaseInterface.getUnpublishedAvvisteMeldinger(): List<PMelding> =
         }
     }
 
-const val queryUpdateInnkommendePublishedAt =
-    """
-        UPDATE MELDING
-        SET innkommende_published_at = ?
-        WHERE uuid = ?
-    """
-
-fun DatabaseInterface.updateInnkommendePublishedAt(uuid: UUID) {
-    connection.use { connection ->
-        val rowCount = connection.prepareStatement(queryUpdateInnkommendePublishedAt).use {
-            it.setObject(1, OffsetDateTime.now())
-            it.setString(2, uuid.toString())
-            it.executeUpdate()
-        }
-        if (rowCount != 1) {
-            throw SQLException("Failed to save published at for meldingFraBehandler with uuid: $uuid ")
-        }
-        connection.commit()
-    }
-}
-
 const val queryUpdateAvvistMeldingPublishedAt =
     """
         UPDATE MELDING

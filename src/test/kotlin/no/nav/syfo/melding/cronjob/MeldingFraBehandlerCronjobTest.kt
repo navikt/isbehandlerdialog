@@ -5,7 +5,6 @@ import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.syfo.infrastructure.cronjob.MeldingFraBehandlerCronjob
-import no.nav.syfo.infrastructure.database.updateInnkommendePublishedAt
 import no.nav.syfo.infrastructure.kafka.producer.KafkaMeldingFraBehandlerProducer
 import no.nav.syfo.infrastructure.kafka.producer.PublishMeldingFraBehandlerService
 import no.nav.syfo.testhelper.ExternalMockEnvironment
@@ -28,7 +27,6 @@ class MeldingFraBehandlerCronjobTest {
 
     private val publishMeldingFraBehandlerService = PublishMeldingFraBehandlerService(
         meldingRepository = meldingRepository,
-        database = database,
         kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducer,
     )
 
@@ -85,7 +83,7 @@ class MeldingFraBehandlerCronjobTest {
             meldingFraBehandler = meldingFraBehandler,
         )
         val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
-        database.updateInnkommendePublishedAt(uuid = meldinger.first().uuid)
+        meldingRepository.updateInnkommendePublishedAt(uuid = meldinger.first().uuid)
 
         val result = meldingFraBehandlerCronjob.runJob()
 
