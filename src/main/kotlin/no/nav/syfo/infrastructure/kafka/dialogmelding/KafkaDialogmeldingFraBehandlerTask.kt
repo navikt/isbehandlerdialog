@@ -19,7 +19,7 @@ fun launchKafkaTaskDialogmeldingFraBehandler(
     padm2Client: Padm2Client,
     oppfolgingstilfelleClient: OppfolgingstilfelleClient,
 ) {
-    val kafkaDialogmeldingFraBehandlerConsumer = KafkaDialogmeldingFraBehandlerConsumer(
+    val dialogmeldingFraBehandlerConsumer = DialogmeldingFraBehandlerConsumer(
         database = database,
         padm2Client = padm2Client,
         oppfolgingstilfelleClient = oppfolgingstilfelleClient,
@@ -32,6 +32,6 @@ fun launchKafkaTaskDialogmeldingFraBehandler(
         applicationState = applicationState,
         topic = DIALOGMELDING_FROM_BEHANDLER_TOPIC,
         consumerProperties = consumerProperties,
-        kafkaConsumerService = kafkaDialogmeldingFraBehandlerConsumer,
+        kafkaConsumerService = dialogmeldingFraBehandlerConsumer,
     )
 }

@@ -7,11 +7,14 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.domain.MeldingType
-import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
 import no.nav.syfo.infrastructure.kafka.domain.KafkaLegeerklaeringMessage
 import no.nav.syfo.infrastructure.kafka.domain.Status
 import no.nav.syfo.infrastructure.kafka.domain.ValidationResult
-import no.nav.syfo.infrastructure.kafka.legeerklaring.*
+import no.nav.syfo.infrastructure.kafka.legeerklaring.Content
+import no.nav.syfo.infrastructure.kafka.legeerklaring.LEGEERKLARING_TOPIC
+import no.nav.syfo.infrastructure.kafka.legeerklaring.LegeerklaringConsumer
+import no.nav.syfo.infrastructure.kafka.legeerklaring.LegeerklaringVedleggDTO
+import no.nav.syfo.infrastructure.kafka.legeerklaring.Vedlegg
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.createMeldingerTilBehandler
@@ -42,17 +45,13 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     private val vedleggPdf = byteArrayOf(0x2E, 0x28)
     private val bucketName = externalMockEnvironment.environment.legeerklaringBucketName
     private val bucketNameVedlegg = externalMockEnvironment.environment.legeerklaringVedleggBucketName
-    private val pdfgenClient = PdfGenClient(
-        pdfGenBaseUrl = externalMockEnvironment.environment.clients.dialogmeldingpdfgen.baseUrl,
-        legeerklaringPdfGenBaseUrl = externalMockEnvironment.environment.clients.dialogmeldingpdfgen.baseUrl,
-        httpClient = externalMockEnvironment.mockHttpClient,
-    )
-    private val kafkaLegeerklaringConsumer = KafkaLegeerklaringConsumer(
+
+    private val legeerklaringConsumer = LegeerklaringConsumer(
         database = database,
         storage = storage,
         bucketName = bucketName,
         bucketNameVedlegg = bucketNameVedlegg,
-        pdfgenClient = pdfgenClient,
+        pdfgenClient = externalMockEnvironment.pdfgenClient,
     )
 
     @AfterEach
@@ -76,8 +75,8 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         every { storage.get(bucketName, legeerklaring.msgId) } returns blob
         val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
-        kafkaLegeerklaringConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        legeerklaringConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -102,8 +101,8 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         every { storage.get(bucketName, legeerklaring.msgId) } returns blob
         val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
-        kafkaLegeerklaringConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        legeerklaringConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -140,8 +139,8 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         every { storage.get(bucketName, legeerklaring.msgId) } returns blob
         val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
-        kafkaLegeerklaringConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        legeerklaringConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -193,8 +192,8 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         every { storage.get(bucketName, legeerklaring.msgId) } returns blob
         val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
-        kafkaLegeerklaringConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        legeerklaringConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -259,8 +258,8 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         every { vedleggBlob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaringVedlegg)
         every { storage.get(bucketNameVedlegg, vedleggId) } returns vedleggBlob
 
-        kafkaLegeerklaringConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        legeerklaringConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -326,8 +325,8 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         every { storage.get(bucketName, legeerklaring.msgId) } returns blob
         val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
-        kafkaLegeerklaringConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        legeerklaringConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -381,8 +380,8 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
             every { storage.get(bucketName, legeerklaring.msgId) } returns blob
             val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
-            kafkaLegeerklaringConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            legeerklaringConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
 
             verify(exactly = 1) { mockConsumer.commitSync() }
@@ -433,8 +432,8 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         every { storage.get(bucketName, legeerklaring.msgId) } returns blob
         val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
 
-        kafkaLegeerklaringConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        legeerklaringConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }

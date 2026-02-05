@@ -7,8 +7,6 @@ import kotlinx.coroutines.test.runTest
 import no.nav.syfo.application.JournalforMeldingTilBehandlerService
 import no.nav.syfo.domain.MeldingTilBehandler
 import no.nav.syfo.domain.MeldingType
-import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
-import no.nav.syfo.infrastructure.client.dialogmelding.DialogmeldingClient
 import no.nav.syfo.infrastructure.client.dokarkiv.DokarkivClient
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrevkodeType
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.JournalpostResponse
@@ -25,7 +23,6 @@ import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generatePaminnelseRequestDTO
 import no.nav.syfo.testhelper.generator.journalpostRequestGenerator
-import no.nav.syfo.testhelper.mock.mockHttpClient
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -38,15 +35,7 @@ class JournalforDialogmeldingCronjobTest {
     private val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
         database = database,
     )
-    private val mockHttpClient = mockHttpClient(ExternalMockEnvironment.instance.environment)
-    private val dialogmeldingClient = DialogmeldingClient(
-        azureAdClient = AzureAdClient(
-            azureEnvironment = ExternalMockEnvironment.instance.environment.azure,
-            httpClient = mockHttpClient,
-        ),
-        clientEnvironment = ExternalMockEnvironment.instance.environment.clients.dialogmelding,
-        client = mockHttpClient,
-    )
+    private val dialogmeldingClient = ExternalMockEnvironment.instance.dialogmeldingClient
     private val journalforDialogmeldingCronjob = JournalforMeldingTilBehandlerCronjob(
         dokarkivClient = dokarkivClient,
         dialogmeldingClient = dialogmeldingClient,

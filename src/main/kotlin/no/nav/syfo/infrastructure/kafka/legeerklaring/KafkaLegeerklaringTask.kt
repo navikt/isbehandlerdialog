@@ -2,7 +2,7 @@ package no.nav.syfo.infrastructure.kafka.legeerklaring
 
 import com.google.cloud.storage.StorageOptions
 import no.nav.syfo.ApplicationState
-import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
+import no.nav.syfo.application.IPdfGenClient
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.kafka.config.KafkaEnvironment
 import no.nav.syfo.infrastructure.kafka.config.kafkaConsumerConfig
@@ -20,10 +20,10 @@ fun launchKafkaTaskLegeerklaring(
     bucketName: String,
     bucketNameVedlegg: String,
     database: DatabaseInterface,
-    pdfgenClient: PdfGenClient,
+    pdfgenClient: IPdfGenClient,
 ) {
     val storage = StorageOptions.newBuilder().build().service
-    val kafkaLegeerklaringConsumer = KafkaLegeerklaringConsumer(
+    val legeerklaringConsumer = LegeerklaringConsumer(
         database = database,
         storage = storage,
         bucketName = bucketName,
@@ -40,7 +40,7 @@ fun launchKafkaTaskLegeerklaring(
         applicationState = applicationState,
         topic = LEGEERKLARING_TOPIC,
         consumerProperties = consumerProperties,
-        kafkaConsumerService = kafkaLegeerklaringConsumer,
+        kafkaConsumerService = legeerklaringConsumer,
     )
 }
 
