@@ -1,9 +1,6 @@
 package no.nav.syfo.infrastructure.kafka.domain
 
-import no.nav.syfo.domain.MeldingTilBehandler
-import no.nav.syfo.domain.getDialogmeldingKode
-import no.nav.syfo.domain.getDialogmeldingKodeverk
-import no.nav.syfo.domain.getDialogmeldingType
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.serialize
 
 data class DialogmeldingBestillingDTO(
@@ -20,7 +17,7 @@ data class DialogmeldingBestillingDTO(
     val kilde: String?,
 ) {
     companion object {
-        fun from(meldingTilBehandler: MeldingTilBehandler, meldingPdf: ByteArray) =
+        fun from(meldingTilBehandler: Melding.MeldingTilBehandler, meldingPdf: ByteArray) =
             DialogmeldingBestillingDTO(
                 behandlerRef = meldingTilBehandler.behandlerRef.toString(),
                 personIdent = meldingTilBehandler.arbeidstakerPersonIdent.value,

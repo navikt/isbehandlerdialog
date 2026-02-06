@@ -1,10 +1,12 @@
 package no.nav.syfo.infrastructure.kafka.domain
 
-import no.nav.syfo.domain.MeldingFraBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PersonIdent
-import java.time.*
-import java.util.UUID
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.util.*
 
 const val KODEVERK_MELDING_TIL_NAV = "2.16.578.1.12.4.1.1.8128"
 const val HENVENDELSE_OM_SYKEFRAVAR = "1"
@@ -37,7 +39,7 @@ fun KafkaDialogmeldingFraBehandlerDTO.isHenvendelseTilNAV(): Boolean {
 fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(
     type: MeldingType,
     conversationRef: UUID,
-): MeldingFraBehandler {
+): Melding.MeldingFraBehandler {
     val tekst = if (type == MeldingType.HENVENDELSE_MELDING_TIL_NAV) {
         dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold
             ?: dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
@@ -45,7 +47,7 @@ fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(
         dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
             ?: dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold
     }
-    return MeldingFraBehandler(
+    return Melding.MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
         type = type,

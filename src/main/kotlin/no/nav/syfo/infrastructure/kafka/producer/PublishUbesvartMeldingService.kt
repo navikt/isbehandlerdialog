@@ -1,8 +1,8 @@
 package no.nav.syfo.infrastructure.kafka.producer
 
 import no.nav.syfo.application.IMeldingRepository
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.database.domain.toMeldingTilBehandler
-import no.nav.syfo.domain.MeldingTilBehandler
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -11,13 +11,13 @@ class PublishUbesvartMeldingService(
     private val ubesvartMeldingProducer: UbesvartMeldingProducer,
     private val fristHours: Long,
 ) {
-    suspend fun getUnpublishedUbesvarteMeldinger(): List<MeldingTilBehandler> {
+    suspend fun getUnpublishedUbesvarteMeldinger(): List<Melding.MeldingTilBehandler> {
         val fristDato = OffsetDateTime.now().minusHours(fristHours)
         return meldingRepository.getUbesvarteMeldinger(fristDato = fristDato).map { it.toMeldingTilBehandler() }
     }
 
     suspend fun publishUbesvartMelding(
-        meldingTilBehandler: MeldingTilBehandler,
+        meldingTilBehandler: Melding.MeldingTilBehandler,
     ) {
         ubesvartMeldingProducer.sendUbesvartMelding(
             meldingTilBehandler = meldingTilBehandler,

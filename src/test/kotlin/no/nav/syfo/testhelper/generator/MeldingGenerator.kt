@@ -1,14 +1,14 @@
 package no.nav.syfo.testhelper.generator
 
-import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.api.models.MeldingTilBehandlerRequestDTO
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.DocumentComponentType
-import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.kafka.domain.toMeldingFraBehandler
 import no.nav.syfo.testhelper.UserConstants
-import java.util.UUID
+import java.util.*
 
 fun generateMeldingTilBehandlerRequestDTO(
     behandlerRef: UUID = UUID.randomUUID(),
@@ -61,13 +61,13 @@ fun generateMeldingTilBehandler(
     tekst: String = "Melding til behandler",
     type: MeldingType = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
     veilederIdent: String = UserConstants.VEILEDER_IDENT,
-): MeldingTilBehandler {
+): Melding.MeldingTilBehandler {
     val meldingTilBehandlerRequestDTO = generateMeldingTilBehandlerRequestDTO(
         behandlerRef = behandlerRef,
         tekst = tekst,
         type = type,
     )
-    return MeldingTilBehandler.createMeldingTilBehandler(
+    return Melding.MeldingTilBehandler.createMeldingTilBehandler(
         type = type,
         veilederIdent = veilederIdent,
         personIdent = personIdent,

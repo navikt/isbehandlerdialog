@@ -2,7 +2,6 @@ package no.nav.syfo.infrastructure.cronjob
 
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.JournalforMeldingTilBehandlerService
-import no.nav.syfo.domain.toJournalpostRequest
 import no.nav.syfo.infrastructure.client.dialogmelding.DialogmeldingClient
 import no.nav.syfo.infrastructure.client.dokarkiv.DokarkivClient
 import org.slf4j.LoggerFactory

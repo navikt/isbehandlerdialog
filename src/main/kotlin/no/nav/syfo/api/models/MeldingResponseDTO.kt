@@ -2,10 +2,9 @@ package no.nav.syfo.api.models
 
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.MOTTATT_LEGEERKLARING_TEKST
-import no.nav.syfo.domain.MeldingFraBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.MeldingStatusType
-import no.nav.syfo.domain.MeldingTilBehandler
 import no.nav.syfo.domain.MeldingType
 import java.time.OffsetDateTime
 import java.util.*
@@ -31,7 +30,7 @@ data class MeldingDTO(
     val isFirstVedleggLegeerklaring: Boolean,
 ) {
     companion object {
-        fun from(meldingTilBehandler: MeldingTilBehandler, status: MeldingStatus?) =
+        fun from(meldingTilBehandler: Melding.MeldingTilBehandler, status: MeldingStatus?) =
             MeldingDTO(
                 uuid = meldingTilBehandler.uuid,
                 conversationRef = meldingTilBehandler.conversationRef,
@@ -49,7 +48,7 @@ data class MeldingDTO(
                 isFirstVedleggLegeerklaring = false,
             )
 
-        fun from(meldingFraBehandler: MeldingFraBehandler, behandlerRef: UUID?) =
+        fun from(meldingFraBehandler: Melding.MeldingFraBehandler, behandlerRef: UUID?) =
             MeldingDTO(
                 uuid = meldingFraBehandler.uuid,
                 conversationRef = meldingFraBehandler.conversationRef,

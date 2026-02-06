@@ -1,6 +1,6 @@
 package no.nav.syfo.infrastructure.kafka.producer
 
-import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -11,7 +11,7 @@ class UbesvartMeldingProducer(
     private val producer: KafkaProducer<String, KafkaMeldingDTO>,
 ) {
     fun sendUbesvartMelding(
-        meldingTilBehandler: MeldingTilBehandler,
+        meldingTilBehandler: Melding.MeldingTilBehandler,
         key: UUID,
     ) =
         try {

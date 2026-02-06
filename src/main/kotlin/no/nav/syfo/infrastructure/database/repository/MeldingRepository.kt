@@ -3,7 +3,7 @@ package no.nav.syfo.infrastructure.database.repository
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.domain.DocumentComponentDTO
-import no.nav.syfo.domain.MeldingFraBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
@@ -80,7 +80,7 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
-    override fun getUnpublishedMeldingerFraBehandler(): List<MeldingFraBehandler> =
+    override fun getUnpublishedMeldingerFraBehandler(): List<Melding.MeldingFraBehandler> =
         database.connection.use { connection ->
             connection.prepareStatement(QUERY_GET_UNPUBLISHED_MELDINGER_FRA_BEHANDLER).use {
                 it.executeQuery().toList { toPMelding().toMeldingFraBehandler() }

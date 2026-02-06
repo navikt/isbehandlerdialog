@@ -1,7 +1,7 @@
 package no.nav.syfo.infrastructure.kafka.producer
 
 import no.nav.syfo.application.IMeldingRepository
-import no.nav.syfo.domain.MeldingFraBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import java.util.*
 
@@ -9,11 +9,11 @@ class PublishMeldingFraBehandlerService(
     private val meldingRepository: IMeldingRepository,
     private val meldingFraBehandlerProducer: MeldingFraBehandlerProducer,
 ) {
-    fun getUnpublishedMeldingerFraBehandler(): List<MeldingFraBehandler> =
+    fun getUnpublishedMeldingerFraBehandler(): List<Melding.MeldingFraBehandler> =
         meldingRepository.getUnpublishedMeldingerFraBehandler()
 
     fun publishMeldingFraBehandler(
-        meldingFraBehandler: MeldingFraBehandler,
+        meldingFraBehandler: Melding.MeldingFraBehandler,
     ) {
         meldingFraBehandlerProducer.sendMeldingFraBehandler(
             kafkaMeldingDTO = KafkaMeldingDTO.from(meldingFraBehandler),
