@@ -1,7 +1,6 @@
 package no.nav.syfo.infrastructure.kafka.producer
 
 import no.nav.syfo.domain.MeldingTilBehandler
-import no.nav.syfo.domain.toKafkaMeldingDTO
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -17,7 +16,7 @@ class AvvistMeldingProducer(val kafkaProducer: KafkaProducer<String, KafkaMeldin
                 ProducerRecord(
                     AVVIST_MELDING_TOPIC,
                     key.toString(),
-                    meldingTilBehandler.toKafkaMeldingDTO(),
+                    KafkaMeldingDTO.from(meldingTilBehandler)
                 )
             ).also { it.get() }
         } catch (e: Exception) {

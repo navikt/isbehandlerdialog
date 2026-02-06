@@ -9,7 +9,6 @@ import no.nav.syfo.domain.MeldingTilBehandler
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PdfContent
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.domain.toMeldingDTO
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.createPdf
@@ -61,10 +60,10 @@ class MeldingService(
                         meldingFraBehandler = meldingFraBehandler,
                         personIdent = personIdent,
                     )
-                    meldingFraBehandler.toMeldingDTO(behandlerRef)
+                    MeldingDTO.from(meldingFraBehandler, behandlerRef)
                 } else {
                     val meldingStatus = getMeldingStatus(meldingId = it.id)
-                    it.toMeldingTilBehandler().toMeldingDTO(meldingStatus)
+                    MeldingDTO.from(it.toMeldingTilBehandler(), meldingStatus)
                 }
             }
         )

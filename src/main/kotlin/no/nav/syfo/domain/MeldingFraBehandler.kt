@@ -1,7 +1,5 @@
 package no.nav.syfo.domain
 
-import no.nav.syfo.api.models.MeldingDTO
-import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -28,31 +26,3 @@ data class MeldingFraBehandler(
     override val journalpostId: String? = null
     override val veilederIdent: String? = null
 }
-
-fun MeldingFraBehandler.toMeldingDTO(behandlerRef: UUID?) = MeldingDTO(
-    uuid = uuid,
-    conversationRef = conversationRef,
-    parentRef = parentRef,
-    behandlerRef = behandlerRef,
-    behandlerNavn = behandlerNavn,
-    tekst = tekst ?: "",
-    document = emptyList(),
-    tidspunkt = tidspunkt,
-    innkommende = true,
-    type = type,
-    antallVedlegg = antallVedlegg,
-    status = null,
-    veilederIdent = veilederIdent,
-    isFirstVedleggLegeerklaring = type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING && tekst == MOTTATT_LEGEERKLARING_TEKST
-)
-
-fun MeldingFraBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(
-    uuid = uuid.toString(),
-    personIdent = arbeidstakerPersonIdent.value,
-    type = type.name,
-    conversationRef = conversationRef.toString(),
-    parentRef = parentRef?.toString(),
-    msgId = msgId,
-    tidspunkt = tidspunkt,
-    behandlerPersonIdent = behandlerPersonIdent?.value,
-)

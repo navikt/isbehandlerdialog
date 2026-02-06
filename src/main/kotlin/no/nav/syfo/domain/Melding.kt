@@ -1,7 +1,7 @@
 package no.nav.syfo.domain
 
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 interface Melding {
     val uuid: UUID
