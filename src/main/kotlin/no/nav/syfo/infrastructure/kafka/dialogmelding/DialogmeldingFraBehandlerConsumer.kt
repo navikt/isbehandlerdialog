@@ -20,7 +20,7 @@ import java.sql.Connection
 import java.time.Duration
 import java.util.*
 
-class KafkaDialogmeldingFraBehandlerConsumer(
+class DialogmeldingFraBehandlerConsumer(
     private val database: DatabaseInterface,
     private val padm2Client: Padm2Client,
     private val oppfolgingstilfelleClient: OppfolgingstilfelleClient,
@@ -28,21 +28,21 @@ class KafkaDialogmeldingFraBehandlerConsumer(
 
     override val pollDurationInMillis: Long = 1000
 
-    override suspend fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KafkaDialogmeldingFraBehandlerDTO>) {
-        val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
+    override suspend fun pollAndProcessRecords(consumer: KafkaConsumer<String, KafkaDialogmeldingFraBehandlerDTO>) {
+        val records = consumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
             processConsumerRecords(
-                consumerRecords = records,
+                records = records,
             )
-            kafkaConsumer.commitSync()
+            consumer.commitSync()
         }
     }
 
     private fun processConsumerRecords(
-        consumerRecords: ConsumerRecords<String, KafkaDialogmeldingFraBehandlerDTO>,
+        records: ConsumerRecords<String, KafkaDialogmeldingFraBehandlerDTO>,
     ) {
         database.connection.use { connection ->
-            consumerRecords.forEach {
+            records.forEach {
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_READ.increment()
                 val kafkaDialogmeldingFraBehandler = it.value()
                 if (kafkaDialogmeldingFraBehandler != null) {
@@ -200,6 +200,6 @@ class KafkaDialogmeldingFraBehandlerConsumer(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(KafkaDialogmeldingFraBehandlerConsumer::class.java)
+        private val log = LoggerFactory.getLogger(DialogmeldingFraBehandlerConsumer::class.java)
     }
 }

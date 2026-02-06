@@ -19,7 +19,7 @@ fun launchKafkaTaskDialogmeldingStatus(
     meldingRepository: MeldingRepository,
     meldingService: MeldingService,
 ) {
-    val kafkaDialogmeldingStatusConsumer = KafkaDialogmeldingStatusConsumer(
+    val dialogmeldingStatusConsumer = DialogmeldingStatusConsumer(
         database = database,
         meldingRepository = meldingRepository,
         meldingService = meldingService,
@@ -31,7 +31,7 @@ fun launchKafkaTaskDialogmeldingStatus(
         applicationState = applicationState,
         topic = DIALOGMELDING_STATUS_TOPIC,
         consumerProperties = consumerProperties,
-        kafkaConsumerService = kafkaDialogmeldingStatusConsumer,
+        kafkaConsumerService = dialogmeldingStatusConsumer,
     )
 }
 

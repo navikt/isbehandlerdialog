@@ -5,7 +5,7 @@ import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.syfo.infrastructure.cronjob.MeldingFraBehandlerCronjob
-import no.nav.syfo.infrastructure.kafka.producer.KafkaMeldingFraBehandlerProducer
+import no.nav.syfo.infrastructure.kafka.producer.MeldingFraBehandlerProducer
 import no.nav.syfo.infrastructure.kafka.producer.PublishMeldingFraBehandlerService
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
@@ -23,11 +23,11 @@ class MeldingFraBehandlerCronjobTest {
 
     private val database = ExternalMockEnvironment.instance.database
     private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
-    private val kafkaMeldingFraBehandlerProducer = mockk<KafkaMeldingFraBehandlerProducer>()
+    private val meldingFraBehandlerProducer = mockk<MeldingFraBehandlerProducer>()
 
     private val publishMeldingFraBehandlerService = PublishMeldingFraBehandlerService(
         meldingRepository = meldingRepository,
-        kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducer,
+        meldingFraBehandlerProducer = meldingFraBehandlerProducer,
     )
 
     private val meldingFraBehandlerCronjob = MeldingFraBehandlerCronjob(
@@ -37,7 +37,7 @@ class MeldingFraBehandlerCronjobTest {
     @BeforeEach
     fun beforeEach() {
         justRun {
-            kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(
+            meldingFraBehandlerProducer.sendMeldingFraBehandler(
                 kafkaMeldingDTO = any(),
                 key = any(),
             )
@@ -47,7 +47,7 @@ class MeldingFraBehandlerCronjobTest {
     @AfterEach
     fun afterEach() {
         database.dropData()
-        clearMocks(kafkaMeldingFraBehandlerProducer)
+        clearMocks(meldingFraBehandlerProducer)
     }
 
     @Test
@@ -66,7 +66,7 @@ class MeldingFraBehandlerCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(1, result.updated)
 
-        verify(exactly = 1) { kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(any(), any()) }
+        verify(exactly = 1) { meldingFraBehandlerProducer.sendMeldingFraBehandler(any(), any()) }
 
         val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
         assertNotNull(meldinger.first().innkommendePublishedAt)
@@ -90,6 +90,6 @@ class MeldingFraBehandlerCronjobTest {
         assertEquals(0, result.failed)
         assertEquals(0, result.updated)
 
-        verify(exactly = 0) { kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(any(), any()) }
+        verify(exactly = 0) { meldingFraBehandlerProducer.sendMeldingFraBehandler(any(), any()) }
     }
 }

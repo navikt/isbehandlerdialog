@@ -8,7 +8,7 @@ import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.cronjob.UbesvartMeldingCronjob
 import no.nav.syfo.infrastructure.database.createMeldingStatus
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
-import no.nav.syfo.infrastructure.kafka.producer.KafkaUbesvartMeldingProducer
+import no.nav.syfo.infrastructure.kafka.producer.UbesvartMeldingProducer
 import no.nav.syfo.infrastructure.kafka.producer.PublishUbesvartMeldingService
 import no.nav.syfo.testhelper.*
 import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
@@ -29,13 +29,13 @@ class UbesvartMeldingCronjobTest {
     private val database = ExternalMockEnvironment.instance.database
     private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
     private val kafkaProducer = mockk<KafkaProducer<String, KafkaMeldingDTO>>()
-    private val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
-        ubesvartMeldingKafkaProducer = kafkaProducer,
+    private val ubesvartMeldingProducer = UbesvartMeldingProducer(
+        producer = kafkaProducer,
     )
 
     private val publishUbesvartMeldingService = PublishUbesvartMeldingService(
         meldingRepository = meldingRepository,
-        kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
+        ubesvartMeldingProducer = ubesvartMeldingProducer,
         fristHours = ExternalMockEnvironment.instance.environment.cronjobUbesvartMeldingFristHours,
     )
 

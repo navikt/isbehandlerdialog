@@ -54,30 +54,30 @@ fun Application.cronjobModule(
         isJournalforingRetryEnabled = environment.isJournalforingRetryEnabled,
     )
 
-    val kafkaMeldingFraBehandlerProducer = KafkaMeldingFraBehandlerProducer(
-        kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducerConfig(
+    val meldingFraBehandlerProducer = MeldingFraBehandlerProducer(
+        producer = kafkaMeldingFraBehandlerProducerConfig(
             applicationEnvironmentKafka = environment.kafka,
         ),
     )
 
     val publishMeldingFraBehandlerService = PublishMeldingFraBehandlerService(
         meldingRepository = meldingRepository,
-        kafkaMeldingFraBehandlerProducer = kafkaMeldingFraBehandlerProducer,
+        meldingFraBehandlerProducer = meldingFraBehandlerProducer,
     )
 
     val meldingFraBehandlerCronjob = MeldingFraBehandlerCronjob(
         publishMeldingFraBehandlerService = publishMeldingFraBehandlerService,
     )
 
-    val kafkaUbesvartMeldingProducer = KafkaUbesvartMeldingProducer(
-        ubesvartMeldingKafkaProducer = kafkaUbesvartMeldingProducerConfig(
+    val ubesvartMeldingProducer = UbesvartMeldingProducer(
+        producer = kafkaUbesvartMeldingProducerConfig(
             applicationEnvironmentKafka = environment.kafka,
         )
     )
 
     val publishUbesvartMeldingService = PublishUbesvartMeldingService(
         meldingRepository = meldingRepository,
-        kafkaUbesvartMeldingProducer = kafkaUbesvartMeldingProducer,
+        ubesvartMeldingProducer = ubesvartMeldingProducer,
         fristHours = environment.cronjobUbesvartMeldingFristHours,
     )
 

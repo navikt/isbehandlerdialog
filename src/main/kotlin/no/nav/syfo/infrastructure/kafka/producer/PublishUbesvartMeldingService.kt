@@ -8,7 +8,7 @@ import java.util.*
 
 class PublishUbesvartMeldingService(
     private val meldingRepository: IMeldingRepository,
-    private val kafkaUbesvartMeldingProducer: KafkaUbesvartMeldingProducer,
+    private val ubesvartMeldingProducer: UbesvartMeldingProducer,
     private val fristHours: Long,
 ) {
     suspend fun getUnpublishedUbesvarteMeldinger(): List<MeldingTilBehandler> {
@@ -19,7 +19,7 @@ class PublishUbesvartMeldingService(
     suspend fun publishUbesvartMelding(
         meldingTilBehandler: MeldingTilBehandler,
     ) {
-        kafkaUbesvartMeldingProducer.sendUbesvartMelding(
+        ubesvartMeldingProducer.sendUbesvartMelding(
             meldingTilBehandler = meldingTilBehandler,
             key = UUID.nameUUIDFromBytes(meldingTilBehandler.arbeidstakerPersonIdent.value.toByteArray())
         )

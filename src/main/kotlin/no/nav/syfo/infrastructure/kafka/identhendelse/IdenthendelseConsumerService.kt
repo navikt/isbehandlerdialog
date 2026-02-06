@@ -14,8 +14,8 @@ class IdenthendelseConsumerService(
 ) : KafkaConsumerService<GenericRecord> {
     override val pollDurationInMillis: Long = 1000
 
-    override suspend fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, GenericRecord>) {
-        val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
+    override suspend fun pollAndProcessRecords(consumer: KafkaConsumer<String, GenericRecord>) {
+        val records = consumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
             records.forEach { record ->
                 if (record.value() != null) {
@@ -24,7 +24,7 @@ class IdenthendelseConsumerService(
                     log.warn("Identhendelse: Value of ConsumerRecord from topic $PDL_AKTOR_TOPIC is null, probably due to a tombstone. Contact the owner of the topic if an error is suspected")
                 }
             }
-            kafkaConsumer.commitSync()
+            consumer.commitSync()
         }
     }
 

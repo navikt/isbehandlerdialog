@@ -2,12 +2,24 @@ package no.nav.syfo.application
 
 import no.nav.syfo.api.models.MeldingDTO
 import no.nav.syfo.api.models.MeldingTilBehandlerRequestDTO
-import no.nav.syfo.domain.*
-import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
-import no.nav.syfo.infrastructure.database.*
+import no.nav.syfo.domain.DocumentComponentDTO
+import no.nav.syfo.domain.MeldingFraBehandler
+import no.nav.syfo.domain.MeldingStatus
+import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.domain.PdfContent
+import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.domain.toMeldingDTO
+import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
+import no.nav.syfo.infrastructure.database.createPdf
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.toMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.domain.toMeldingTilBehandler
+import no.nav.syfo.infrastructure.database.getMeldingStatus
+import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
+import no.nav.syfo.infrastructure.database.hasMelding
+import no.nav.syfo.infrastructure.database.toMeldingStatus
 import no.nav.syfo.infrastructure.kafka.producer.DialogmeldingBestillingProducer
 import java.sql.Connection
 import java.util.*
@@ -16,7 +28,7 @@ class MeldingService(
     private val database: DatabaseInterface,
     private val meldingRepository: IMeldingRepository,
     private val dialogmeldingBestillingProducer: DialogmeldingBestillingProducer,
-    private val pdfgenClient: PdfGenClient,
+    private val pdfgenClient: IPdfGenClient,
 ) {
     suspend fun createMeldingTilBehandler(
         callId: String,

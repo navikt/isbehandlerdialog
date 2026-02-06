@@ -1,7 +1,6 @@
 package no.nav.syfo.infrastructure
 
 import kotlinx.coroutines.test.runTest
-import no.nav.syfo.infrastructure.database.repository.MeldingRepository
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.createMeldingerTilBehandler
@@ -15,7 +14,7 @@ import java.util.*
 class MeldingRepositoryTest {
 
     private val database = ExternalMockEnvironment.instance.database
-    private val meldingRepository = MeldingRepository(database)
+    private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
 
     @AfterEach
     fun afterEach() {

@@ -1,8 +1,6 @@
 package no.nav.syfo.client.dokarkiv
 
 import kotlinx.coroutines.test.runTest
-import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
-import no.nav.syfo.infrastructure.client.dokarkiv.DokarkivClient
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrevkodeType
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.MeldingTittel
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.OverstyrInnsynsregler
@@ -18,17 +16,7 @@ import java.util.*
 class DokarkivClientTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
-    private val mockHttpClient = externalMockEnvironment.mockHttpClient
-    val azureAdClient = AzureAdClient(
-        azureEnvironment = externalMockEnvironment.environment.azure,
-        httpClient = mockHttpClient,
-    )
-
-    val dokarkivClient = DokarkivClient(
-        azureAdClient = azureAdClient,
-        clientEnvironment = externalMockEnvironment.environment.clients.dokarkiv,
-        httpClient = mockHttpClient,
-    )
+    private val dokarkivClient = externalMockEnvironment.dokarkivClient
     val journalpostRequest = journalpostRequestGenerator(
         pdf = UserConstants.PDF_LEGEERKLARING,
         brevkodeType = BrevkodeType.FORESPORSEL_OM_PASIENT,

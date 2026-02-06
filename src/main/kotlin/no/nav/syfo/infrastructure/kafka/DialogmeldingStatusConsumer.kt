@@ -15,25 +15,25 @@ import java.sql.Connection
 import java.time.Duration
 import java.util.*
 
-class KafkaDialogmeldingStatusConsumer(
+class DialogmeldingStatusConsumer(
     private val database: DatabaseInterface,
     private val meldingRepository: MeldingRepository,
     private val meldingService: MeldingService,
 ) : KafkaConsumerService<KafkaDialogmeldingStatusDTO> {
     override val pollDurationInMillis: Long = 1000
-    override suspend fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KafkaDialogmeldingStatusDTO>) {
-        val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
+    override suspend fun pollAndProcessRecords(consumer: KafkaConsumer<String, KafkaDialogmeldingStatusDTO>) {
+        val records = consumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
             processRecords(
-                consumerRecords = records,
+                records = records,
             )
-            kafkaConsumer.commitSync()
+            consumer.commitSync()
         }
     }
 
-    private suspend fun processRecords(consumerRecords: ConsumerRecords<String, KafkaDialogmeldingStatusDTO>) {
+    private suspend fun processRecords(records: ConsumerRecords<String, KafkaDialogmeldingStatusDTO>) {
         database.connection.use { connection ->
-            consumerRecords.forEach {
+            records.forEach {
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_STATUS_READ.increment()
                 val kafkaDialogmeldingStatus = it.value()
                 if (kafkaDialogmeldingStatus != null) {
@@ -92,6 +92,6 @@ class KafkaDialogmeldingStatusConsumer(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(KafkaDialogmeldingStatusConsumer::class.java)
+        private val log = LoggerFactory.getLogger(DialogmeldingStatusConsumer::class.java)
     }
 }

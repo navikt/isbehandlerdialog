@@ -3,11 +3,15 @@ package no.nav.syfo.infrastructure.kafka.legeerklaring
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.cloud.storage.Storage
 import kotlinx.coroutines.runBlocking
+import no.nav.syfo.application.IPdfGenClient
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
-import no.nav.syfo.infrastructure.database.*
+import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
+import no.nav.syfo.infrastructure.database.createVedlegg
 import no.nav.syfo.infrastructure.database.domain.PMelding
+import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
+import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerWithType
 import no.nav.syfo.infrastructure.kafka.config.KafkaConsumerService
 import no.nav.syfo.infrastructure.kafka.domain.KafkaLegeerklaeringMessage
 import no.nav.syfo.infrastructure.kafka.domain.Status
@@ -20,29 +24,27 @@ import java.time.Duration
 import java.time.OffsetDateTime
 import java.util.*
 
-class KafkaLegeerklaringConsumer(
+class LegeerklaringConsumer(
     private val database: DatabaseInterface,
     private val storage: Storage,
     private val bucketName: String,
     private val bucketNameVedlegg: String,
-    private val pdfgenClient: PdfGenClient,
+    private val pdfgenClient: IPdfGenClient,
 ) : KafkaConsumerService<KafkaLegeerklaeringMessage> {
     override val pollDurationInMillis: Long = 1000
     private val mapper = configuredJacksonMapper()
 
-    override suspend fun pollAndProcessRecords(kafkaConsumer: KafkaConsumer<String, KafkaLegeerklaeringMessage>) {
-        val records = kafkaConsumer.poll(Duration.ofMillis(pollDurationInMillis))
+    override suspend fun pollAndProcessRecords(consumer: KafkaConsumer<String, KafkaLegeerklaeringMessage>) {
+        val records = consumer.poll(Duration.ofMillis(pollDurationInMillis))
         if (records.count() > 0) {
-            processRecords(
-                consumerRecords = records,
-            )
-            kafkaConsumer.commitSync()
+            processRecords(records = records)
+            consumer.commitSync()
         }
     }
 
-    private fun processRecords(consumerRecords: ConsumerRecords<String, KafkaLegeerklaeringMessage>) {
+    private fun processRecords(records: ConsumerRecords<String, KafkaLegeerklaeringMessage>) {
         database.connection.use { connection ->
-            consumerRecords.forEach {
+            records.forEach {
                 COUNT_KAFKA_CONSUMER_LEGEERKLARING_READ.increment()
                 val kafkaLegeerklaring = it.value()
                 if (kafkaLegeerklaring != null) {
@@ -195,6 +197,6 @@ class KafkaLegeerklaringConsumer(
         } ?: throw RuntimeException("Fant ikke vedlegg for legeerklaring i gcp bucket: $objectId")
 
     companion object {
-        private val log = LoggerFactory.getLogger(KafkaLegeerklaringConsumer::class.java)
+        private val log = LoggerFactory.getLogger(LegeerklaringConsumer::class.java)
     }
 }
