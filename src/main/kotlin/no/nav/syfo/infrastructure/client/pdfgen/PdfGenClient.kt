@@ -7,6 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
+import no.nav.syfo.application.IPdfGenClient
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.client.httpClientDefault
@@ -29,9 +30,9 @@ class PdfGenClient(
     private val pdfGenBaseUrl: String,
     private val legeerklaringPdfGenBaseUrl: String,
     private val httpClient: HttpClient = httpClientDefault(),
-) {
+) : IPdfGenClient {
 
-    suspend fun generateDialogPdf(
+    override suspend fun generateDialogPdf(
         callId: String,
         mottakerNavn: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
@@ -53,7 +54,7 @@ class PdfGenClient(
         )
     }
 
-    suspend fun generateLegeerklaring(legeerklaringDTO: LegeerklaringDTO): ByteArray? =
+    override suspend fun generateLegeerklaring(legeerklaringDTO: LegeerklaringDTO): ByteArray? =
         getPdf(
             callId = UUID.randomUUID().toString(),
             payload = PdfModelLegeerklaring(

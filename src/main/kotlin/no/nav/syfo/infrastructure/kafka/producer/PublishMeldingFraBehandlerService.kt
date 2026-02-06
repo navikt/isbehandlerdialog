@@ -7,7 +7,7 @@ import java.util.*
 
 class PublishMeldingFraBehandlerService(
     private val meldingRepository: IMeldingRepository,
-    private val kafkaMeldingFraBehandlerProducer: KafkaMeldingFraBehandlerProducer,
+    private val meldingFraBehandlerProducer: MeldingFraBehandlerProducer,
 ) {
     fun getUnpublishedMeldingerFraBehandler(): List<MeldingFraBehandler> =
         meldingRepository.getUnpublishedMeldingerFraBehandler()
@@ -15,7 +15,7 @@ class PublishMeldingFraBehandlerService(
     fun publishMeldingFraBehandler(
         meldingFraBehandler: MeldingFraBehandler,
     ) {
-        kafkaMeldingFraBehandlerProducer.sendMeldingFraBehandler(
+        meldingFraBehandlerProducer.sendMeldingFraBehandler(
             kafkaMeldingDTO = meldingFraBehandler.toKafkaMeldingDTO(),
             key = UUID.nameUUIDFromBytes(meldingFraBehandler.arbeidstakerPersonIdent.value.toByteArray()),
         )

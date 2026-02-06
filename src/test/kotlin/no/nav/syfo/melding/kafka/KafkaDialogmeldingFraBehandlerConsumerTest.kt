@@ -4,11 +4,8 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.domain.MeldingTilBehandler
 import no.nav.syfo.domain.MeldingType
-import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
-import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfelleClient
-import no.nav.syfo.infrastructure.client.padm2.Padm2Client
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
-import no.nav.syfo.infrastructure.kafka.dialogmelding.KafkaDialogmeldingFraBehandlerConsumer
+import no.nav.syfo.infrastructure.kafka.dialogmelding.DialogmeldingFraBehandlerConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.createMeldingerTilBehandler
@@ -27,23 +24,10 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
     private val meldingRepository = externalMockEnvironment.meldingRepository
-    private val mockHttpClient = externalMockEnvironment.mockHttpClient
-    private val azureAdClient = AzureAdClient(
-        azureEnvironment = externalMockEnvironment.environment.azure,
-        httpClient = mockHttpClient,
-    )
-    private val oppfolgingstilfelleClient = OppfolgingstilfelleClient(
-        azureAdClient = azureAdClient,
-        clientEnvironment = externalMockEnvironment.environment.clients.oppfolgingstilfelle,
-        httpClient = mockHttpClient,
-    )
-    private val padm2Client = Padm2Client(
-        azureAdClient = azureAdClient,
-        clientEnvironment = externalMockEnvironment.environment.clients.padm2,
-        httpClient = mockHttpClient,
-    )
+    private val oppfolgingstilfelleClient = externalMockEnvironment.oppfolgingstilfelleClient
+    private val padm2Client = externalMockEnvironment.padm2Client
 
-    private val kafkaDialogmeldingFraBehandlerConsumer = KafkaDialogmeldingFraBehandlerConsumer(
+    private val dialogmeldingFraBehandlerConsumer = DialogmeldingFraBehandlerConsumer(
         database = database,
         padm2Client = padm2Client,
         oppfolgingstilfelleClient = oppfolgingstilfelleClient,
@@ -60,8 +44,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         val dialogmelding = generateDialogmeldingFraBehandlerForesporselSvarDTO()
         val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -74,8 +58,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         val dialogmelding = generateDialogmeldingFraBehandlerForesporselSvarDTO()
         val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -90,8 +74,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         )
         val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
     }
 
@@ -102,8 +86,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         )
         val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
     }
 
@@ -112,8 +96,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO()
         val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -128,8 +112,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         )
         val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -144,8 +128,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         )
         val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }
@@ -168,8 +152,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 )
                 val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-                kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                    kafkaConsumer = mockConsumer,
+                dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                    consumer = mockConsumer,
                 )
 
                 verify(exactly = 1) { mockConsumer.commitSync() }
@@ -201,8 +185,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             )
             val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
 
             verify(exactly = 1) { mockConsumer.commitSync() }
@@ -228,8 +212,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 )
                 val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-                kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                    kafkaConsumer = mockConsumer,
+                dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                    consumer = mockConsumer,
                 )
 
                 verify(exactly = 1) { mockConsumer.commitSync() }
@@ -254,8 +238,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             )
             val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
 
             verify(exactly = 1) { mockConsumer.commitSync() }
@@ -281,12 +265,12 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             )
             val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
             verify(exactly = 1) { mockConsumer.commitSync() }
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
             verify(exactly = 2) { mockConsumer.commitSync() }
 
@@ -303,8 +287,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             )
             val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
             verify(exactly = 1) { mockConsumer.commitSync() }
 
@@ -313,8 +297,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             )
             val mockConsumerAgain =
                 mockKafkaConsumer(dialogmeldingInnkommetAgain, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumerAgain,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumerAgain,
             )
             verify(exactly = 1) { mockConsumerAgain.commitSync() }
 
@@ -328,8 +312,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             val dialogmelding = generateDialogmeldingFraBehandlerForesporselSvarDTO()
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
 
             verify(exactly = 1) { mockConsumer.commitSync() }
@@ -344,8 +328,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 generateDialogmeldingFraBehandlerDialogNotatDTO(conversationRef = conversationRef.toString())
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
 
             verify(exactly = 1) { mockConsumer.commitSync() }
@@ -384,8 +368,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 )
                 val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-                kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                    kafkaConsumer = mockConsumer,
+                dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                    consumer = mockConsumer,
                 )
 
                 verify(exactly = 1) { mockConsumer.commitSync() }
@@ -415,8 +399,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 )
                 val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-                kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                    kafkaConsumer = mockConsumer,
+                dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                    consumer = mockConsumer,
                 )
 
                 verify(exactly = 1) { mockConsumer.commitSync() }
@@ -444,8 +428,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatIkkeSykefravrDTO()
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
 
             verify(exactly = 1) { mockConsumer.commitSync() }
@@ -460,8 +444,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 generateDialogmeldingFraBehandlerForesporselSvarDTO(conversationRef = conversationRef.toString())
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-            kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-                kafkaConsumer = mockConsumer,
+            dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+                consumer = mockConsumer,
             )
 
             verify(exactly = 1) { mockConsumer.commitSync() }
@@ -485,8 +469,8 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         )
         val mockConsumer = mockKafkaConsumer(dialogmeldingInnkommet, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
-        kafkaDialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
-            kafkaConsumer = mockConsumer,
+        dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
         )
 
         verify(exactly = 1) { mockConsumer.commitSync() }

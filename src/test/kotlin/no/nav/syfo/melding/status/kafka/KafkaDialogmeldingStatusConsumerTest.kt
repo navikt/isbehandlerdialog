@@ -7,7 +7,7 @@ import no.nav.syfo.domain.MeldingStatusType
 import no.nav.syfo.infrastructure.database.createMeldingStatus
 import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.kafka.DIALOGMELDING_STATUS_TOPIC
-import no.nav.syfo.infrastructure.kafka.KafkaDialogmeldingStatusConsumer
+import no.nav.syfo.infrastructure.kafka.DialogmeldingStatusConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
@@ -24,7 +24,7 @@ class KafkaDialogmeldingStatusConsumerTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
-    private val kafkaDialogmeldingStatusConsumer = KafkaDialogmeldingStatusConsumer(
+    private val dialogmeldingStatusConsumer = DialogmeldingStatusConsumer(
         database = database,
         meldingRepository = externalMockEnvironment.meldingRepository,
         meldingService = externalMockEnvironment.meldingService,
@@ -43,7 +43,7 @@ class KafkaDialogmeldingStatusConsumerTest {
         )
         val mockConsumer = mockKafkaConsumer(kafkaDialogmeldingStatusDTO, DIALOGMELDING_STATUS_TOPIC)
 
-        kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
+        dialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
@@ -62,7 +62,7 @@ class KafkaDialogmeldingStatusConsumerTest {
         )
         val mockConsumer = mockKafkaConsumer(kafkaDialogmeldingStatusDTO, DIALOGMELDING_STATUS_TOPIC)
 
-        kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
+        dialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
@@ -81,7 +81,7 @@ class KafkaDialogmeldingStatusConsumerTest {
         )
         val mockConsumer = mockKafkaConsumer(kafkaDialogmeldingStatusDTO, DIALOGMELDING_STATUS_TOPIC)
 
-        kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
+        dialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 
@@ -111,7 +111,7 @@ class KafkaDialogmeldingStatusConsumerTest {
         )
         val mockConsumer = mockKafkaConsumer(kafkaDialogmeldingStatusDTO, DIALOGMELDING_STATUS_TOPIC)
 
-        kafkaDialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
+        dialogmeldingStatusConsumer.pollAndProcessRecords(mockConsumer)
 
         verify(exactly = 1) { mockConsumer.commitSync() }
 

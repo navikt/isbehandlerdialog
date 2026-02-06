@@ -8,15 +8,15 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class KafkaUbesvartMeldingProducer(
-    private val ubesvartMeldingKafkaProducer: KafkaProducer<String, KafkaMeldingDTO>,
+class UbesvartMeldingProducer(
+    private val producer: KafkaProducer<String, KafkaMeldingDTO>,
 ) {
     fun sendUbesvartMelding(
         meldingTilBehandler: MeldingTilBehandler,
         key: UUID,
     ) =
         try {
-            ubesvartMeldingKafkaProducer.send(
+            producer.send(
                 ProducerRecord(
                     UBESVART_MELDING_TOPIC,
                     key.toString(),
@@ -33,7 +33,7 @@ class KafkaUbesvartMeldingProducer(
         }
 
     companion object {
-        const val UBESVART_MELDING_TOPIC = "teamsykefravr.ubesvart-melding"
-        private val log = LoggerFactory.getLogger(KafkaUbesvartMeldingProducer::class.java)
+        private const val UBESVART_MELDING_TOPIC = "teamsykefravr.ubesvart-melding"
+        private val log = LoggerFactory.getLogger(UbesvartMeldingProducer::class.java)
     }
 }

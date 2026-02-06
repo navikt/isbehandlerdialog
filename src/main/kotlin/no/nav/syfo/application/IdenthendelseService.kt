@@ -13,7 +13,7 @@ class IdenthendelseService(
 
     private val log: Logger = LoggerFactory.getLogger(IdenthendelseService::class.java)
 
-    suspend fun handleIdenthendelse(identhendelse: KafkaIdenthendelseDTO) {
+    fun handleIdenthendelse(identhendelse: KafkaIdenthendelseDTO) {
         if (identhendelse.folkeregisterIdenter.size > 1) {
             val activeIdent = identhendelse.getActivePersonident()
             if (activeIdent != null) {

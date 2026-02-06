@@ -6,15 +6,15 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class KafkaMeldingFraBehandlerProducer(
-    private val kafkaMeldingFraBehandlerProducer: KafkaProducer<String, KafkaMeldingDTO>,
+class MeldingFraBehandlerProducer(
+    private val producer: KafkaProducer<String, KafkaMeldingDTO>,
 ) {
     fun sendMeldingFraBehandler(
         kafkaMeldingDTO: KafkaMeldingDTO,
         key: UUID,
     ) {
         try {
-            kafkaMeldingFraBehandlerProducer.send(
+            producer.send(
                 ProducerRecord(
                     MELDING_FRA_BEHANDLER_TOPIC,
                     key.toString(),
@@ -32,7 +32,7 @@ class KafkaMeldingFraBehandlerProducer(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(KafkaMeldingFraBehandlerProducer::class.java)
+        private val log = LoggerFactory.getLogger(MeldingFraBehandlerProducer::class.java)
         const val MELDING_FRA_BEHANDLER_TOPIC = "teamsykefravr.melding-fra-behandler"
     }
 }
