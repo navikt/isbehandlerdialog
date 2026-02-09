@@ -5,7 +5,7 @@ import io.mockk.coVerifyAll
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.application.JournalforMeldingTilBehandlerService
-import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.client.dokarkiv.DokarkivClient
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrevkodeType
@@ -53,7 +53,7 @@ class JournalforDialogmeldingCronjobTest {
         val meldingTilBehandlerTilleggsopplysninger = defaultMeldingTilBehandler
         val meldingTilBehandlerLegeerklaring =
             generateMeldingTilBehandler(type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
-        val meldingTilBehandlerPaminnelse = MeldingTilBehandler.createForesporselPasientPaminnelse(
+        val meldingTilBehandlerPaminnelse = Melding.MeldingTilBehandler.createForesporselPasientPaminnelse(
             opprinneligMelding = meldingTilBehandlerTilleggsopplysninger,
             veilederIdent = UserConstants.VEILEDER_IDENT,
             document = generatePaminnelseRequestDTO().document,

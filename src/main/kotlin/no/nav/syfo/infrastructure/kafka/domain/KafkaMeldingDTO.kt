@@ -1,7 +1,6 @@
 package no.nav.syfo.infrastructure.kafka.domain
 
-import no.nav.syfo.domain.MeldingFraBehandler
-import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.Melding
 import java.time.OffsetDateTime
 
 data class KafkaMeldingDTO(
@@ -15,7 +14,7 @@ data class KafkaMeldingDTO(
     val behandlerPersonIdent: String?,
 ) {
     companion object {
-        fun from(meldingTilBehandler: MeldingTilBehandler) =
+        fun from(meldingTilBehandler: Melding.MeldingTilBehandler) =
             KafkaMeldingDTO(
                 uuid = meldingTilBehandler.uuid.toString(),
                 personIdent = meldingTilBehandler.arbeidstakerPersonIdent.value,
@@ -27,7 +26,7 @@ data class KafkaMeldingDTO(
                 behandlerPersonIdent = meldingTilBehandler.behandlerPersonIdent?.value,
             )
 
-        fun from(meldingFraBehandler: MeldingFraBehandler) =
+        fun from(meldingFraBehandler: Melding.MeldingFraBehandler) =
             KafkaMeldingDTO(
                 uuid = meldingFraBehandler.uuid.toString(),
                 personIdent = meldingFraBehandler.arbeidstakerPersonIdent.value,

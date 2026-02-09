@@ -1,6 +1,6 @@
 package no.nav.syfo.infrastructure.kafka.producer
 
-import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingBestillingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 class DialogmeldingBestillingProducer(
     private val dialogmeldingBestillingKafkaProducer: KafkaProducer<String, DialogmeldingBestillingDTO>,
 ) {
-    fun sendDialogmeldingBestilling(meldingTilBehandler: MeldingTilBehandler, meldingPdf: ByteArray) {
+    fun sendDialogmeldingBestilling(meldingTilBehandler: Melding.MeldingTilBehandler, meldingPdf: ByteArray) {
         val dialogmeldingBestillingDTO = DialogmeldingBestillingDTO.from(meldingTilBehandler = meldingTilBehandler, meldingPdf = meldingPdf)
         val key = dialogmeldingBestillingDTO.dialogmeldingRefConversation
         try {

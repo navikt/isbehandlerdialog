@@ -3,9 +3,8 @@ package no.nav.syfo.application
 import no.nav.syfo.api.models.MeldingDTO
 import no.nav.syfo.api.models.MeldingTilBehandlerRequestDTO
 import no.nav.syfo.domain.DocumentComponentDTO
-import no.nav.syfo.domain.MeldingFraBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingStatus
-import no.nav.syfo.domain.MeldingTilBehandler
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PdfContent
 import no.nav.syfo.domain.PersonIdent
@@ -35,7 +34,7 @@ class MeldingService(
         veilederIdent: String,
         personIdent: PersonIdent,
     ) {
-        val meldingTilBehandler = MeldingTilBehandler.createMeldingTilBehandler(
+        val meldingTilBehandler = Melding.MeldingTilBehandler.createMeldingTilBehandler(
             type = requestDTO.type,
             behandlerIdent = requestDTO.behandlerIdent,
             behandlerNavn = requestDTO.behandlerNavn,
@@ -81,7 +80,7 @@ class MeldingService(
         }
 
     private fun getBehandlerRefForConversation(
-        meldingFraBehandler: MeldingFraBehandler,
+        meldingFraBehandler: Melding.MeldingFraBehandler,
         personIdent: PersonIdent,
     ): UUID? {
         val behandlerRef = getUtgaendeMeldingerInConversation(
@@ -106,18 +105,18 @@ class MeldingService(
 
     internal fun hasMelding(msgId: String): Boolean = database.hasMelding(msgId = msgId)
 
-    private suspend fun getMeldingTilBehandler(meldingUuid: UUID): MeldingTilBehandler? {
+    private suspend fun getMeldingTilBehandler(meldingUuid: UUID): Melding.MeldingTilBehandler? {
         return meldingRepository.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
     }
 
-    private suspend fun getMeldingFraBehandler(meldingUuid: UUID): MeldingFraBehandler? {
+    private suspend fun getMeldingFraBehandler(meldingUuid: UUID): Melding.MeldingFraBehandler? {
         return meldingRepository.getMelding(meldingUuid)?.takeUnless { !it.innkommende }?.toMeldingFraBehandler()
     }
 
     private fun getUtgaendeMeldingerInConversation(
         conversationRef: UUID,
         personIdent: PersonIdent,
-    ): List<MeldingTilBehandler> {
+    ): List<Melding.MeldingTilBehandler> {
         return database.connection.use {
             it.getUtgaendeMeldingerInConversation(
                 uuidParam = conversationRef,
@@ -134,7 +133,7 @@ class MeldingService(
     ) {
         val opprinneligMelding = getMeldingTilBehandler(meldingUuid = meldingUuid)
             ?: throw IllegalArgumentException("Failed to create påminnelse: Melding with uuid $meldingUuid does not exist")
-        val paminnelse = MeldingTilBehandler.createForesporselPasientPaminnelse(
+        val paminnelse = Melding.MeldingTilBehandler.createForesporselPasientPaminnelse(
             opprinneligMelding = opprinneligMelding,
             veilederIdent = veilederIdent,
             document = document
@@ -159,7 +158,7 @@ class MeldingService(
             personIdent = innkommendeLegeerklaring.arbeidstakerPersonIdent
         ).first { it.type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING }
 
-        val returAvLegeerklaring = MeldingTilBehandler.createReturAvLegeerklaring(
+        val returAvLegeerklaring = Melding.MeldingTilBehandler.createReturAvLegeerklaring(
             opprinneligForesporselLegeerklaring = opprinneligForesporselLegeerklaring,
             innkommendeLegeerklaring = innkommendeLegeerklaring,
             veilederIdent = veilederIdent,
@@ -176,7 +175,7 @@ class MeldingService(
 
     private suspend fun createPdf(
         callId: String,
-        meldingTilBehandler: MeldingTilBehandler,
+        meldingTilBehandler: Melding.MeldingTilBehandler,
     ): ByteArray =
         pdfgenClient.generateDialogPdf(
             callId = callId,
@@ -186,7 +185,7 @@ class MeldingService(
         ) ?: throw RuntimeException("Failed to request PDF - ${meldingTilBehandler.type}")
 
     private fun createMeldingTilBehandlerAndSendDialogmeldingBestilling(
-        meldingTilBehandler: MeldingTilBehandler,
+        meldingTilBehandler: Melding.MeldingTilBehandler,
         pdf: ByteArray,
     ) {
         database.connection.use { connection ->

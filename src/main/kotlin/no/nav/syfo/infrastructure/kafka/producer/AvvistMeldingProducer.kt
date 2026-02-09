@@ -1,6 +1,6 @@
 package no.nav.syfo.infrastructure.kafka.producer
 
-import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -9,7 +9,7 @@ import java.util.*
 
 class AvvistMeldingProducer(val kafkaProducer: KafkaProducer<String, KafkaMeldingDTO>) {
 
-    fun sendAvvistMelding(meldingTilBehandler: MeldingTilBehandler) {
+    fun sendAvvistMelding(meldingTilBehandler: Melding.MeldingTilBehandler) {
         val key = UUID.nameUUIDFromBytes(meldingTilBehandler.arbeidstakerPersonIdent.value.toByteArray())
         try {
             kafkaProducer.send(

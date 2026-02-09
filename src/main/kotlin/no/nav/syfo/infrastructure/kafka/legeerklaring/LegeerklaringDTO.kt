@@ -1,11 +1,13 @@
 package no.nav.syfo.infrastructure.kafka.legeerklaring
 
-import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.MOTTATT_LEGEERKLARING_TEKST
-import no.nav.syfo.domain.MeldingFraBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingType
-import java.time.*
-import java.util.UUID
+import no.nav.syfo.domain.PersonIdent
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.util.*
 
 data class LegeerklaringDTO(
     val legeerklaering: Legeerklaering,
@@ -156,7 +158,7 @@ fun LegeerklaringDTO.toMeldingFraBehandler(
     parentRef: UUID,
     antallVedlegg: Int,
 ) =
-    MeldingFraBehandler(
+    Melding.MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
         type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,

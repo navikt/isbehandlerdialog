@@ -2,7 +2,7 @@ package no.nav.syfo.melding.kafka
 
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DialogmeldingFraBehandlerConsumer
@@ -10,13 +10,18 @@ import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.createMeldingerTilBehandler
 import no.nav.syfo.testhelper.dropData
-import no.nav.syfo.testhelper.generator.*
+import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
+import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerDialogNotatDTO
+import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerDialogNotatIkkeSykefravrDTO
+import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerForesporselSvarDTO
+import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import no.nav.syfo.testhelper.mock.mockKafkaConsumer
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertArrayEquals
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNull
 import java.util.*
 
 class KafkaDialogmeldingFraBehandlerConsumerTest {
@@ -354,7 +359,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 val meldingTilBehandler = defaultMeldingTilBehandler
                 val (conversationRef, _) = database.createMeldingerTilBehandler(meldingTilBehandler)
                 database.createMeldingerTilBehandler(
-                    MeldingTilBehandler.createForesporselPasientPaminnelse(
+                    Melding.MeldingTilBehandler.createForesporselPasientPaminnelse(
                         opprinneligMelding = meldingTilBehandler,
                         veilederIdent = UserConstants.VEILEDER_IDENT,
                         document = emptyList(),

@@ -1,12 +1,11 @@
 package no.nav.syfo.infrastructure.database.domain
 
 import no.nav.syfo.domain.DocumentComponentDTO
-import no.nav.syfo.domain.MeldingFraBehandler
-import no.nav.syfo.domain.MeldingTilBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PersonIdent
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 data class PMelding(
     val id: Id,
@@ -35,7 +34,7 @@ data class PMelding(
     value class Id(val id: Int)
 }
 
-fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
+fun PMelding.toMeldingTilBehandler() = Melding.MeldingTilBehandler(
     uuid = uuid,
     createdAt = createdAt,
     type = MeldingType.valueOf(type),
@@ -53,7 +52,7 @@ fun PMelding.toMeldingTilBehandler() = MeldingTilBehandler(
     veilederIdent = veilederIdent,
 )
 
-fun PMelding.toMeldingFraBehandler() = MeldingFraBehandler(
+fun PMelding.toMeldingFraBehandler() = Melding.MeldingFraBehandler(
     uuid = uuid,
     createdAt = createdAt,
     type = MeldingType.valueOf(type),

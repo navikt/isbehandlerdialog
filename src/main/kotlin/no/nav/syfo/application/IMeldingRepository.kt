@@ -1,11 +1,11 @@
 package no.nav.syfo.application
 
-import no.nav.syfo.domain.MeldingFraBehandler
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.PVedlegg
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 interface IMeldingRepository {
     suspend fun getMelding(uuid: UUID): PMelding?
@@ -14,5 +14,5 @@ interface IMeldingRepository {
     suspend fun updateUbesvartPublishedAt(uuid: UUID)
     fun updateInnkommendePublishedAt(uuid: UUID)
     fun getVedlegg(uuid: UUID, number: Int): PVedlegg?
-    fun getUnpublishedMeldingerFraBehandler(): List<MeldingFraBehandler>
+    fun getUnpublishedMeldingerFraBehandler(): List<Melding.MeldingFraBehandler>
 }

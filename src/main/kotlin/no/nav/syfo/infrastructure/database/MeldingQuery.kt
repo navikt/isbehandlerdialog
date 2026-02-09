@@ -3,13 +3,14 @@ package no.nav.syfo.infrastructure.database
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.Melding
-import no.nav.syfo.domain.MeldingFraBehandler
-import no.nav.syfo.domain.MeldingTilBehandler
 import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.util.configuredJacksonMapper
-import java.sql.*
+import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.SQLException
+import java.sql.Types
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -169,7 +170,7 @@ const val queryCreateMeldingFellesformat =
     """
 
 fun Connection.createMeldingTilBehandler(
-    meldingTilBehandler: MeldingTilBehandler,
+    meldingTilBehandler: Melding.MeldingTilBehandler,
     commit: Boolean = true,
 ): PMelding.Id {
     return this.createMelding(
@@ -179,7 +180,7 @@ fun Connection.createMeldingTilBehandler(
 }
 
 fun Connection.createMeldingFraBehandler(
-    meldingFraBehandler: MeldingFraBehandler,
+    meldingFraBehandler: Melding.MeldingFraBehandler,
     fellesformat: String? = null,
     commit: Boolean = false,
 ): PMelding.Id {
@@ -257,7 +258,7 @@ const val queryUpdateJournalpostId = """
     WHERE uuid = ?
 """
 
-fun DatabaseInterface.updateMeldingJournalpostId(melding: MeldingTilBehandler, journalpostId: String) {
+fun DatabaseInterface.updateMeldingJournalpostId(melding: Melding.MeldingTilBehandler, journalpostId: String) {
     connection.use { connection ->
         connection.prepareStatement(queryUpdateJournalpostId).use {
             it.setString(1, journalpostId)

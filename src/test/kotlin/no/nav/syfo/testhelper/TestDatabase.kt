@@ -1,17 +1,16 @@
 package no.nav.syfo.testhelper
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.toList
+import no.nav.syfo.infrastructure.database.PMeldingStatus
 import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.PPdf
-import no.nav.syfo.infrastructure.database.toPPdf
-import no.nav.syfo.domain.MeldingFraBehandler
-import no.nav.syfo.domain.MeldingTilBehandler
-import no.nav.syfo.infrastructure.database.PMeldingStatus
+import no.nav.syfo.infrastructure.database.toList
 import no.nav.syfo.infrastructure.database.toPMeldingStatus
+import no.nav.syfo.infrastructure.database.toPPdf
 import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.sql.SQLException
@@ -41,7 +40,7 @@ class TestDatabase : DatabaseInterface {
 }
 
 fun DatabaseInterface.createMeldingerTilBehandler(
-    meldingTilBehandler: MeldingTilBehandler,
+    meldingTilBehandler: Melding.MeldingTilBehandler,
     numberOfMeldinger: Int = 1,
 ): Pair<UUID, List<PMelding.Id>> {
     val idList = mutableListOf<PMelding.Id>()
@@ -63,7 +62,7 @@ fun DatabaseInterface.createMeldingerTilBehandler(
 }
 
 fun DatabaseInterface.createMeldingerFraBehandler(
-    meldingFraBehandler: MeldingFraBehandler,
+    meldingFraBehandler: Melding.MeldingFraBehandler,
     numberOfMeldinger: Int = 1,
 ): Pair<UUID, List<PMelding.Id>> {
     val idList = mutableListOf<PMelding.Id>()
