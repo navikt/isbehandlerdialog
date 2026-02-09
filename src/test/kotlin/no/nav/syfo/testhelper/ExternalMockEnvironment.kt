@@ -36,13 +36,6 @@ class ExternalMockEnvironment private constructor() {
 
     val meldingRepository = MeldingRepository(database = database)
 
-    val meldingService = MeldingService(
-        database = database,
-        meldingRepository = meldingRepository,
-        dialogmeldingBestillingProducer = mockk(),
-        pdfgenClient = mockk(),
-    )
-
     val pdfgenClient = PdfGenClient(
         pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,
         legeerklaringPdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,
@@ -76,6 +69,15 @@ class ExternalMockEnvironment private constructor() {
         azureAdClient = azureAdClient,
         clientEnvironment = environment.clients.padm2,
         httpClient = mockHttpClient,
+    )
+
+    val meldingService = MeldingService(
+        database = database,
+        meldingRepository = meldingRepository,
+        dialogmeldingBestillingProducer = mockk(),
+        oppfolgingstilfelleClient = oppfolgingstilfelleClient,
+        pdfgenClient = pdfgenClient,
+        padm2Client = padm2Client,
     )
 
     companion object {

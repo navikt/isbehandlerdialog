@@ -6,7 +6,7 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import no.nav.syfo.api.endpoints.meldingApiBasePath
 import no.nav.syfo.domain.DocumentComponentType
-import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.serialize
 import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
@@ -99,7 +99,7 @@ class MeldingApiPostTest {
                     assertEquals(2, pMeldinger.size)
                     val pMelding = pMeldinger.last()
                     assertTrue(pMelding.tekst!!.isEmpty())
-                    assertEquals(MeldingType.FORESPORSEL_PASIENT_PAMINNELSE.name, pMelding.type)
+                    assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_PAMINNELSE.name, pMelding.type)
                     assertFalse(pMelding.innkommende)
                     assertEquals(defaultMeldingTilBehandler.conversationRef, pMelding.conversationRef)
                     assertEquals(defaultMeldingTilBehandler.uuid, pMelding.parentRef)
@@ -173,7 +173,7 @@ class MeldingApiPostTest {
             @Test
             fun `returns status BadRequest if no melding exists for given uuid`() {
                 testApplication {
-                    val client = setupApiAndClient(dialogmeldingBestillingProducer)
+                    val client = setupApiAndClient()
                     val response = client.post(paminnelseApiUrl) {
                         bearerAuth(validToken)
                         header(NAV_PERSONIDENT_HEADER, personIdent.value)
@@ -201,7 +201,7 @@ class MeldingApiPostTest {
                 }
 
                 testApplication {
-                    val client = setupApiAndClient(dialogmeldingBestillingProducer)
+                    val client = setupApiAndClient()
                     val response = client.post("$apiUrl/${meldingFraBehandler.uuid}/paminnelse") {
                         bearerAuth(validToken)
                         header(NAV_PERSONIDENT_HEADER, personIdent.value)
@@ -216,13 +216,13 @@ class MeldingApiPostTest {
             @Test
             fun `returns status BadRequest if given uuid is melding til behandler påminnelse`() {
                 val meldingTilBehandlerPaminnelse =
-                    generateMeldingTilBehandler(type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE)
+                    generateMeldingTilBehandler(type = Melding.MeldingType.FORESPORSEL_PASIENT_PAMINNELSE)
                 database.connection.use {
                     it.createMeldingTilBehandler(meldingTilBehandlerPaminnelse)
                 }
 
                 testApplication {
-                    val client = setupApiAndClient(dialogmeldingBestillingProducer)
+                    val client = setupApiAndClient()
                     val response = client.post("$apiUrl/${meldingTilBehandlerPaminnelse.uuid}/paminnelse") {
                         bearerAuth(validToken)
                         header(NAV_PERSONIDENT_HEADER, personIdent.value)
@@ -236,13 +236,13 @@ class MeldingApiPostTest {
 
             @Test
             fun `returns status BadRequest if given uuid is melding til behandler henvendelse melding fra NAV`() {
-                val meldingFraNav = generateMeldingTilBehandler(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV)
+                val meldingFraNav = generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV)
                 database.connection.use {
                     it.createMeldingTilBehandler(meldingFraNav)
                 }
 
                 testApplication {
-                    val client = setupApiAndClient(dialogmeldingBestillingProducer)
+                    val client = setupApiAndClient()
                     val response = client.post("$apiUrl/${meldingFraNav.uuid}/paminnelse") {
                         bearerAuth(validToken)
                         header(NAV_PERSONIDENT_HEADER, personIdent.value)
@@ -287,7 +287,7 @@ class MeldingApiPostTest {
                         assertEquals(1, pMeldinger.size)
                         val pMelding = pMeldinger.first()
                         assertEquals(meldingTilBehandlerDTO.tekst, pMelding.tekst)
-                        assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pMelding.type)
+                        assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pMelding.type)
                         assertEquals(false, pMelding.innkommende)
                         assertEquals(veilederIdent, pMelding.veilederIdent)
 
@@ -354,7 +354,7 @@ class MeldingApiPostTest {
             inner class ForesporselPasientLegeerklaring {
 
                 private val meldingTilBehandlerDTO =
-                    generateMeldingTilBehandlerRequestDTO(type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
+                    generateMeldingTilBehandlerRequestDTO(type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
 
                 @Test
                 fun `Will create a new melding to behandler and produce dialogmelding-bestilling to kafka`() {
@@ -373,7 +373,7 @@ class MeldingApiPostTest {
                         assertEquals(1, pMeldinger.size)
                         val pMelding = pMeldinger.first()
                         assertEquals(meldingTilBehandlerDTO.tekst, pMelding.tekst)
-                        assertEquals(MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pMelding.type)
+                        assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pMelding.type)
                         assertEquals(false, pMelding.innkommende)
                         assertEquals(veilederIdent, pMelding.veilederIdent)
 
@@ -440,7 +440,7 @@ class MeldingApiPostTest {
             inner class HenvendelseMeldingFraNAV {
 
                 private val meldingTilBehandlerDTO = generateMeldingTilBehandlerRequestDTO()
-                    .copy(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV)
+                    .copy(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV)
 
                 @Test
                 fun `Will create a new melding fra nav and produce dialogmelding-bestilling to kafka`() {
@@ -459,7 +459,7 @@ class MeldingApiPostTest {
                         assertEquals(1, pMeldinger.size)
                         val pMelding = pMeldinger.first()
                         assertEquals(meldingTilBehandlerDTO.tekst, pMelding.tekst)
-                        assertEquals(MeldingType.HENVENDELSE_MELDING_FRA_NAV.name, pMelding.type)
+                        assertEquals(Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV.name, pMelding.type)
                         assertFalse(pMelding.innkommende)
                         assertEquals(veilederIdent, pMelding.veilederIdent)
 
@@ -556,17 +556,17 @@ class MeldingApiPostTest {
             @Test
             fun `Creates retur av legeerklæring for melding fra behandler and produces dialogmelding-bestilling to kafka`() {
                 val foresporselLegeerklaring = generateMeldingTilBehandler(
-                    type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                    type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
                 )
                 val paminnelse = foresporselLegeerklaring.copy(
                     tekst = "",
-                    type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
+                    type = Melding.MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
                     document = generatePaminnelseRequestDTO().document,
                     uuid = UUID.randomUUID(),
                 )
                 val innkommendeLegeerklaring = generateMeldingFraBehandler().copy(
                     conversationRef = foresporselLegeerklaring.conversationRef,
-                    type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                    type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
                 )
 
                 database.connection.use {
@@ -593,7 +593,7 @@ class MeldingApiPostTest {
                     assertEquals(4, pMeldinger.size)
                     val pMelding = pMeldinger.last()
                     assertEquals(returDTO.tekst, pMelding.tekst)
-                    assertEquals(MeldingType.HENVENDELSE_RETUR_LEGEERKLARING.name, pMelding.type)
+                    assertEquals(Melding.MeldingType.HENVENDELSE_RETUR_LEGEERKLARING.name, pMelding.type)
                     assertFalse(pMelding.innkommende)
                     assertEquals(foresporselLegeerklaring.conversationRef, pMelding.conversationRef)
                     assertEquals(innkommendeLegeerklaring.uuid, pMelding.parentRef)
@@ -660,7 +660,7 @@ class MeldingApiPostTest {
             @Test
             fun `returns status BadRequest if no meldingFraBehandler exists for given uuid`() {
                 testApplication {
-                    val client = setupApiAndClient(dialogmeldingBestillingProducer)
+                    val client = setupApiAndClient()
                     val response = client.post(returApiUrl) {
                         bearerAuth(validToken)
                         header(NAV_PERSONIDENT_HEADER, personIdent.value)
@@ -675,11 +675,11 @@ class MeldingApiPostTest {
             @Test
             fun `returns status BadRequest if meldingFraBehandler (not legeerklaring) exists for given uuid`() {
                 val foresporselTilleggsopplysninger = generateMeldingTilBehandler(
-                    type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+                    type = Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
                 )
                 val foresporselSvar = generateMeldingFraBehandler().copy(
                     conversationRef = foresporselTilleggsopplysninger.conversationRef,
-                    type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+                    type = Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
                 )
 
                 database.connection.use {
@@ -691,7 +691,7 @@ class MeldingApiPostTest {
                 }
 
                 testApplication {
-                    val client = setupApiAndClient(dialogmeldingBestillingProducer)
+                    val client = setupApiAndClient()
                     val response = client.post("$apiUrl/${foresporselSvar.uuid}/retur") {
                         bearerAuth(validToken)
                         header(NAV_PERSONIDENT_HEADER, personIdent.value)

@@ -5,7 +5,6 @@ import no.nav.syfo.domain.MOTTATT_LEGEERKLARING_TEKST
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.MeldingStatusType
-import no.nav.syfo.domain.MeldingType
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -23,7 +22,7 @@ data class MeldingDTO(
     val document: List<DocumentComponentDTO>,
     val tidspunkt: OffsetDateTime,
     val innkommende: Boolean,
-    val type: MeldingType,
+    val type: Melding.MeldingType,
     val antallVedlegg: Int,
     val status: MeldingStatusDTO?,
     val veilederIdent: String?,
@@ -63,7 +62,7 @@ data class MeldingDTO(
                 antallVedlegg = meldingFraBehandler.antallVedlegg,
                 status = null,
                 veilederIdent = meldingFraBehandler.veilederIdent,
-                isFirstVedleggLegeerklaring = meldingFraBehandler.type == MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING && meldingFraBehandler.tekst == MOTTATT_LEGEERKLARING_TEKST
+                isFirstVedleggLegeerklaring = meldingFraBehandler.type == Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING && meldingFraBehandler.tekst == MOTTATT_LEGEERKLARING_TEKST
             )
     }
 }

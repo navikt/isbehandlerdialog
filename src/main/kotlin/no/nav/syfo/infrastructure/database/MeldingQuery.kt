@@ -3,7 +3,6 @@ package no.nav.syfo.infrastructure.database
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.Melding
-import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.util.configuredJacksonMapper
@@ -69,7 +68,7 @@ fun Connection.getUtgaendeMeldingerInConversation(
 fun Connection.getUtgaendeMeldingerInConversation(
     conversationRef: UUID,
     arbeidstakerPersonIdent: PersonIdent,
-    type: MeldingType,
+    type: Melding.MeldingType,
 ): List<PMelding> {
     return this.prepareStatement(queryGetMeldingerWithTypeForConversationRefAndArbeidstakerident).use {
         it.setString(1, conversationRef.toString())
@@ -88,7 +87,7 @@ const val queryGetUtgaendeMeldingForTypeAndArbeidstakerident =
     """
 
 fun Connection.getUtgaendeMeldingerWithType(
-    meldingType: MeldingType,
+    meldingType: Melding.MeldingType,
     arbeidstakerPersonIdent: String,
 ): List<PMelding> {
     return this.prepareStatement(queryGetUtgaendeMeldingForTypeAndArbeidstakerident).use {

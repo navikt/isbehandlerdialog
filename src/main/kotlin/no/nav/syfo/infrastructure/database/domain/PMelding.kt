@@ -2,7 +2,6 @@ package no.nav.syfo.infrastructure.database.domain
 
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.Melding
-import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PersonIdent
 import java.time.OffsetDateTime
 import java.util.*
@@ -37,7 +36,7 @@ data class PMelding(
 fun PMelding.toMeldingTilBehandler() = Melding.MeldingTilBehandler(
     uuid = uuid,
     createdAt = createdAt,
-    type = MeldingType.valueOf(type),
+    type = Melding.MeldingType.valueOf(type),
     conversationRef = conversationRef,
     parentRef = parentRef,
     tidspunkt = tidspunkt,
@@ -55,7 +54,7 @@ fun PMelding.toMeldingTilBehandler() = Melding.MeldingTilBehandler(
 fun PMelding.toMeldingFraBehandler() = Melding.MeldingFraBehandler(
     uuid = uuid,
     createdAt = createdAt,
-    type = MeldingType.valueOf(type),
+    type = Melding.MeldingType.valueOf(type),
     conversationRef = conversationRef,
     parentRef = parentRef,
     msgId = msgId ?: "",

@@ -1,11 +1,11 @@
 package no.nav.syfo.api.models
 
 import no.nav.syfo.domain.DocumentComponentDTO
-import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.domain.Melding
 import java.util.*
 
 data class MeldingTilBehandlerRequestDTO(
-    val type: MeldingType,
+    val type: Melding.MeldingType,
     val behandlerIdent: String?,
     val behandlerNavn: String?,
     val behandlerRef: UUID,

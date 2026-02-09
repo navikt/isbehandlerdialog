@@ -7,6 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
+import no.nav.syfo.application.IOppfolgingstilfelleClient
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.client.ClientEnvironment
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
@@ -22,11 +23,11 @@ class OppfolgingstilfelleClient(
     private val azureAdClient: AzureAdClient,
     private val clientEnvironment: ClientEnvironment,
     private val httpClient: HttpClient = httpClientDefault(),
-) {
+) : IOppfolgingstilfelleClient {
     private val personOppfolgingstilfelleSystemUrl: String =
         "${clientEnvironment.baseUrl}$ISOPPFOLGINGSTILFELLE_OPPFOLGINGSTILFELLE_SYSTEM_PERSON_PATH"
 
-    suspend fun getOppfolgingstilfelle(
+    override suspend fun getOppfolgingstilfelle(
         personIdent: PersonIdent,
     ): Oppfolgingstilfelle? {
         val callId = UUID.randomUUID().toString()

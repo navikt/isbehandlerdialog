@@ -182,6 +182,10 @@ sealed class Melding(
                 MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_MELDING_FRA_NAV, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> false
             }
 
+        enum class MeldingType2 {
+            FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER
+        }
+
         companion object {
             fun createMeldingTilBehandler(
                 type: MeldingType,
@@ -318,6 +322,15 @@ sealed class Melding(
         journalpostId,
         veilederIdent
     )
+
+    enum class MeldingType {
+        FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+        FORESPORSEL_PASIENT_LEGEERKLARING,
+        FORESPORSEL_PASIENT_PAMINNELSE,
+        HENVENDELSE_RETUR_LEGEERKLARING,
+        HENVENDELSE_MELDING_FRA_NAV,
+        HENVENDELSE_MELDING_TIL_NAV,
+    }
 }
 
 fun hprNrWithNineDigits(hprnummer: Int): String =

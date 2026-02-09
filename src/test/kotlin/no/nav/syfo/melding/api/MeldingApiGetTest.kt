@@ -8,9 +8,9 @@ import io.ktor.server.testing.*
 import no.nav.syfo.api.endpoints.meldingApiBasePath
 import no.nav.syfo.api.models.MeldingResponseDTO
 import no.nav.syfo.domain.MOTTATT_LEGEERKLARING_TEKST
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.MeldingStatusType
-import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.database.*
 import no.nav.syfo.infrastructure.kafka.legeerklaring.toMeldingFraBehandler
 import no.nav.syfo.testhelper.*
@@ -94,7 +94,7 @@ class MeldingApiGetTest {
                     val firstMeldingDTO = conversation.first()
                     assertEquals(defaultMeldingTilBehandler.tekst, firstMeldingDTO.tekst)
                     assertEquals(defaultMeldingTilBehandler.document, firstMeldingDTO.document)
-                    assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, firstMeldingDTO.type)
+                    assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, firstMeldingDTO.type)
                     assertEquals(firstConversation, firstMeldingDTO.conversationRef)
                     assertNull(firstMeldingDTO.parentRef)
                     assertFalse(firstMeldingDTO.isFirstVedleggLegeerklaring)
@@ -148,7 +148,7 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns meldinger for personident with isFirstVedleggLegeerklaring true for legeerklaring melding fra behandler`() {
-                val meldingTilBehandler = generateMeldingTilBehandler(type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
+                val meldingTilBehandler = generateMeldingTilBehandler(type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
                 val (firstConversation, _) = database.createMeldingerTilBehandler(
                     meldingTilBehandler = meldingTilBehandler,
                 )
@@ -179,14 +179,14 @@ class MeldingApiGetTest {
                     assertEquals(2, conversation.size)
 
                     val firstMeldingDTO = conversation.first()
-                    assertEquals(MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, firstMeldingDTO.type)
+                    assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, firstMeldingDTO.type)
                     assertEquals(firstConversation, firstMeldingDTO.conversationRef)
                     assertFalse(firstMeldingDTO.isFirstVedleggLegeerklaring)
 
                     val lastMeldingDTO = conversation.last()
                     assertEquals(firstConversation, lastMeldingDTO.conversationRef)
                     assertEquals(MOTTATT_LEGEERKLARING_TEKST, lastMeldingDTO.tekst)
-                    assertEquals(MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, lastMeldingDTO.type)
+                    assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING, lastMeldingDTO.type)
                     assertTrue(lastMeldingDTO.isFirstVedleggLegeerklaring)
                 }
             }

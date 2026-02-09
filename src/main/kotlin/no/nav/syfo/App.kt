@@ -92,6 +92,8 @@ fun main() {
                 meldingRepository = meldingRepository,
                 pdfgenClient = pdfgenClient,
                 dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
+                oppfolgingstilfelleClient = oppfolgingstilfelleClient,
+                padm2Client = padm2Client,
             )
             apiModule(
                 applicationState = applicationState,
@@ -117,8 +119,7 @@ fun main() {
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
                     database = applicationDatabase,
-                    padm2Client = padm2Client,
-                    oppfolgingstilfelleClient = oppfolgingstilfelleClient,
+                    meldingService = meldingService,
                 )
 
                 launchKafkaTaskDialogmeldingStatus(

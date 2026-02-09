@@ -9,7 +9,7 @@ import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.IPdfGenClient
 import no.nav.syfo.domain.DocumentComponentDTO
-import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.client.httpClientDefault
 import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient.Companion.illegalCharacters
 import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient.Companion.log
@@ -36,16 +36,16 @@ class PdfGenClient(
         callId: String,
         mottakerNavn: String,
         documentComponentDTOList: List<DocumentComponentDTO>,
-        meldingType: MeldingType,
+        meldingType: Melding.MeldingType,
     ): ByteArray? {
         val pdfUrl =
             when (meldingType) {
-                MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_URL
-                MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> FORESPORSEL_OM_PASIENT_PAMINNELSE_URL
-                MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> FORESPORSEL_OM_PASIENT_LEGEERKLARING_URL
-                MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> RETUR_LEGEERKLARING_URL
-                MeldingType.HENVENDELSE_MELDING_FRA_NAV -> HENVENDELSE_MELDING_FRA_NAV_URL
-                MeldingType.HENVENDELSE_MELDING_TIL_NAV -> throw RuntimeException("Should only be used for incoming messages")
+                Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER -> FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER_URL
+                Melding.MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> FORESPORSEL_OM_PASIENT_PAMINNELSE_URL
+                Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> FORESPORSEL_OM_PASIENT_LEGEERKLARING_URL
+                Melding.MeldingType.HENVENDELSE_RETUR_LEGEERKLARING -> RETUR_LEGEERKLARING_URL
+                Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV -> HENVENDELSE_MELDING_FRA_NAV_URL
+                Melding.MeldingType.HENVENDELSE_MELDING_TIL_NAV -> throw RuntimeException("Should only be used for incoming messages")
             }
         return getPdf(
             callId = callId,

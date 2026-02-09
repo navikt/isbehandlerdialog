@@ -2,9 +2,9 @@ package no.nav.syfo.melding.cronjob
 
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.MeldingStatusType
-import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.cronjob.UbesvartMeldingCronjob
 import no.nav.syfo.infrastructure.database.createMeldingStatus
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
@@ -83,7 +83,7 @@ class UbesvartMeldingCronjobTest {
         }
 
         val kafkaMeldingDTO = producerRecordSlot.captured.value()
-        assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, kafkaMeldingDTO.type)
+        assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, kafkaMeldingDTO.type)
         assertEquals(personIdent.value, kafkaMeldingDTO.personIdent)
         assertEquals(melding.uuid.toString(), kafkaMeldingDTO.uuid)
     }
@@ -227,7 +227,7 @@ class UbesvartMeldingCronjobTest {
         }
 
         val kafkaMeldingDTO = producerRecordSlot.captured.value()
-        assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, kafkaMeldingDTO.type)
+        assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, kafkaMeldingDTO.type)
         assertEquals(personIdent.value, kafkaMeldingDTO.personIdent)
         assertEquals(utgaendeMeldinger.last().uuid.toString(), kafkaMeldingDTO.uuid)
     }
@@ -235,7 +235,7 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will publish ubesvart melding when melding is of type legeeklaring and cronjob has run`() {
         val meldingTilBehandler =
-            generateMeldingTilBehandler(personIdent = personIdent, type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
+            generateMeldingTilBehandler(personIdent = personIdent, type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
         val (_, idList) = database.createMeldingerTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
         )
@@ -258,7 +258,7 @@ class UbesvartMeldingCronjobTest {
         }
 
         val kafkaMeldingDTO = producerRecordSlot.captured.value()
-        assertEquals(MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, kafkaMeldingDTO.type)
+        assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, kafkaMeldingDTO.type)
         assertEquals(personIdent.value, kafkaMeldingDTO.personIdent)
         assertEquals(melding.uuid.toString(), kafkaMeldingDTO.uuid)
     }
@@ -267,7 +267,7 @@ class UbesvartMeldingCronjobTest {
     fun `Will not publish ubesvart melding when melding is of type paminnelse`() {
         val meldingTilBehandler = generateMeldingTilBehandler(
             personIdent = personIdent,
-            type = MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
+            type = Melding.MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
         )
         val (_, idList) = database.createMeldingerTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
@@ -292,7 +292,7 @@ class UbesvartMeldingCronjobTest {
     fun `Will not publish ubesvart melding when melding is of type henvendelse melding fra NAV`() {
         val meldingTilBehandler = generateMeldingTilBehandler(
             personIdent = personIdent,
-            type = MeldingType.HENVENDELSE_MELDING_FRA_NAV,
+            type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV,
         )
         val (_, idList) = database.createMeldingerTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
