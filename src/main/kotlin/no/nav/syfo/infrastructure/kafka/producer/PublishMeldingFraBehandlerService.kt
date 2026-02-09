@@ -2,7 +2,7 @@ package no.nav.syfo.infrastructure.kafka.producer
 
 import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.domain.MeldingFraBehandler
-import no.nav.syfo.domain.toKafkaMeldingDTO
+import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import java.util.*
 
 class PublishMeldingFraBehandlerService(
@@ -16,7 +16,7 @@ class PublishMeldingFraBehandlerService(
         meldingFraBehandler: MeldingFraBehandler,
     ) {
         meldingFraBehandlerProducer.sendMeldingFraBehandler(
-            kafkaMeldingDTO = meldingFraBehandler.toKafkaMeldingDTO(),
+            kafkaMeldingDTO = KafkaMeldingDTO.from(meldingFraBehandler),
             key = UUID.nameUUIDFromBytes(meldingFraBehandler.arbeidstakerPersonIdent.value.toByteArray()),
         )
 

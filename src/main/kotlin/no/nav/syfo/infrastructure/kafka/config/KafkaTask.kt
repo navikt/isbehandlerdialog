@@ -21,9 +21,7 @@ inline fun <reified ConsumerRecordValue> launchKafkaTask(
         log.info("Setting up kafka consumer for ${ConsumerRecordValue::class.java.simpleName}")
 
         val kafkaConsumer = KafkaConsumer<String, ConsumerRecordValue>(consumerProperties)
-        kafkaConsumer.subscribe(
-            listOf(topic)
-        )
+        kafkaConsumer.subscribe(listOf(topic))
 
         while (applicationState.ready) {
             kafkaConsumerService.pollAndProcessRecords(kafkaConsumer)

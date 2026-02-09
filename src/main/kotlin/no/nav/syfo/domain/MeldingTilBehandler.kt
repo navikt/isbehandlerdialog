@@ -1,8 +1,19 @@
 package no.nav.syfo.domain
 
-import no.nav.syfo.api.models.MeldingDTO
-import no.nav.syfo.infrastructure.client.dokarkiv.domain.*
-import no.nav.syfo.infrastructure.kafka.domain.*
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.AvsenderMottaker
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrevkodeType
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.Bruker
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.BrukerIdType
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.Dokument
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.Dokumentvariant
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.FiltypeType
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.JournalpostRequest
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.MeldingTittel
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.OverstyrInnsynsregler
+import no.nav.syfo.infrastructure.client.dokarkiv.domain.VariantformatType
+import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingKode
+import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingKodeverk
+import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingType
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -125,38 +136,7 @@ data class MeldingTilBehandler(
     }
 }
 
-fun MeldingTilBehandler.toMeldingDTO(status: MeldingStatus?) = MeldingDTO(
-    uuid = uuid,
-    conversationRef = conversationRef,
-    parentRef = parentRef,
-    behandlerRef = behandlerRef,
-    behandlerNavn = null,
-    tekst = tekst,
-    document = document,
-    tidspunkt = tidspunkt,
-    innkommende = false,
-    type = type,
-    antallVedlegg = antallVedlegg,
-    status = status?.toMeldingStatusDTO(),
-    veilederIdent = veilederIdent,
-    isFirstVedleggLegeerklaring = false,
-)
-
-fun MeldingTilBehandler.toDialogmeldingBestillingDTO(meldingPdf: ByteArray) = DialogmeldingBestillingDTO(
-    behandlerRef = this.behandlerRef.toString(),
-    personIdent = this.arbeidstakerPersonIdent.value,
-    dialogmeldingUuid = this.uuid.toString(),
-    dialogmeldingRefParent = this.parentRef?.toString(),
-    dialogmeldingRefConversation = this.conversationRef.toString(),
-    dialogmeldingType = this.getDialogmeldingType().name,
-    dialogmeldingKodeverk = this.getDialogmeldingKodeverk().name,
-    dialogmeldingKode = this.getDialogmeldingKode().value,
-    dialogmeldingTekst = this.document.serialize(),
-    dialogmeldingVedlegg = meldingPdf,
-    kilde = "SYFO",
-)
-
-private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
+fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingKode.FORESPORSEL
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE -> DialogmeldingKode.PAMINNELSE_FORESPORSEL
@@ -166,14 +146,14 @@ private fun MeldingTilBehandler.getDialogmeldingKode(): DialogmeldingKode {
     }
 }
 
-private fun MeldingTilBehandler.getDialogmeldingKodeverk(): DialogmeldingKodeverk {
+fun MeldingTilBehandler.getDialogmeldingKodeverk(): DialogmeldingKodeverk {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingKodeverk.FORESPORSEL
         MeldingType.HENVENDELSE_RETUR_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> DialogmeldingKodeverk.HENVENDELSE
     }
 }
 
-private fun MeldingTilBehandler.getDialogmeldingType(): DialogmeldingType {
+fun MeldingTilBehandler.getDialogmeldingType(): DialogmeldingType {
     return when (this.type) {
         MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER, MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING -> DialogmeldingType.DIALOG_FORESPORSEL
         MeldingType.HENVENDELSE_RETUR_LEGEERKLARING, MeldingType.HENVENDELSE_MELDING_FRA_NAV, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> DialogmeldingType.DIALOG_NOTAT
@@ -242,17 +222,6 @@ fun MeldingTilBehandler.createOverstyrInnsynsregler(): String? {
         MeldingType.FORESPORSEL_PASIENT_PAMINNELSE, MeldingType.HENVENDELSE_MELDING_TIL_NAV -> null
     }
 }
-
-fun MeldingTilBehandler.toKafkaMeldingDTO() = KafkaMeldingDTO(
-    uuid = uuid.toString(),
-    personIdent = arbeidstakerPersonIdent.value,
-    type = type.name,
-    conversationRef = conversationRef.toString(),
-    parentRef = parentRef?.toString(),
-    msgId = msgId,
-    tidspunkt = tidspunkt,
-    behandlerPersonIdent = behandlerPersonIdent?.value,
-)
 
 fun createAvsenderMottaker(
     behandlerPersonIdent: PersonIdent?,
