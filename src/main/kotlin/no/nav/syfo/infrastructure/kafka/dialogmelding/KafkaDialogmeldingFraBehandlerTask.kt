@@ -1,8 +1,7 @@
 package no.nav.syfo.infrastructure.kafka.dialogmelding
 
 import no.nav.syfo.ApplicationState
-import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfelleClient
-import no.nav.syfo.infrastructure.client.padm2.Padm2Client
+import no.nav.syfo.application.MeldingService
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.kafka.config.JacksonKafkaDeserializerDialogmeldingFraBehandler
 import no.nav.syfo.infrastructure.kafka.config.KafkaEnvironment
@@ -16,13 +15,11 @@ fun launchKafkaTaskDialogmeldingFraBehandler(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
     database: DatabaseInterface,
-    padm2Client: Padm2Client,
-    oppfolgingstilfelleClient: OppfolgingstilfelleClient,
+    meldingService: MeldingService,
 ) {
     val dialogmeldingFraBehandlerConsumer = DialogmeldingFraBehandlerConsumer(
         database = database,
-        padm2Client = padm2Client,
-        oppfolgingstilfelleClient = oppfolgingstilfelleClient,
+        meldingService = meldingService
     )
     val consumerProperties =
         kafkaConsumerConfig<JacksonKafkaDeserializerDialogmeldingFraBehandler>(kafkaEnvironment).apply {

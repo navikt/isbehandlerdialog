@@ -2,7 +2,6 @@ package no.nav.syfo.infrastructure.kafka.legeerklaring
 
 import no.nav.syfo.domain.MOTTATT_LEGEERKLARING_TEKST
 import no.nav.syfo.domain.Melding
-import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PersonIdent
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -161,7 +160,7 @@ fun LegeerklaringDTO.toMeldingFraBehandler(
     Melding.MeldingFraBehandler(
         uuid = UUID.randomUUID(),
         createdAt = OffsetDateTime.now(),
-        type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+        type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
         conversationRef = conversationRef?.let {
             try {
                 UUID.fromString(it.refToConversation)

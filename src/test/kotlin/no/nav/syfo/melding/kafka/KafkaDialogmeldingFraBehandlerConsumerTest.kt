@@ -3,7 +3,6 @@ package no.nav.syfo.melding.kafka
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.domain.Melding
-import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DialogmeldingFraBehandlerConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
@@ -29,13 +28,10 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
     private val meldingRepository = externalMockEnvironment.meldingRepository
-    private val oppfolgingstilfelleClient = externalMockEnvironment.oppfolgingstilfelleClient
-    private val padm2Client = externalMockEnvironment.padm2Client
 
     private val dialogmeldingFraBehandlerConsumer = DialogmeldingFraBehandlerConsumer(
         database = database,
-        padm2Client = padm2Client,
-        oppfolgingstilfelleClient = oppfolgingstilfelleClient,
+        meldingService = externalMockEnvironment.meldingService,
     )
     private val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
 
@@ -173,7 +169,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
                 assertEquals(0, pSvar.antallVedlegg)
                 assertNull(pSvar.veilederIdent)
-                assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
+                assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
                 val vedlegg = meldingRepository.getVedlegg(pSvar.uuid, 0)
                 assertNull(vedlegg)
             }
@@ -256,7 +252,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             assertTrue(pSvar.innkommende)
             assertEquals(UserConstants.MSG_ID_WITH_VEDLEGG.toString(), pSvar.msgId)
             assertEquals(1, pSvar.antallVedlegg)
-            assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
+            assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
             val vedlegg = meldingRepository.getVedlegg(pSvar.uuid, 0)
             assertArrayEquals(UserConstants.VEDLEGG_BYTEARRAY, vedlegg!!.pdf)
         }
@@ -345,7 +341,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             val pSvar = pMeldingListAfter.last()
             assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
             assertTrue(pSvar.innkommende)
-            assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
+            assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
         }
     }
 
@@ -385,7 +381,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
                 assertTrue(pSvar.innkommende)
                 assertEquals(msgId.toString(), pSvar.msgId)
-                assertEquals(MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
+                assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pSvar.type)
             }
     }
 
@@ -396,7 +392,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         @Test
         fun `Receive dialogmelding DIALOG_NOTAT and known conversationRef creates MeldingFraBehandler with type HENVENDELSE_MELDING_FRA_NAV`() =
             runTest {
-                val (conversationRef, _) = database.createMeldingerTilBehandler(generateMeldingTilBehandler(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV))
+                val (conversationRef, _) = database.createMeldingerTilBehandler(generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV))
                 val msgId = UUID.randomUUID()
                 val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDialogNotatDTO(
                     uuid = msgId,
@@ -421,7 +417,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
                 assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
                 assertEquals(0, pSvar.antallVedlegg)
                 assertNull(pSvar.veilederIdent)
-                assertEquals(MeldingType.HENVENDELSE_MELDING_FRA_NAV.name, pSvar.type)
+                assertEquals(Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV.name, pSvar.type)
                 assertFalse(pSvar.tekst.isNullOrEmpty())
                 val vedlegg = meldingRepository.getVedlegg(pSvar.uuid, 0)
                 assertNull(vedlegg)
@@ -429,7 +425,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         @Test
         fun `Receive DIALOG_NOTAT and unknown conversationref creates no MeldingFraBehandler`() = runTest {
-            database.createMeldingerTilBehandler(generateMeldingTilBehandler(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV))
+            database.createMeldingerTilBehandler(generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV))
             val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatIkkeSykefravrDTO()
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
@@ -444,7 +440,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         @Test
         fun `Receive DIALOG_SVAR and known conversationref creates no MeldingFraBehandler`() = runTest {
-            val (conversationRef, _) = database.createMeldingerTilBehandler(generateMeldingTilBehandler(type = MeldingType.HENVENDELSE_MELDING_FRA_NAV))
+            val (conversationRef, _) = database.createMeldingerTilBehandler(generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV))
             val dialogmelding =
                 generateDialogmeldingFraBehandlerForesporselSvarDTO(conversationRef = conversationRef.toString())
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
@@ -461,7 +457,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
             val pSvar = pMeldingListAfter.last()
             assertEquals(personIdent.value, pSvar.arbeidstakerPersonIdent)
             assertTrue(pSvar.innkommende)
-            assertEquals(MeldingType.HENVENDELSE_MELDING_FRA_NAV.name, pSvar.type)
+            assertEquals(Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV.name, pSvar.type)
         }
     }
 

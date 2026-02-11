@@ -19,7 +19,9 @@ fun Application.testApiModule(
             database = externalMockEnvironment.database,
             meldingRepository = externalMockEnvironment.meldingRepository,
             dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
+            oppfolgingstilfelleClient = externalMockEnvironment.oppfolgingstilfelleClient,
             pdfgenClient = externalMockEnvironment.pdfgenClient,
+            padm2Client = externalMockEnvironment.padm2Client,
         )
     )
 }

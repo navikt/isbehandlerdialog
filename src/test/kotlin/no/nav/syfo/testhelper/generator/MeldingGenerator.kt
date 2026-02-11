@@ -4,7 +4,6 @@ import no.nav.syfo.api.models.MeldingTilBehandlerRequestDTO
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.DocumentComponentType
 import no.nav.syfo.domain.Melding
-import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.kafka.domain.toMeldingFraBehandler
 import no.nav.syfo.testhelper.UserConstants
@@ -13,7 +12,7 @@ import java.util.*
 fun generateMeldingTilBehandlerRequestDTO(
     behandlerRef: UUID = UUID.randomUUID(),
     tekst: String = "Melding til behandler",
-    type: MeldingType = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+    type: Melding.MeldingType = Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
 ) = MeldingTilBehandlerRequestDTO(
     type = type,
     behandlerRef = behandlerRef,
@@ -49,7 +48,7 @@ fun generateMeldingFraBehandler(
     uuid = msgId,
     personIdent = personIdent,
 ).toMeldingFraBehandler(
-    type = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+    type = Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
     conversationRef = conversationRef,
 ).copy(
     tekst = tekst,
@@ -59,7 +58,7 @@ fun generateMeldingTilBehandler(
     personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
     behandlerRef: UUID = UUID.randomUUID(),
     tekst: String = "Melding til behandler",
-    type: MeldingType = MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
+    type: Melding.MeldingType = Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
     veilederIdent: String = UserConstants.VEILEDER_IDENT,
 ): Melding.MeldingTilBehandler {
     val meldingTilBehandlerRequestDTO = generateMeldingTilBehandlerRequestDTO(

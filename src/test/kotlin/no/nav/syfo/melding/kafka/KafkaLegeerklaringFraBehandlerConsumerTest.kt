@@ -6,7 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.kafka.domain.KafkaLegeerklaeringMessage
 import no.nav.syfo.infrastructure.kafka.domain.Status
 import no.nav.syfo.infrastructure.kafka.domain.ValidationResult
@@ -119,7 +119,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
-                type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
             )
         )
         val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
@@ -155,7 +155,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
         assertEquals(1, pSvar.antallVedlegg)
         assertNull(pSvar.veilederIdent)
-        assertEquals(MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
+        assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
         assertEquals(conversationRef, pSvar.conversationRef)
         assertEquals(meldingTilBehandler.uuid, pSvar.parentRef)
         assertEquals(expectedMeldingTekst, pSvar.tekst)
@@ -172,7 +172,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
-                type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
             )
         )
         val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
@@ -208,7 +208,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
         assertEquals(1, pSvar.antallVedlegg)
         assertNull(pSvar.veilederIdent)
-        assertEquals(MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
+        assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
         assertEquals(conversationRef, pSvar.conversationRef)
         assertEquals(meldingTilBehandler.uuid, pSvar.parentRef)
         assertEquals(expectedMeldingTekst, pSvar.tekst)
@@ -225,7 +225,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
-                type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
             )
         )
         val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
@@ -274,7 +274,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
         assertEquals(2, pSvar.antallVedlegg)
         assertNull(pSvar.veilederIdent)
-        assertEquals(MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
+        assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
         assertEquals(conversationRef, pSvar.conversationRef)
         assertEquals(meldingTilBehandler.uuid, pSvar.parentRef)
         assertEquals(expectedMeldingTekst, pSvar.tekst)
@@ -293,7 +293,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
-                type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
             )
         )
         val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
@@ -341,7 +341,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
         assertEquals(2, pSvar.antallVedlegg)
         assertNull(pSvar.veilederIdent)
-        assertEquals(MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
+        assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
         assertEquals(conversationRef, pSvar.conversationRef)
         assertEquals(legeerklaring.conversationRef?.refToParent, pSvar.parentRef.toString())
         assertEquals(expectedMeldingTekst, pSvar.tekst)
@@ -361,7 +361,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
                     arbeidstakerPersonIdent = personIdent,
                     behandlerPersonIdent = behandlerPersonIdent,
                     behandlerNavn = behandlerNavn,
-                    type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                    type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
                 )
             )
             val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
@@ -396,7 +396,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
             assertEquals(UserConstants.BEHANDLER_NAVN, pSvar.behandlerNavn)
             assertEquals(1, pSvar.antallVedlegg)
             assertNull(pSvar.veilederIdent)
-            assertEquals(MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
+            assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING.name, pSvar.type)
             assertEquals(conversationRef, pSvar.conversationRef)
             assertEquals(legeerklaring.conversationRef?.refToParent, pSvar.parentRef.toString())
             assertEquals(expectedMeldingTekst, pSvar.tekst)
@@ -412,7 +412,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
-                type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+                type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
                 tidspunkt = OffsetDateTime.now().minusYears(1),
             )
         )

@@ -1,7 +1,6 @@
 package no.nav.syfo.infrastructure.kafka.domain
 
 import no.nav.syfo.domain.Melding
-import no.nav.syfo.domain.MeldingType
 import no.nav.syfo.domain.PersonIdent
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -37,10 +36,10 @@ fun KafkaDialogmeldingFraBehandlerDTO.isHenvendelseTilNAV(): Boolean {
 }
 
 fun KafkaDialogmeldingFraBehandlerDTO.toMeldingFraBehandler(
-    type: MeldingType,
+    type: Melding.MeldingType,
     conversationRef: UUID,
 ): Melding.MeldingFraBehandler {
-    val tekst = if (type == MeldingType.HENVENDELSE_MELDING_TIL_NAV) {
+    val tekst = if (type == Melding.MeldingType.HENVENDELSE_MELDING_TIL_NAV) {
         dialogmelding.henvendelseFraLegeHenvendelse?.tekstNotatInnhold
             ?: dialogmelding.foresporselFraSaksbehandlerForesporselSvar?.tekstNotatInnhold
     } else {

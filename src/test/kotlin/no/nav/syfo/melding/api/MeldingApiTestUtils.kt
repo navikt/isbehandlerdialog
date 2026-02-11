@@ -17,10 +17,7 @@ import kotlin.test.assertEquals
 
 fun ApplicationTestBuilder.setupApiAndClient(dialogmeldingBestillingProducer: DialogmeldingBestillingProducer = mockk()): HttpClient {
     application {
-        testApiModule(
-            externalMockEnvironment = ExternalMockEnvironment.instance,
-            dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
-        )
+        testApiModule(externalMockEnvironment = ExternalMockEnvironment.instance, dialogmeldingBestillingProducer)
     }
     val client = createClient {
         install(ContentNegotiation) {

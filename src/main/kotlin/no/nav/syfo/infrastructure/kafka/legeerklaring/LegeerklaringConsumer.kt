@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.cloud.storage.Storage
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.IPdfGenClient
-import no.nav.syfo.domain.MeldingType
+import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
@@ -102,7 +102,7 @@ class LegeerklaringConsumer(
         val utgaaende = connection.getUtgaendeMeldingerInConversation(
             conversationRef = UUID.fromString(conversationRef),
             arbeidstakerPersonIdent = arbeidstakerPersonIdent,
-            type = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+            type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
         ).lastOrNull()
         if (utgaaende != null) {
             val pdfVedlegg = getPDFVedlegg(legeerklaring, vedleggIds)
@@ -128,7 +128,7 @@ class LegeerklaringConsumer(
     ) {
         val arbeidstakerPersonIdent = legeerklaring.personNrPasient
         val utgaaende = connection.getUtgaendeMeldingerWithType(
-            meldingType = MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+            meldingType = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
             arbeidstakerPersonIdent = arbeidstakerPersonIdent
         ).lastOrNull()
 

@@ -5,6 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import no.nav.syfo.application.IPadm2Client
 import no.nav.syfo.infrastructure.client.ClientEnvironment
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.httpClientDefault
@@ -14,10 +15,10 @@ class Padm2Client(
     private val azureAdClient: AzureAdClient,
     private val clientEnvironment: ClientEnvironment,
     private val httpClient: HttpClient = httpClientDefault(),
-) {
+) : IPadm2Client {
     private val hentVedleggUrl = "${clientEnvironment.baseUrl}$HENT_VEDLEGG_PATH"
 
-    suspend fun hentVedlegg(
+    override suspend fun hentVedlegg(
         msgId: String,
     ): List<VedleggDTO> {
         val systemToken = azureAdClient.getSystemToken(
@@ -40,6 +41,6 @@ class Padm2Client(
     }
 
     companion object {
-        const val HENT_VEDLEGG_PATH = "/api/system/v1/vedlegg"
+        private const val HENT_VEDLEGG_PATH = "/api/system/v1/vedlegg"
     }
 }
