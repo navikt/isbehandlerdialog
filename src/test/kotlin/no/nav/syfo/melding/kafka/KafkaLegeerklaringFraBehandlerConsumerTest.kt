@@ -51,6 +51,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         storage = storage,
         bucketName = bucketName,
         bucketNameVedlegg = bucketNameVedlegg,
+        meldingService = externalMockEnvironment.meldingService,
         pdfgenClient = externalMockEnvironment.pdfgenClient,
     )
 

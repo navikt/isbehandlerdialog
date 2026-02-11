@@ -1,5 +1,6 @@
 package no.nav.syfo.infrastructure.client.oppfolgingstilfelle
 
+import no.nav.syfo.domain.Oppfolgingstilfelle
 import java.time.LocalDate
 
 data class OppfolgingstilfellePersonDTO(

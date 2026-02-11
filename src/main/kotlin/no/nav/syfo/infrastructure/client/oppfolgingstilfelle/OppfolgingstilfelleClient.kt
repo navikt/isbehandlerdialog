@@ -8,6 +8,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.syfo.application.IOppfolgingstilfelleClient
+import no.nav.syfo.domain.Oppfolgingstilfelle
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.client.ClientEnvironment
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient

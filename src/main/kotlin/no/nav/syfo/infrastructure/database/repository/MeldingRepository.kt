@@ -87,7 +87,37 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
+    override fun createVedlegg(pdf: ByteArray, meldingId: PMelding.Id, number: Int, connection: Connection): Int {
+        val now = OffsetDateTime.now()
+        val vedleggUuid = UUID.randomUUID()
+        val idList = connection.prepareStatement(QUERY_CREATE_VEDLEGG).use {
+            it.setInt(1, meldingId.id)
+            it.setString(2, vedleggUuid.toString())
+            it.setObject(3, now)
+            it.setObject(4, now)
+            it.setInt(5, number)
+            it.setBytes(6, pdf)
+            it.executeQuery().toList { getInt("id") }
+        }
+        if (idList.size != 1) {
+            throw SQLException("Creating vedlegg failed, no rows affected.")
+        }
+        return idList.first()
+    }
+
     companion object {
+        private const val QUERY_CREATE_VEDLEGG =
+            """
+                INSERT INTO vedlegg (
+                    id,
+                    melding_id,
+                    uuid,
+                    created_at,
+                    updated_at,
+                    number,
+                    pdf) VALUES (DEFAULT, ?, ?, ?, ?, ?, ?) RETURNING id
+            """
+
         private const val QUERY_GET_MELDING_FOR_UUID =
             """
                 SELECT *

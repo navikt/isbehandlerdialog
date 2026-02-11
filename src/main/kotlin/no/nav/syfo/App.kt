@@ -135,6 +135,7 @@ fun main() {
                     kafkaEnvironment = environment.kafka,
                     bucketName = environment.legeerklaringBucketName,
                     bucketNameVedlegg = environment.legeerklaringVedleggBucketName,
+                    meldingService = meldingService,
                     database = applicationDatabase,
                     pdfgenClient = pdfgenClient,
                 )
