@@ -4,12 +4,11 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.cloud.storage.Storage
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.IPdfGenClient
+import no.nav.syfo.application.MeldingService
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
-import no.nav.syfo.infrastructure.database.createVedlegg
-import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
 import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerWithType
 import no.nav.syfo.infrastructure.kafka.config.KafkaConsumerService
@@ -30,6 +29,7 @@ class LegeerklaringConsumer(
     private val bucketName: String,
     private val bucketNameVedlegg: String,
     private val pdfgenClient: IPdfGenClient,
+    private val meldingService: MeldingService,
 ) : KafkaConsumerService<KafkaLegeerklaeringMessage> {
     override val pollDurationInMillis: Long = 1000
     private val mapper = configuredJacksonMapper()
@@ -98,10 +98,9 @@ class LegeerklaringConsumer(
         connection: Connection,
         conversationRef: String,
     ) {
-        val arbeidstakerPersonIdent = PersonIdent(legeerklaring.personNrPasient)
         val utgaaende = connection.getUtgaendeMeldingerInConversation(
             conversationRef = UUID.fromString(conversationRef),
-            arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+            arbeidstakerPersonIdent = PersonIdent(legeerklaring.personNrPasient),
             type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
         ).lastOrNull()
         if (utgaaende != null) {
@@ -112,7 +111,7 @@ class LegeerklaringConsumer(
                     antallVedlegg = pdfVedlegg.size,
                 ),
             )
-            storeVedlegg(
+            meldingService.lagreVedlegg(
                 meldingId = meldingId,
                 vedlegg = pdfVedlegg,
                 connection = connection,
@@ -126,10 +125,9 @@ class LegeerklaringConsumer(
         vedleggIds: List<String>,
         connection: Connection,
     ) {
-        val arbeidstakerPersonIdent = legeerklaring.personNrPasient
         val utgaaende = connection.getUtgaendeMeldingerWithType(
             meldingType = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-            arbeidstakerPersonIdent = arbeidstakerPersonIdent
+            arbeidstakerPersonIdent = legeerklaring.personNrPasient
         ).lastOrNull()
 
         if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
@@ -142,7 +140,7 @@ class LegeerklaringConsumer(
                     conversationRef = utgaaende.conversationRef,
                 ),
             )
-            storeVedlegg(
+            meldingService.lagreVedlegg(
                 meldingId = meldingId,
                 vedlegg = pdfVedlegg,
                 connection = connection,
@@ -155,35 +153,12 @@ class LegeerklaringConsumer(
         legeerklaring: LegeerklaringDTO,
         vedlegg: List<String>,
     ): List<ByteArray> {
-        val legeerklaringPdf = runBlocking {
-            pdfgenClient.generateLegeerklaring(legeerklaring)
-        }
-        return mutableListOf(legeerklaringPdf!!).apply {
-            addAll(
-                vedlegg.map { id ->
-                    getVedlegg(id)
-                }.filter {
-                    it.vedlegg.type == "application/pdf"
-                }.map {
-                    it.getBytes()
-                }
-            )
-        }
-    }
-
-    private fun storeVedlegg(
-        meldingId: PMelding.Id,
-        vedlegg: List<ByteArray>,
-        connection: Connection,
-    ) {
-        vedlegg.forEachIndexed { index, pdf ->
-            connection.createVedlegg(
-                pdf = pdf,
-                meldingId = meldingId,
-                number = index,
-                commit = false,
-            )
-        }
+        val legeerklaringPdf =
+            runBlocking { pdfgenClient.generateLegeerklaring(legeerklaring) }!!
+        val otherVedlegg = vedlegg.map { id -> getVedlegg(id) }
+            .filter { it.vedlegg.type == "application/pdf" }
+            .map { it.getBytes() }
+        return listOf(legeerklaringPdf) + otherVedlegg
     }
 
     private fun getLegeerklaring(objectId: String): LegeerklaringDTO =

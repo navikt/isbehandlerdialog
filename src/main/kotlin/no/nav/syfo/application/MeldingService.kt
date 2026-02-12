@@ -8,14 +8,10 @@ import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.PdfContent
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.isActive
-import no.nav.syfo.infrastructure.client.padm2.Padm2Client
-import no.nav.syfo.infrastructure.client.padm2.VedleggDTO
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.createPdf
-import no.nav.syfo.infrastructure.database.createVedlegg
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.toMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.domain.toMeldingTilBehandler
@@ -40,7 +36,7 @@ class MeldingService(
     private val dialogmeldingBestillingProducer: DialogmeldingBestillingProducer,
     private val oppfolgingstilfelleClient: IOppfolgingstilfelleClient,
     private val pdfgenClient: IPdfGenClient,
-    private val padm2Client: Padm2Client,
+    private val padm2Client: IPadm2Client,
 ) {
     suspend fun createMeldingTilBehandler(
         callId: String,
@@ -81,17 +77,6 @@ class MeldingService(
             }
         )
     }
-
-    fun getVedlegg(
-        uuid: UUID,
-        vedleggNumber: Int,
-    ): PdfContent? =
-        meldingRepository.getVedlegg(
-            uuid = uuid,
-            number = vedleggNumber,
-        )?.let {
-            PdfContent(it.pdf)
-        }
 
     private fun getBehandlerRefForConversation(
         meldingFraBehandler: Melding.MeldingFraBehandler,
@@ -134,22 +119,30 @@ class MeldingService(
             }
         }
         val utgaendeMelding = findUtgaendeMelding(
-            kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+            meldingParentRef = kafkaDialogmeldingFraBehandler.parentRef,
+            arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
             conversationRef = conversationRefUuid,
             connection = connection,
         )
         if (utgaendeMelding != null) {
-            storeDialogmeldingFromBehandler(
-                connection = connection,
-                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
+            val utgaendeMelding = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
                 type = Melding.MeldingType.valueOf(utgaendeMelding.type),
                 conversationRef = utgaendeMelding.conversationRef,
             )
+            storeDialogmeldingFromBehandler(
+                connection = connection,
+                meldingFraBehandler = utgaendeMelding,
+                fellesformatXML = kafkaDialogmeldingFraBehandler.fellesformatXML,
+            )
         } else if (kafkaDialogmeldingFraBehandler.isHenvendelseTilNAV()) {
+            val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
+                type = Melding.MeldingType.HENVENDELSE_MELDING_TIL_NAV,
+                conversationRef = conversationRefUuid ?: UUID.randomUUID(),
+            )
             handleHenvendelseTilNAV(
                 connection = connection,
-                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                conversationRef = conversationRefUuid,
+                meldingFraBehandler = meldingFraBehandler,
+                fellesformatXML = kafkaDialogmeldingFraBehandler.fellesformatXML,
             )
         } else {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA.increment()
@@ -165,20 +158,21 @@ class MeldingService(
     }
 
     private fun findUtgaendeMelding(
-        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
+        meldingParentRef: String?,
+        arbeidstakerPersonIdent: PersonIdent,
         conversationRef: UUID?,
         connection: Connection,
     ): PMelding? {
         val utgaaende = conversationRef?.let {
             connection.getUtgaendeMeldingerInConversation(
                 uuidParam = conversationRef,
-                arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
+                arbeidstakerPersonIdent = arbeidstakerPersonIdent,
             )
         } ?: mutableListOf()
 
-        if (utgaaende.isEmpty() && !kafkaDialogmeldingFraBehandler.parentRef.isNullOrBlank()) {
+        if (utgaaende.isEmpty() && !meldingParentRef.isNullOrBlank()) {
             val parentRef = try {
-                UUID.fromString(kafkaDialogmeldingFraBehandler.parentRef)
+                UUID.fromString(meldingParentRef)
             } catch (e: IllegalArgumentException) {
                 null
             }
@@ -186,7 +180,7 @@ class MeldingService(
                 utgaaende.addAll(
                     connection.getUtgaendeMeldingerInConversation(
                         uuidParam = parentRef,
-                        arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
+                        arbeidstakerPersonIdent = arbeidstakerPersonIdent,
                     )
                 )
             }
@@ -196,20 +190,17 @@ class MeldingService(
 
     private fun handleHenvendelseTilNAV(
         connection: Connection,
-        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
-        conversationRef: UUID?,
+        meldingFraBehandler: Melding.MeldingFraBehandler,
+        fellesformatXML: String,
     ) {
         val latestOppfolgingstilfelle = runBlocking {
-            oppfolgingstilfelleClient.getOppfolgingstilfelle(
-                personIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
-            )
+            oppfolgingstilfelleClient.getOppfolgingstilfelle(personIdent = meldingFraBehandler.arbeidstakerPersonIdent)
         }
         if (latestOppfolgingstilfelle?.isActive() == true) {
             storeDialogmeldingFromBehandler(
                 connection = connection,
-                kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                type = Melding.MeldingType.HENVENDELSE_MELDING_TIL_NAV,
-                conversationRef = conversationRef ?: UUID.randomUUID(),
+                meldingFraBehandler = meldingFraBehandler,
+                fellesformatXML = fellesformatXML,
             )
         } else {
             log.info("Received dialogmelding til NAV from behandler, but skipped since no active oppfolgingstilfelle")
@@ -219,41 +210,49 @@ class MeldingService(
 
     private fun storeDialogmeldingFromBehandler(
         connection: Connection,
-        kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
-        type: Melding.MeldingType,
-        conversationRef: UUID,
+        meldingFraBehandler: Melding.MeldingFraBehandler,
+        fellesformatXML: String,
     ) {
-        if (connection.getMeldingForMsgId(kafkaDialogmeldingFraBehandler.msgId) != null) {
-            log.warn("Received a duplicate dialogmelding of type $type from behandler: $conversationRef")
+        val melding = connection.getMeldingForMsgId(meldingFraBehandler.msgId)
+        val isDuplicate = melding != null
+        if (isDuplicate) {
+            log.warn("Received a duplicate dialogmelding of type ${meldingFraBehandler.type} from behandler: ${meldingFraBehandler.conversationRef}")
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE.increment()
         } else {
-            log.info("Received a dialogmelding of type $type from behandler: $conversationRef")
+            log.info("Received a dialogmelding of type ${meldingFraBehandler.type} from behandler: ${meldingFraBehandler.conversationRef}")
 
-            val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
-                type = type,
-                conversationRef = conversationRef,
-            )
             val meldingId = connection.createMeldingFraBehandler(
                 meldingFraBehandler = meldingFraBehandler,
-                fellesformat = kafkaDialogmeldingFraBehandler.fellesformatXML,
+                fellesformat = fellesformatXML,
             )
-            if (kafkaDialogmeldingFraBehandler.antallVedlegg > 0) {
-                val vedlegg = mutableListOf<VedleggDTO>()
-                runBlocking {
-                    vedlegg.addAll(
-                        padm2Client.hentVedlegg(kafkaDialogmeldingFraBehandler.msgId)
-                    )
-                }
-                vedlegg.forEachIndexed { index, vedleggDTO ->
-                    connection.createVedlegg(
-                        pdf = vedleggDTO.bytes,
-                        meldingId = meldingId,
-                        number = index,
-                        commit = false,
-                    )
-                }
+            if (meldingFraBehandler.antallVedlegg > 0) {
+                lagreMeldingVedleggFraMelding(meldingId = meldingId, meldingFraBehandler = meldingFraBehandler, connection = connection)
             }
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
+        }
+    }
+
+    fun getVedlegg(uuid: UUID, vedleggNumber: Int): PdfContent? =
+        meldingRepository.getVedlegg(
+            uuid = uuid,
+            number = vedleggNumber,
+        )?.let {
+            PdfContent(it.pdf)
+        }
+
+    fun lagreMeldingVedleggFraMelding(meldingId: PMelding.Id, meldingFraBehandler: Melding.MeldingFraBehandler, connection: Connection) {
+        val vedlegg = runBlocking { padm2Client.hentVedlegg(meldingFraBehandler.msgId) }
+        lagreVedlegg(vedlegg = vedlegg.map { it.bytes }, meldingId = meldingId, connection = connection)
+    }
+
+    fun lagreVedlegg(vedlegg: List<ByteArray>, meldingId: PMelding.Id, connection: Connection) {
+        vedlegg.forEachIndexed { index, pdf ->
+            meldingRepository.createVedlegg(
+                pdf = pdf,
+                meldingId = meldingId,
+                number = index,
+                connection = connection,
+            )
         }
     }
 

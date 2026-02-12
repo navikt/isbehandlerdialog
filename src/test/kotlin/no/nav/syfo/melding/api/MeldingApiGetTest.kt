@@ -241,7 +241,12 @@ class MeldingApiGetTest {
                         meldingFraBehandler = meldingFraBehandler,
                         fellesformat = null,
                     )
-                    it.createVedlegg(UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER, meldingId, vedleggNumber)
+                    meldingRepository.createVedlegg(
+                        pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
+                        meldingId = meldingId,
+                        number = vedleggNumber,
+                        connection = it
+                    )
                     it.commit()
                 }
 
@@ -334,7 +339,12 @@ class MeldingApiGetTest {
                         meldingFraBehandler = meldingFraBehandler,
                         fellesformat = null,
                     )
-                    it.createVedlegg(UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER, meldingId, vedleggNumber)
+                    meldingRepository.createVedlegg(
+                        pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
+                        meldingId = meldingId,
+                        number = vedleggNumber,
+                        connection = it
+                    )
                     it.commit()
                 }
 

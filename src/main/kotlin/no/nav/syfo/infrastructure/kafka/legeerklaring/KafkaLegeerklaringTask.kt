@@ -3,6 +3,7 @@ package no.nav.syfo.infrastructure.kafka.legeerklaring
 import com.google.cloud.storage.StorageOptions
 import no.nav.syfo.ApplicationState
 import no.nav.syfo.application.IPdfGenClient
+import no.nav.syfo.application.MeldingService
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.kafka.config.KafkaEnvironment
 import no.nav.syfo.infrastructure.kafka.config.kafkaConsumerConfig
@@ -19,6 +20,7 @@ fun launchKafkaTaskLegeerklaring(
     kafkaEnvironment: KafkaEnvironment,
     bucketName: String,
     bucketNameVedlegg: String,
+    meldingService: MeldingService,
     database: DatabaseInterface,
     pdfgenClient: IPdfGenClient,
 ) {
@@ -29,6 +31,7 @@ fun launchKafkaTaskLegeerklaring(
         bucketName = bucketName,
         bucketNameVedlegg = bucketNameVedlegg,
         pdfgenClient = pdfgenClient,
+        meldingService = meldingService,
     )
     val consumerProperties =
         kafkaConsumerConfig<KafkaLegeerklaringDeserializer>(kafkaEnvironment = kafkaEnvironment).apply {
