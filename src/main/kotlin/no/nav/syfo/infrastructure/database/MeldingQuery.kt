@@ -9,7 +9,6 @@ import no.nav.syfo.util.configuredJacksonMapper
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
-import java.sql.Types
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -131,109 +130,6 @@ fun DatabaseInterface.updateAvvistMeldingPublishedAt(uuid: UUID) =
         }
         connection.commit()
     }
-
-const val queryCreateMelding =
-    """
-        INSERT INTO MELDING (
-            id,
-            uuid,
-            created_at,
-            innkommende,
-            type,
-            conversation_ref,
-            parent_ref,
-            msg_id,
-            tidspunkt,
-            arbeidstaker_personident,
-            behandler_personident,
-            behandler_ref,
-            tekst,
-            document,
-            antall_vedlegg,
-            behandler_navn,
-            innkommende_published_at,
-            journalpost_id,
-            ubesvart_published_at,
-            veileder_ident,
-            avvist_published_at
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?) RETURNING id
-    """
-
-const val queryCreateMeldingFellesformat =
-    """
-        INSERT INTO MELDING_FELLESFORMAT (
-            id,
-            melding_id,
-            fellesformat
-        ) VALUES (DEFAULT, ?, ?) RETURNING id
-    """
-
-fun Connection.createMeldingTilBehandler(
-    meldingTilBehandler: Melding.MeldingTilBehandler,
-    commit: Boolean = true,
-): PMelding.Id {
-    return this.createMelding(
-        melding = meldingTilBehandler,
-        commit = commit,
-    )
-}
-
-fun Connection.createMeldingFraBehandler(
-    meldingFraBehandler: Melding.MeldingFraBehandler,
-    fellesformat: String? = null,
-    commit: Boolean = false,
-): PMelding.Id {
-    return this.createMelding(
-        melding = meldingFraBehandler,
-        fellesformat = fellesformat,
-        commit = commit,
-    )
-}
-
-private fun Connection.createMelding(
-    melding: Melding,
-    fellesformat: String? = null,
-    commit: Boolean = true,
-): PMelding.Id {
-    val idList = this.prepareStatement(queryCreateMelding).use {
-        it.setString(1, melding.uuid.toString())
-        it.setObject(2, OffsetDateTime.now())
-        it.setBoolean(3, melding.innkommende)
-        it.setString(4, melding.type.name)
-        it.setString(5, melding.conversationRef.toString())
-        it.setString(6, melding.parentRef?.toString())
-        it.setString(7, melding.msgId)
-        it.setObject(8, melding.tidspunkt)
-        it.setString(9, melding.arbeidstakerPersonIdent.value)
-        it.setString(10, melding.behandlerPersonIdent?.value)
-        it.setString(11, melding.behandlerRef?.toString())
-        it.setString(12, melding.tekst)
-        it.setObject(13, mapper.writeValueAsString(melding.document))
-        it.setInt(14, melding.antallVedlegg)
-        it.setString(15, melding.behandlerNavn)
-        it.setNull(16, Types.TIMESTAMP_WITH_TIMEZONE)
-        it.setString(17, melding.journalpostId)
-        it.setNull(18, Types.TIMESTAMP_WITH_TIMEZONE)
-        it.setString(19, melding.veilederIdent)
-        it.setNull(20, Types.TIMESTAMP_WITH_TIMEZONE)
-        it.executeQuery().toList { getInt("id") }
-    }
-    if (idList.size != 1) {
-        throw SQLException("Creating Melding failed, no rows affected.")
-    }
-    val id = idList.first()
-    if (fellesformat != null) {
-        this.prepareStatement(queryCreateMeldingFellesformat).use {
-            it.setInt(1, id)
-            it.setString(2, fellesformat)
-            it.executeQuery()
-        }
-    }
-    if (commit) {
-        this.commit()
-    }
-    return PMelding.Id(id)
-}
 
 const val queryGetMeldingerTilBehandlerWithoutJournalpostId = """
     SELECT m.*, p.pdf as pdf

@@ -5,7 +5,6 @@ import kotlinx.coroutines.test.runTest
 import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.MeldingStatusType
 import no.nav.syfo.infrastructure.database.createMeldingStatus
-import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.kafka.DIALOGMELDING_STATUS_TOPIC
 import no.nav.syfo.infrastructure.kafka.DialogmeldingStatusConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
@@ -24,6 +23,7 @@ class KafkaDialogmeldingStatusConsumerTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
+    private val meldingRepository = externalMockEnvironment.meldingRepository
     private val dialogmeldingStatusConsumer = DialogmeldingStatusConsumer(
         database = database,
         meldingRepository = externalMockEnvironment.meldingRepository,
@@ -52,9 +52,7 @@ class KafkaDialogmeldingStatusConsumerTest {
 
     @Test
     fun `Creates no melding-status for unknown melding`() = runTest {
-        database.connection.use {
-            it.createMeldingTilBehandler(defaultMeldingTilBehandler)
-        }
+        meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler)
 
         val kafkaDialogmeldingStatusDTO = generateKafkaDialogmeldingStatusDTO(
             meldingUUID = UUID.randomUUID(),
@@ -71,9 +69,7 @@ class KafkaDialogmeldingStatusConsumerTest {
 
     @Test
     fun `Creates new melding-status for known melding with no existing status`() = runTest {
-        database.connection.use {
-            it.createMeldingTilBehandler(defaultMeldingTilBehandler)
-        }
+        meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler)
 
         val kafkaDialogmeldingStatusDTO = generateKafkaDialogmeldingStatusDTO(
             meldingUUID = defaultMeldingTilBehandler.uuid,
@@ -96,8 +92,7 @@ class KafkaDialogmeldingStatusConsumerTest {
             tekst = null
         )
         database.connection.use {
-            val meldingId =
-                it.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, commit = false)
+            val meldingId = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, connection = it)
             it.createMeldingStatus(
                 meldingStatus = existingStatus,
                 meldingId = meldingId,

@@ -8,7 +8,6 @@ import no.nav.syfo.application.MeldingService
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
 import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerWithType
 import no.nav.syfo.infrastructure.kafka.config.KafkaConsumerService
@@ -105,11 +104,12 @@ class LegeerklaringConsumer(
         ).lastOrNull()
         if (utgaaende != null) {
             val pdfVedlegg = getPDFVedlegg(legeerklaring, vedleggIds)
-            val meldingId = connection.createMeldingFraBehandler(
+            val meldingId = meldingService.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
                     antallVedlegg = pdfVedlegg.size,
                 ),
+                connection = connection,
             )
             meldingService.lagreVedlegg(
                 meldingId = meldingId,
@@ -132,13 +132,14 @@ class LegeerklaringConsumer(
 
         if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
             val pdfVedlegg = getPDFVedlegg(legeerklaring, vedleggIds)
-            val meldingId = connection.createMeldingFraBehandler(
+            val meldingId = meldingService.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
                     antallVedlegg = pdfVedlegg.size,
                 ).copy(
                     conversationRef = utgaaende.conversationRef,
                 ),
+                connection = connection,
             )
             meldingService.lagreVedlegg(
                 meldingId = meldingId,

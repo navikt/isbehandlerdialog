@@ -13,7 +13,6 @@ import no.nav.syfo.infrastructure.client.dokarkiv.domain.MeldingTittel
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.OverstyrInnsynsregler
 import no.nav.syfo.infrastructure.cronjob.CronjobResult
 import no.nav.syfo.infrastructure.cronjob.JournalforMeldingTilBehandlerCronjob
-import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.createPdf
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
@@ -86,9 +85,9 @@ class JournalforDialogmeldingCronjobTest {
                 meldingTilBehandlerTilleggsopplysninger,
                 meldingTilBehandlerLegeerklaring
             ).forEach { melding ->
-                val meldingId = connection.createMeldingTilBehandler(
+                val meldingId = meldingRepository.createMeldingTilBehandler(
                     melding,
-                    commit = false,
+                    connection = connection
                 )
                 connection.createPdf(
                     pdf = pdf,
@@ -96,9 +95,9 @@ class JournalforDialogmeldingCronjobTest {
                     commit = false,
                 )
             }
-            val paminnelseId = connection.createMeldingTilBehandler(
+            val paminnelseId = meldingRepository.createMeldingTilBehandler(
                 meldingTilBehandler = meldingTilBehandlerPaminnelse,
-                commit = false,
+                connection = connection
             )
             connection.createPdf(
                 pdf = pdf,
