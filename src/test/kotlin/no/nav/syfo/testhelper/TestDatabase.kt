@@ -1,11 +1,10 @@
 package no.nav.syfo.testhelper
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
+import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.PMeldingStatus
-import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
-import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.PPdf
 import no.nav.syfo.infrastructure.database.toList
@@ -28,7 +27,6 @@ class TestDatabase : DatabaseInterface {
         get() = pg.postgresDatabase.connection.apply { autoCommit = false }
 
     init {
-
         Flyway.configure().run {
             dataSource(pg.postgresDatabase).load().migrate()
         }
@@ -39,46 +37,41 @@ class TestDatabase : DatabaseInterface {
     }
 }
 
-fun DatabaseInterface.createMeldingerTilBehandler(
+fun createMeldingerTilBehandler(
+    meldingRepository: IMeldingRepository,
     meldingTilBehandler: Melding.MeldingTilBehandler,
     numberOfMeldinger: Int = 1,
 ): Pair<UUID, List<PMelding.Id>> {
     val idList = mutableListOf<PMelding.Id>()
-    this.connection.use { connection ->
-        for (i in 1..numberOfMeldinger) {
-            val id = connection.createMeldingTilBehandler(
-                meldingTilBehandler = meldingTilBehandler
-                    .copy(
-                        uuid = if (i == 1) meldingTilBehandler.uuid else UUID.randomUUID(),
-                        tekst = meldingTilBehandler.tekst,
-                    ),
-                commit = false,
-            )
-            idList.add(id)
-        }
-        connection.commit()
+    for (i in 1..numberOfMeldinger) {
+        val id = meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = meldingTilBehandler
+                .copy(
+                    uuid = if (i == 1) meldingTilBehandler.uuid else UUID.randomUUID(),
+                    tekst = meldingTilBehandler.tekst,
+                ),
+        )
+        idList.add(id)
     }
     return Pair(meldingTilBehandler.conversationRef, idList)
 }
 
-fun DatabaseInterface.createMeldingerFraBehandler(
+fun createMeldingerFraBehandler(
+    meldingRepository: IMeldingRepository,
     meldingFraBehandler: Melding.MeldingFraBehandler,
     numberOfMeldinger: Int = 1,
 ): Pair<UUID, List<PMelding.Id>> {
     val idList = mutableListOf<PMelding.Id>()
-    this.connection.use { connection ->
-        for (i in 1..numberOfMeldinger) {
-            val id = connection.createMeldingFraBehandler(
-                meldingFraBehandler = meldingFraBehandler
-                    .copy(
-                        uuid = UUID.randomUUID(),
-                        tekst = if (numberOfMeldinger > 1) "${meldingFraBehandler.tekst}$i" else "${meldingFraBehandler.tekst}"
-                    ),
-                fellesformat = null,
-            )
-            idList.add(id)
-        }
-        connection.commit()
+    for (i in 1..numberOfMeldinger) {
+        val id = meldingRepository.createMeldingFraBehandler(
+            meldingFraBehandler = meldingFraBehandler
+                .copy(
+                    uuid = UUID.randomUUID(),
+                    tekst = if (numberOfMeldinger > 1) "${meldingFraBehandler.tekst}$i" else "${meldingFraBehandler.tekst}"
+                ),
+            fellesformat = null,
+        )
+        idList.add(id)
     }
     return Pair(meldingFraBehandler.conversationRef, idList)
 }

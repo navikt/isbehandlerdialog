@@ -17,6 +17,7 @@ class MeldingSystemApiTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
     private val database = externalMockEnvironment.database
+    private val meldingRepository = externalMockEnvironment.meldingRepository
 
     @AfterEach
     fun afterEach() {
@@ -48,7 +49,7 @@ class MeldingSystemApiTest {
         @Test
         fun `returns OK if melding with msgId exists`() {
             val msgId = UUID.randomUUID()
-            database.createMeldingerFraBehandler(meldingFraBehandler = generateMeldingFraBehandler(msgId = msgId))
+            createMeldingerFraBehandler(meldingRepository = meldingRepository, meldingFraBehandler = generateMeldingFraBehandler(msgId = msgId))
 
             testApplication {
                 val client = setupApiAndClient()

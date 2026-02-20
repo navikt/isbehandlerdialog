@@ -31,7 +31,8 @@ class MeldingRepositoryTest {
             val meldingTilBehandler = generateMeldingTilBehandler(
                 personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
             )
-            database.createMeldingerTilBehandler(
+            createMeldingerTilBehandler(
+                meldingRepository = meldingRepository,
                 meldingTilBehandler = meldingTilBehandler,
                 numberOfMeldinger = 1,
             )
@@ -52,7 +53,8 @@ class MeldingRepositoryTest {
             val meldingTilBehandler = defaultMeldingTilBehandler.copy(
                 uuid = UUID.randomUUID(),
             )
-            database.createMeldingerTilBehandler(
+            createMeldingerTilBehandler(
+                meldingRepository = meldingRepository,
                 meldingTilBehandler = meldingTilBehandler,
                 numberOfMeldinger = 1,
             )
@@ -84,8 +86,8 @@ class MeldingRepositoryTest {
                 personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
             )
 
-            database.createMeldingerTilBehandler(firstMelding, 1)
-            database.createMeldingerTilBehandler(secondMelding, 1)
+            createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = firstMelding, numberOfMeldinger = 1)
+            createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = secondMelding, numberOfMeldinger = 1)
 
             val result = meldingRepository.getMelding(secondMelding.uuid)
 

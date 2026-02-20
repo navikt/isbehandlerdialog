@@ -57,7 +57,8 @@ class MeldingFraBehandlerCronjobTest {
             conversationRef = UUID.randomUUID(),
             personIdent = personIdent,
         )
-        database.createMeldingerFraBehandler(
+        createMeldingerFraBehandler(
+            meldingRepository = meldingRepository,
             meldingFraBehandler = meldingFraBehandler,
         )
 
@@ -79,7 +80,8 @@ class MeldingFraBehandlerCronjobTest {
             conversationRef = UUID.randomUUID(),
             personIdent = personIdent,
         )
-        database.createMeldingerFraBehandler(
+        createMeldingerFraBehandler(
+            meldingRepository = meldingRepository,
             meldingFraBehandler = meldingFraBehandler,
         )
         val meldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)

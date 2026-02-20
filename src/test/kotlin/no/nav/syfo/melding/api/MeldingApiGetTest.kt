@@ -60,7 +60,8 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns all meldinger for personident grouped by conversationRef`() {
-                val (firstConversation, _) = database.createMeldingerTilBehandler(
+                val (firstConversation, _) = createMeldingerTilBehandler(
+                    meldingRepository = meldingRepository,
                     meldingTilBehandler = defaultMeldingTilBehandler,
                     numberOfMeldinger = 2,
                 )
@@ -68,11 +69,13 @@ class MeldingApiGetTest {
                     conversationRef = firstConversation,
                     personIdent = personIdent,
                 )
-                database.createMeldingerFraBehandler(
+                createMeldingerFraBehandler(
+                    meldingRepository = meldingRepository,
                     meldingFraBehandler = meldingFraBehandler,
                     numberOfMeldinger = 2,
                 )
-                val (secondConversation, _) = database.createMeldingerTilBehandler(
+                val (secondConversation, _) = createMeldingerTilBehandler(
+                    meldingRepository = meldingRepository,
                     meldingTilBehandler = defaultMeldingTilBehandler.copy(
                         uuid = UUID.randomUUID(),
                         conversationRef = UUID.randomUUID(),
@@ -115,9 +118,9 @@ class MeldingApiGetTest {
             @Test
             fun `Returns meldinger for personident with status for melding til behander`() {
                 database.connection.use {
-                    val meldingId = it.createMeldingTilBehandler(
+                    val meldingId = meldingRepository.createMeldingTilBehandler(
                         meldingTilBehandler = defaultMeldingTilBehandler,
-                        commit = false,
+                        connection = it,
                     )
                     it.createMeldingStatus(
                         meldingStatus = MeldingStatus(
@@ -149,7 +152,8 @@ class MeldingApiGetTest {
             @Test
             fun `Returns meldinger for personident with isFirstVedleggLegeerklaring true for legeerklaring melding fra behandler`() {
                 val meldingTilBehandler = generateMeldingTilBehandler(type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
-                val (firstConversation, _) = database.createMeldingerTilBehandler(
+                val (firstConversation, _) = createMeldingerTilBehandler(
+                    meldingRepository = meldingRepository,
                     meldingTilBehandler = meldingTilBehandler,
                 )
                 val meldingFraBehandler = generateKafkaLegeerklaringFraBehandlerDTO(
@@ -162,7 +166,8 @@ class MeldingApiGetTest {
                     parentRef = meldingTilBehandler.uuid,
                     antallVedlegg = 1,
                 )
-                database.createMeldingerFraBehandler(
+                createMeldingerFraBehandler(
+                    meldingRepository = meldingRepository,
                     meldingFraBehandler = meldingFraBehandler,
                 )
 
@@ -228,7 +233,8 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns vedlegg for melding`() {
-                val (conversation, _) = database.createMeldingerTilBehandler(
+                val (conversation, _) = createMeldingerTilBehandler(
+                    meldingRepository = meldingRepository,
                     meldingTilBehandler = defaultMeldingTilBehandler,
                 )
                 val meldingFraBehandler = generateMeldingFraBehandler(
@@ -237,9 +243,10 @@ class MeldingApiGetTest {
                 )
                 val vedleggNumber = 0
                 database.connection.use {
-                    val meldingId = it.createMeldingFraBehandler(
+                    val meldingId = meldingRepository.createMeldingFraBehandler(
                         meldingFraBehandler = meldingFraBehandler,
                         fellesformat = null,
+                        connection = it
                     )
                     meldingRepository.createVedlegg(
                         pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
@@ -265,20 +272,16 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns 204 when no vedlegg for melding`() {
-                val (conversation, _) = database.createMeldingerTilBehandler(
+                val (conversation, _) = createMeldingerTilBehandler(
+                    meldingRepository = meldingRepository,
                     meldingTilBehandler = defaultMeldingTilBehandler,
                 )
                 val meldingFraBehandler = generateMeldingFraBehandler(
                     conversationRef = conversation,
                     personIdent = personIdent,
                 )
-                database.connection.use {
-                    it.createMeldingFraBehandler(
-                        meldingFraBehandler = meldingFraBehandler,
-                        fellesformat = null
-                    )
-                    it.commit()
-                }
+                meldingRepository.createMeldingFraBehandler(meldingFraBehandler = meldingFraBehandler)
+
                 testApplication {
                     val client = setupApiAndClient()
                     val response = client.get("$apiUrl/${meldingFraBehandler.uuid}/0/pdf") {
@@ -323,8 +326,9 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns status Forbidden if denied access to person`() {
-                val (conversation, _) = database.createMeldingerTilBehandler(
-                    generateMeldingTilBehandler(
+                val (conversation, _) = createMeldingerTilBehandler(
+                    meldingRepository = meldingRepository,
+                    meldingTilBehandler = generateMeldingTilBehandler(
                         personIdent = UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS,
                         veilederIdent = veilederIdent,
                     ),
@@ -335,9 +339,10 @@ class MeldingApiGetTest {
                 )
                 val vedleggNumber = 0
                 database.connection.use {
-                    val meldingId = it.createMeldingFraBehandler(
+                    val meldingId = meldingRepository.createMeldingFraBehandler(
                         meldingFraBehandler = meldingFraBehandler,
                         fellesformat = null,
+                        connection = it
                     )
                     meldingRepository.createVedlegg(
                         pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
