@@ -8,8 +8,6 @@ import no.nav.syfo.api.endpoints.meldingApiBasePath
 import no.nav.syfo.domain.DocumentComponentType
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.serialize
-import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
-import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingBestillingDTO
 import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingKode
 import no.nav.syfo.infrastructure.kafka.domain.DialogmeldingKodeverk
@@ -80,9 +78,7 @@ class MeldingApiPostTest {
 
             @Test
             fun `Creates paminnelse for melding til behandler and produces dialogmelding-bestilling to kafka`() {
-                database.connection.use {
-                    it.createMeldingTilBehandler(defaultMeldingTilBehandler)
-                }
+                meldingRepository.createMeldingTilBehandler(defaultMeldingTilBehandler)
 
                 testApplication {
                     val client = setupApiAndClient(dialogmeldingBestillingProducer)
@@ -187,18 +183,12 @@ class MeldingApiPostTest {
 
             @Test
             fun `returns status BadRequest if given uuid is meldingFraBehandler`() {
-                val (conversation, _) = database.createMeldingerTilBehandler(defaultMeldingTilBehandler)
+                val (conversation, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
                 val meldingFraBehandler = generateMeldingFraBehandler(
                     conversationRef = conversation,
                     personIdent = personIdent,
                 )
-                database.connection.use {
-                    it.createMeldingFraBehandler(
-                        meldingFraBehandler = meldingFraBehandler,
-                        fellesformat = null,
-                    )
-                    it.commit()
-                }
+                meldingRepository.createMeldingFraBehandler(meldingFraBehandler)
 
                 testApplication {
                     val client = setupApiAndClient()
@@ -217,9 +207,7 @@ class MeldingApiPostTest {
             fun `returns status BadRequest if given uuid is melding til behandler påminnelse`() {
                 val meldingTilBehandlerPaminnelse =
                     generateMeldingTilBehandler(type = Melding.MeldingType.FORESPORSEL_PASIENT_PAMINNELSE)
-                database.connection.use {
-                    it.createMeldingTilBehandler(meldingTilBehandlerPaminnelse)
-                }
+                meldingRepository.createMeldingTilBehandler(meldingTilBehandlerPaminnelse)
 
                 testApplication {
                     val client = setupApiAndClient()
@@ -237,9 +225,7 @@ class MeldingApiPostTest {
             @Test
             fun `returns status BadRequest if given uuid is melding til behandler henvendelse melding fra NAV`() {
                 val meldingFraNav = generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV)
-                database.connection.use {
-                    it.createMeldingTilBehandler(meldingFraNav)
-                }
+                meldingRepository.createMeldingTilBehandler(meldingFraNav)
 
                 testApplication {
                     val client = setupApiAndClient()
@@ -568,15 +554,9 @@ class MeldingApiPostTest {
                     conversationRef = foresporselLegeerklaring.conversationRef,
                     type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
                 )
-
-                database.connection.use {
-                    it.createMeldingTilBehandler(foresporselLegeerklaring)
-                    it.createMeldingTilBehandler(paminnelse)
-                    it.createMeldingFraBehandler(
-                        meldingFraBehandler = innkommendeLegeerklaring,
-                        commit = true,
-                    )
-                }
+                meldingRepository.createMeldingTilBehandler(foresporselLegeerklaring)
+                meldingRepository.createMeldingTilBehandler(paminnelse)
+                meldingRepository.createMeldingFraBehandler(innkommendeLegeerklaring)
 
                 testApplication {
                     val client = setupApiAndClient(dialogmeldingBestillingProducer)
@@ -681,14 +661,8 @@ class MeldingApiPostTest {
                     conversationRef = foresporselTilleggsopplysninger.conversationRef,
                     type = Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
                 )
-
-                database.connection.use {
-                    it.createMeldingTilBehandler(foresporselTilleggsopplysninger)
-                    it.createMeldingFraBehandler(
-                        meldingFraBehandler = foresporselSvar,
-                        commit = true,
-                    )
-                }
+                meldingRepository.createMeldingTilBehandler(foresporselTilleggsopplysninger)
+                meldingRepository.createMeldingFraBehandler(foresporselSvar)
 
                 testApplication {
                     val client = setupApiAndClient()

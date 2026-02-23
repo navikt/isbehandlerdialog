@@ -27,6 +27,87 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
+    override fun createMeldingTilBehandler(
+        meldingTilBehandler: Melding.MeldingTilBehandler,
+        connection: Connection?,
+    ): PMelding.Id =
+        if (connection != null) {
+            connection.createMelding(melding = meldingTilBehandler, shouldCommit = false)
+        } else {
+            database.connection.use { connection ->
+                connection.createMelding(
+                    melding = meldingTilBehandler,
+                    shouldCommit = true,
+                )
+            }
+        }
+
+    override fun createMeldingFraBehandler(
+        meldingFraBehandler: Melding.MeldingFraBehandler,
+        fellesformat: String?,
+        connection: Connection?,
+    ): PMelding.Id =
+        if (connection != null) {
+            connection.createMelding(
+                melding = meldingFraBehandler,
+                fellesformat = fellesformat,
+                shouldCommit = false,
+            )
+        } else {
+            database.connection.use { connection ->
+                connection.createMelding(
+                    melding = meldingFraBehandler,
+                    fellesformat = fellesformat,
+                    shouldCommit = true,
+                )
+            }
+        }
+
+    private fun Connection.createMelding(
+        melding: Melding,
+        fellesformat: String? = null,
+        shouldCommit: Boolean,
+    ): PMelding.Id {
+        val idList = this.prepareStatement(QUERY_CREATE_MELDING).use {
+            it.setString(1, melding.uuid.toString())
+            it.setObject(2, OffsetDateTime.now())
+            it.setBoolean(3, melding.innkommende)
+            it.setString(4, melding.type.name)
+            it.setString(5, melding.conversationRef.toString())
+            it.setString(6, melding.parentRef?.toString())
+            it.setString(7, melding.msgId)
+            it.setObject(8, melding.tidspunkt)
+            it.setString(9, melding.arbeidstakerPersonIdent.value)
+            it.setString(10, melding.behandlerPersonIdent?.value)
+            it.setString(11, melding.behandlerRef?.toString())
+            it.setString(12, melding.tekst)
+            it.setObject(13, mapper.writeValueAsString(melding.document))
+            it.setInt(14, melding.antallVedlegg)
+            it.setString(15, melding.behandlerNavn)
+            it.setNull(16, Types.TIMESTAMP_WITH_TIMEZONE)
+            it.setString(17, melding.journalpostId)
+            it.setNull(18, Types.TIMESTAMP_WITH_TIMEZONE)
+            it.setString(19, melding.veilederIdent)
+            it.setNull(20, Types.TIMESTAMP_WITH_TIMEZONE)
+            it.executeQuery().toList { getInt("id") }
+        }
+        if (idList.size != 1) {
+            throw SQLException("Creating Melding failed, no rows affected.")
+        }
+        val id = idList.first()
+        if (fellesformat != null) {
+            this.prepareStatement(QUERY_CREATE_MELDING_FELLESFORMAT).use {
+                it.setInt(1, id)
+                it.setString(2, fellesformat)
+                it.executeQuery()
+            }
+        }
+        if (shouldCommit) {
+            this.commit()
+        }
+        return PMelding.Id(id)
+    }
+
     override fun getMeldingerForArbeidstaker(arbeidstakerPersonIdent: PersonIdent): List<PMelding> =
         database.connection.use { connection ->
             connection.prepareStatement(QUERY_GET_MELDING_FOR_ARBEIDSTAKER_PERSONIDENT).use {
@@ -186,6 +267,42 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             """
     }
 }
+
+private const val QUERY_CREATE_MELDING =
+    """
+        INSERT INTO MELDING (
+            id,
+            uuid,
+            created_at,
+            innkommende,
+            type,
+            conversation_ref,
+            parent_ref,
+            msg_id,
+            tidspunkt,
+            arbeidstaker_personident,
+            behandler_personident,
+            behandler_ref,
+            tekst,
+            document,
+            antall_vedlegg,
+            behandler_navn,
+            innkommende_published_at,
+            journalpost_id,
+            ubesvart_published_at,
+            veileder_ident,
+            avvist_published_at
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+    """
+
+private const val QUERY_CREATE_MELDING_FELLESFORMAT =
+    """
+        INSERT INTO MELDING_FELLESFORMAT (
+            id,
+            melding_id,
+            fellesformat
+        ) VALUES (DEFAULT, ?, ?) RETURNING id
+    """
 
 private fun ResultSet.toPMelding() =
     PMelding(

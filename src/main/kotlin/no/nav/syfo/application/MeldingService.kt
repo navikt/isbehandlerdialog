@@ -9,8 +9,6 @@ import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.PdfContent
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
-import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.createPdf
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.toMeldingFraBehandler
@@ -221,9 +219,10 @@ class MeldingService(
         } else {
             log.info("Received a dialogmelding of type ${meldingFraBehandler.type} from behandler: ${meldingFraBehandler.conversationRef}")
 
-            val meldingId = connection.createMeldingFraBehandler(
+            val meldingId = meldingRepository.createMeldingFraBehandler(
                 meldingFraBehandler = meldingFraBehandler,
                 fellesformat = fellesformatXML,
+                connection = connection,
             )
             if (meldingFraBehandler.antallVedlegg > 0) {
                 lagreMeldingVedleggFraMelding(meldingId = meldingId, meldingFraBehandler = meldingFraBehandler, connection = connection)
@@ -254,6 +253,17 @@ class MeldingService(
                 connection = connection,
             )
         }
+    }
+
+    fun createMeldingFraBehandler(
+        meldingFraBehandler: Melding.MeldingFraBehandler,
+        connection: Connection?,
+    ): PMelding.Id {
+        return meldingRepository.createMeldingFraBehandler(
+            meldingFraBehandler = meldingFraBehandler,
+            fellesformat = null,
+            connection = connection,
+        )
     }
 
     private suspend fun getMeldingTilBehandler(meldingUuid: UUID): Melding.MeldingTilBehandler? {
@@ -340,9 +350,9 @@ class MeldingService(
         pdf: ByteArray,
     ) {
         database.connection.use { connection ->
-            val meldingId = connection.createMeldingTilBehandler(
+            val meldingId = meldingRepository.createMeldingTilBehandler(
                 meldingTilBehandler = meldingTilBehandler,
-                commit = false,
+                connection = connection,
             )
             connection.createPdf(
                 pdf = pdf,

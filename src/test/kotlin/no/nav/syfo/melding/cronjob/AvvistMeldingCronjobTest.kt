@@ -4,7 +4,6 @@ import io.mockk.*
 import no.nav.syfo.domain.MeldingStatusType
 import no.nav.syfo.infrastructure.cronjob.AvvistMeldingCronjob
 import no.nav.syfo.infrastructure.database.createMeldingStatus
-import no.nav.syfo.infrastructure.database.createMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.infrastructure.kafka.producer.AvvistMeldingProducer
@@ -61,8 +60,9 @@ class AvvistMeldingCronjobTest {
         var meldingId: PMelding.Id
 
         database.connection.use {
-            meldingId = it.createMeldingTilBehandler(
+            meldingId = meldingRepository.createMeldingTilBehandler(
                 meldingTilBehandler = generateMeldingTilBehandler(),
+                connection = it
             )
             it.createMeldingStatus(
                 meldingStatus = avvistMeldingStatus,
@@ -96,8 +96,9 @@ class AvvistMeldingCronjobTest {
         var meldingId: PMelding.Id
 
         database.connection.use {
-            meldingId = it.createMeldingTilBehandler(
+            meldingId = meldingRepository.createMeldingTilBehandler(
                 meldingTilBehandler = generateMeldingTilBehandler(),
+                connection = it
             )
             it.createMeldingStatus(
                 meldingStatus = avvistMeldingStatus,
@@ -121,8 +122,9 @@ class AvvistMeldingCronjobTest {
         var meldingId: PMelding.Id
 
         database.connection.use {
-            meldingId = it.createMeldingTilBehandler(
+            meldingId = meldingRepository.createMeldingTilBehandler(
                 meldingTilBehandler = generateMeldingTilBehandler(tekst = "Ikke avvist melding"),
+                connection = it
             )
             it.createMeldingStatus(
                 meldingStatus = okMeldingStatus,

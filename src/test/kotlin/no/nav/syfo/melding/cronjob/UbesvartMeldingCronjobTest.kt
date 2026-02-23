@@ -61,7 +61,8 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will publish ubesvart melding til behandler foresporsel pasient when cronjob has run`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (_, idList) = database.createMeldingerTilBehandler(
+        val (_, idList) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandler,
         )
         database.updateMeldingCreatedAt(
@@ -91,7 +92,8 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will publish all ubesvarte meldinger when cronjob has run`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (_, idList) = database.createMeldingerTilBehandler(
+        val (_, idList) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandler,
         )
         database.updateMeldingCreatedAt(
@@ -100,7 +102,8 @@ class UbesvartMeldingCronjobTest {
         )
 
         val meldingTilBehandlerWithOtherConversationRef = generateMeldingTilBehandler(personIdent)
-        val (_, idListForMeldingWithOtherConversationRef) = database.createMeldingerTilBehandler(
+        val (_, idListForMeldingWithOtherConversationRef) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandlerWithOtherConversationRef,
         )
         database.updateMeldingCreatedAt(
@@ -133,7 +136,8 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will not publish any ubesvart melding when no melding older than 3 weeks`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (_, idList) = database.createMeldingerTilBehandler(
+        val (_, idList) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandler,
         )
         database.updateMeldingCreatedAt(
@@ -155,7 +159,8 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will not publish melding to behandler when cronjob has run but melding is less than 3 weeks old`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (conversationRef, idList) = database.createMeldingerTilBehandler(
+        val (conversationRef, idList) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandler,
         )
         database.updateMeldingCreatedAt(
@@ -167,7 +172,8 @@ class UbesvartMeldingCronjobTest {
             conversationRef = conversationRef,
             personIdent = personIdent,
         )
-        database.createMeldingerFraBehandler(
+        createMeldingerFraBehandler(
+            meldingRepository = meldingRepository,
             meldingFraBehandler = meldingFraBehandler,
         )
 
@@ -185,7 +191,8 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will publish ubesvart melding when newest melding in conversation is ubesvart`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (conversationRef, idListUtgaende) = database.createMeldingerTilBehandler(
+        val (conversationRef, idListUtgaende) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandler,
             numberOfMeldinger = 2,
         )
@@ -202,7 +209,8 @@ class UbesvartMeldingCronjobTest {
             conversationRef = conversationRef,
             personIdent = personIdent,
         )
-        val (_, idListInnkommende) = database.createMeldingerFraBehandler(
+        val (_, idListInnkommende) = createMeldingerFraBehandler(
+            meldingRepository = meldingRepository,
             meldingFraBehandler = meldingFraBehandler,
         )
         database.updateMeldingCreatedAt(
@@ -236,7 +244,8 @@ class UbesvartMeldingCronjobTest {
     fun `Will publish ubesvart melding when melding is of type legeeklaring and cronjob has run`() {
         val meldingTilBehandler =
             generateMeldingTilBehandler(personIdent = personIdent, type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
-        val (_, idList) = database.createMeldingerTilBehandler(
+        val (_, idList) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandler,
         )
         database.updateMeldingCreatedAt(
@@ -269,7 +278,8 @@ class UbesvartMeldingCronjobTest {
             personIdent = personIdent,
             type = Melding.MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
         )
-        val (_, idList) = database.createMeldingerTilBehandler(
+        val (_, idList) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandler,
         )
         database.updateMeldingCreatedAt(
@@ -294,7 +304,8 @@ class UbesvartMeldingCronjobTest {
             personIdent = personIdent,
             type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV,
         )
-        val (_, idList) = database.createMeldingerTilBehandler(
+        val (_, idList) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandler,
         )
         database.updateMeldingCreatedAt(
@@ -316,7 +327,8 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will publish one ubesvart melding to behandler when first answered and second not answered`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (_, idList) = database.createMeldingerTilBehandler(
+        val (_, idList) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
             meldingTilBehandler = meldingTilBehandler,
         )
         database.updateMeldingCreatedAt(

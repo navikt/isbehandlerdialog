@@ -115,8 +115,9 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     fun `Should store legeerklaring when melding sent with same conversationRef`() = runTest {
         val msgId = UUID.randomUUID().toString()
         val meldingTilBehandler = defaultMeldingTilBehandler
-        val (conversationRef, _) = database.createMeldingerTilBehandler(
-            meldingTilBehandler.copy(
+        val (conversationRef, _) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
+            meldingTilBehandler = meldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
@@ -168,8 +169,9 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     fun `Should store legeerklaring when melding recently sent to behandler`() = runTest {
         val msgId = UUID.randomUUID().toString()
         val meldingTilBehandler = defaultMeldingTilBehandler
-        val (conversationRef, _) = database.createMeldingerTilBehandler(
-            meldingTilBehandler.copy(
+        val (conversationRef, _) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
+            meldingTilBehandler = meldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
@@ -221,8 +223,9 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     fun `Should store legeerklaring with vedlegg when melding recently sent to behandler`() = runTest {
         val msgId = UUID.randomUUID().toString()
         val meldingTilBehandler = defaultMeldingTilBehandler
-        val (conversationRef, _) = database.createMeldingerTilBehandler(
-            meldingTilBehandler.copy(
+        val (conversationRef, _) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
+            meldingTilBehandler = meldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
@@ -289,8 +292,9 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     fun `Should store legeerklaring when melding sent with same conversationRef and includes parentRef`() = runTest {
         val msgId = UUID.randomUUID().toString()
         val meldingTilBehandler = defaultMeldingTilBehandler
-        val (conversationRef, _) = database.createMeldingerTilBehandler(
-            meldingTilBehandler.copy(
+        val (conversationRef, _) = createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
+            meldingTilBehandler = meldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
@@ -357,8 +361,9 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         runTest {
             val msgId = UUID.randomUUID().toString()
             val meldingTilBehandler = defaultMeldingTilBehandler
-            val (conversationRef, _) = database.createMeldingerTilBehandler(
-                meldingTilBehandler.copy(
+            val (conversationRef, _) = createMeldingerTilBehandler(
+                meldingRepository = meldingRepository,
+                meldingTilBehandler = meldingTilBehandler.copy(
                     arbeidstakerPersonIdent = personIdent,
                     behandlerPersonIdent = behandlerPersonIdent,
                     behandlerNavn = behandlerNavn,
@@ -408,8 +413,9 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     @Test
     fun `Should not store legeerklaring when melding sent to behandler long time ago`() = runTest {
         val msgId = UUID.randomUUID().toString()
-        database.createMeldingerTilBehandler(
-            defaultMeldingTilBehandler.copy(
+        createMeldingerTilBehandler(
+            meldingRepository = meldingRepository,
+            meldingTilBehandler = defaultMeldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,

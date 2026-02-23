@@ -2,7 +2,6 @@ package no.nav.syfo.identhendelse
 
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.IdenthendelseService
-import no.nav.syfo.infrastructure.database.createMeldingFraBehandler
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.generateKafkaIdenthendelseDTO
@@ -33,12 +32,7 @@ class IdenthendelseServiceTest {
         val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
 
         val melding = generateMeldingFraBehandler(personIdent = oldIdent)
-        database.connection.use { connection ->
-            connection.createMeldingFraBehandler(
-                meldingFraBehandler = melding,
-                commit = true,
-            )
-        }
+        meldingRepository.createMeldingFraBehandler(meldingFraBehandler = melding)
 
         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
 
@@ -55,12 +49,7 @@ class IdenthendelseServiceTest {
         val oldIdent = kafkaIdenthendelseDTO.getInactivePersonidenter().first()
 
         val melding = generateMeldingFraBehandler(personIdent = newIdent)
-        database.connection.use { connection ->
-            connection.createMeldingFraBehandler(
-                meldingFraBehandler = melding,
-                commit = true,
-            )
-        }
+        meldingRepository.createMeldingFraBehandler(meldingFraBehandler = melding)
 
         identhendelseService.handleIdenthendelse(kafkaIdenthendelseDTO)
 
