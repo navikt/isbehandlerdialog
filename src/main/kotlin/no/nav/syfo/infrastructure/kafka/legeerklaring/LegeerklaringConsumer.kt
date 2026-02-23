@@ -104,7 +104,7 @@ class LegeerklaringConsumer(
         ).lastOrNull()
         if (utgaaende != null) {
             val pdfVedlegg = getPDFVedlegg(legeerklaring, vedleggIds)
-            val meldingId = meldingService.createMeldingFraBehandler(
+            val melding = meldingService.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
                     antallVedlegg = pdfVedlegg.size,
@@ -112,7 +112,7 @@ class LegeerklaringConsumer(
                 connection = connection,
             )
             meldingService.lagreVedlegg(
-                meldingId = meldingId,
+                meldingId = melding.id,
                 vedlegg = pdfVedlegg,
                 connection = connection,
             )
@@ -132,7 +132,7 @@ class LegeerklaringConsumer(
 
         if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
             val pdfVedlegg = getPDFVedlegg(legeerklaring, vedleggIds)
-            val meldingId = meldingService.createMeldingFraBehandler(
+            val melding = meldingService.createMeldingFraBehandler(
                 meldingFraBehandler = legeerklaring.toMeldingFraBehandler(
                     parentRef = utgaaende.uuid,
                     antallVedlegg = pdfVedlegg.size,
@@ -142,7 +142,7 @@ class LegeerklaringConsumer(
                 connection = connection,
             )
             meldingService.lagreVedlegg(
-                meldingId = meldingId,
+                meldingId = melding.id,
                 vedlegg = pdfVedlegg,
                 connection = connection,
             )

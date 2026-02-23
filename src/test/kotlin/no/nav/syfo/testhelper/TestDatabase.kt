@@ -1,6 +1,7 @@
 package no.nav.syfo.testhelper
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.database.DatabaseInterface
@@ -40,18 +41,20 @@ class TestDatabase : DatabaseInterface {
 fun createMeldingerTilBehandler(
     meldingRepository: IMeldingRepository,
     meldingTilBehandler: Melding.MeldingTilBehandler,
-    numberOfMeldinger: Int = 1,
+    numberOfMeldinger: Int,
 ): Pair<UUID, List<PMelding.Id>> {
     val idList = mutableListOf<PMelding.Id>()
     for (i in 1..numberOfMeldinger) {
-        val id = meldingRepository.createMeldingTilBehandler(
+        val created = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler
                 .copy(
                     uuid = if (i == 1) meldingTilBehandler.uuid else UUID.randomUUID(),
                     tekst = meldingTilBehandler.tekst,
                 ),
+            pdf = byteArrayOf(),
         )
-        idList.add(id)
+        val pMelding = runBlocking { meldingRepository.getMelding(created.uuid) }!!
+        idList.add(pMelding.id)
     }
     return Pair(meldingTilBehandler.conversationRef, idList)
 }
@@ -63,7 +66,7 @@ fun createMeldingerFraBehandler(
 ): Pair<UUID, List<PMelding.Id>> {
     val idList = mutableListOf<PMelding.Id>()
     for (i in 1..numberOfMeldinger) {
-        val id = meldingRepository.createMeldingFraBehandler(
+        val pMelding = meldingRepository.createMeldingFraBehandler(
             meldingFraBehandler = meldingFraBehandler
                 .copy(
                     uuid = UUID.randomUUID(),
@@ -71,7 +74,7 @@ fun createMeldingerFraBehandler(
                 ),
             fellesformat = null,
         )
-        idList.add(id)
+        idList.add(pMelding.id)
     }
     return Pair(meldingFraBehandler.conversationRef, idList)
 }

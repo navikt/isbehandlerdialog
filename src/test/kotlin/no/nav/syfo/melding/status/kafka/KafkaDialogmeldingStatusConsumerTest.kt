@@ -8,6 +8,7 @@ import no.nav.syfo.infrastructure.database.createMeldingStatus
 import no.nav.syfo.infrastructure.kafka.DIALOGMELDING_STATUS_TOPIC
 import no.nav.syfo.infrastructure.kafka.DialogmeldingStatusConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
+import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateKafkaDialogmeldingStatusDTO
@@ -52,7 +53,10 @@ class KafkaDialogmeldingStatusConsumerTest {
 
     @Test
     fun `Creates no melding-status for unknown melding`() = runTest {
-        meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler)
+        meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = defaultMeldingTilBehandler,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
+        )
 
         val kafkaDialogmeldingStatusDTO = generateKafkaDialogmeldingStatusDTO(
             meldingUUID = UUID.randomUUID(),
@@ -69,7 +73,10 @@ class KafkaDialogmeldingStatusConsumerTest {
 
     @Test
     fun `Creates new melding-status for known melding with no existing status`() = runTest {
-        meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler)
+        meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = defaultMeldingTilBehandler,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
+        )
 
         val kafkaDialogmeldingStatusDTO = generateKafkaDialogmeldingStatusDTO(
             meldingUUID = defaultMeldingTilBehandler.uuid,
@@ -92,10 +99,14 @@ class KafkaDialogmeldingStatusConsumerTest {
             tekst = null
         )
         database.connection.use {
-            val meldingId = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, connection = it)
+            val meldingTilBehandler = meldingRepository.createMeldingTilBehandler(
+                meldingTilBehandler = defaultMeldingTilBehandler,
+                pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
+            )
+            val pMelding = meldingRepository.getMelding(meldingTilBehandler.uuid)
             it.createMeldingStatus(
                 meldingStatus = existingStatus,
-                meldingId = meldingId,
+                meldingId = pMelding!!.id,
             )
             it.commit()
         }

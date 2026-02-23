@@ -1,6 +1,11 @@
 package no.nav.syfo.melding.cronjob
 
-import io.mockk.*
+import io.mockk.clearMocks
+import io.mockk.coEvery
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import io.mockk.verifyOrder
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingStatus
@@ -8,16 +13,25 @@ import no.nav.syfo.domain.MeldingStatusType
 import no.nav.syfo.infrastructure.cronjob.UbesvartMeldingCronjob
 import no.nav.syfo.infrastructure.database.createMeldingStatus
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
-import no.nav.syfo.infrastructure.kafka.producer.UbesvartMeldingProducer
 import no.nav.syfo.infrastructure.kafka.producer.PublishUbesvartMeldingService
-import no.nav.syfo.testhelper.*
+import no.nav.syfo.infrastructure.kafka.producer.UbesvartMeldingProducer
+import no.nav.syfo.testhelper.ExternalMockEnvironment
+import no.nav.syfo.testhelper.UserConstants
+import no.nav.syfo.testhelper.createMeldingerFraBehandler
+import no.nav.syfo.testhelper.createMeldingerTilBehandler
+import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
+import no.nav.syfo.testhelper.updateMeldingCreatedAt
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.assertNull
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.Future
@@ -61,12 +75,13 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will publish ubesvart melding til behandler foresporsel pasient when cronjob has run`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (_, idList) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val createdMelding = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
         )
+        val pMelding = runBlocking { meldingRepository.getMelding(createdMelding.uuid) }
         database.updateMeldingCreatedAt(
-            id = idList.first(),
+            id = pMelding!!.id,
             createdAt = threeWeeksAgo
         )
 
@@ -91,23 +106,24 @@ class UbesvartMeldingCronjobTest {
 
     @Test
     fun `Will publish all ubesvarte meldinger when cronjob has run`() {
-        val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (_, idList) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
-            meldingTilBehandler = meldingTilBehandler,
+        val createdMelding = meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = generateMeldingTilBehandler(personIdent),
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
         )
+        val pMelding = runBlocking { meldingRepository.getMelding(createdMelding.uuid) }
         database.updateMeldingCreatedAt(
-            id = idList.first(),
+            id = pMelding!!.id,
             createdAt = threeWeeksAgo
         )
 
         val meldingTilBehandlerWithOtherConversationRef = generateMeldingTilBehandler(personIdent)
-        val (_, idListForMeldingWithOtherConversationRef) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val otherCreatedMelding = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandlerWithOtherConversationRef,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
         )
+        val otherPMelding = runBlocking { meldingRepository.getMelding(otherCreatedMelding.uuid) }
         database.updateMeldingCreatedAt(
-            id = idListForMeldingWithOtherConversationRef.first(),
+            id = otherPMelding!!.id,
             createdAt = threeWeeksAgo
         )
 
@@ -136,12 +152,13 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will not publish any ubesvart melding when no melding older than 3 weeks`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (_, idList) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val createdMelding = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
         )
+        val pMelding = runBlocking { meldingRepository.getMelding(createdMelding.uuid) }
         database.updateMeldingCreatedAt(
-            id = idList.first(),
+            id = pMelding!!.id,
             createdAt = OffsetDateTime.now().minusDays(20)
         )
 
@@ -159,17 +176,18 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will not publish melding to behandler when cronjob has run but melding is less than 3 weeks old`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (conversationRef, idList) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val createdMelding = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
         )
+        val pMelding = runBlocking { meldingRepository.getMelding(createdMelding.uuid) }
         database.updateMeldingCreatedAt(
-            id = idList.first(),
+            id = pMelding!!.id,
             createdAt = threeWeeksAgo
         )
 
         val meldingFraBehandler = generateMeldingFraBehandler(
-            conversationRef = conversationRef,
+            conversationRef = meldingTilBehandler.conversationRef,
             personIdent = personIdent,
         )
         createMeldingerFraBehandler(
@@ -244,12 +262,13 @@ class UbesvartMeldingCronjobTest {
     fun `Will publish ubesvart melding when melding is of type legeeklaring and cronjob has run`() {
         val meldingTilBehandler =
             generateMeldingTilBehandler(personIdent = personIdent, type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
-        val (_, idList) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val createdMelding = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
         )
+        val pMelding = runBlocking { meldingRepository.getMelding(createdMelding.uuid) }
         database.updateMeldingCreatedAt(
-            id = idList.first(),
+            id = pMelding!!.id,
             createdAt = threeWeeksAgo
         )
 
@@ -278,12 +297,13 @@ class UbesvartMeldingCronjobTest {
             personIdent = personIdent,
             type = Melding.MeldingType.FORESPORSEL_PASIENT_PAMINNELSE,
         )
-        val (_, idList) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val createdMelding = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
         )
+        val pMelding = runBlocking { meldingRepository.getMelding(createdMelding.uuid) }
         database.updateMeldingCreatedAt(
-            id = idList.first(),
+            id = pMelding!!.id,
             createdAt = threeWeeksAgo
         )
 
@@ -304,12 +324,13 @@ class UbesvartMeldingCronjobTest {
             personIdent = personIdent,
             type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV,
         )
-        val (_, idList) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val createdMelding = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
         )
+        val pMelding = runBlocking { meldingRepository.getMelding(createdMelding.uuid) }
         database.updateMeldingCreatedAt(
-            id = idList.first(),
+            id = pMelding!!.id,
             createdAt = threeWeeksAgo
         )
 
@@ -327,12 +348,13 @@ class UbesvartMeldingCronjobTest {
     @Test
     fun `Will publish one ubesvart melding to behandler when first answered and second not answered`() {
         val meldingTilBehandler = generateMeldingTilBehandler(personIdent)
-        val (_, idList) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val createdMelding = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler,
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
         )
+        val pMelding = runBlocking { meldingRepository.getMelding(createdMelding.uuid) }
         database.updateMeldingCreatedAt(
-            id = idList.first(),
+            id = pMelding!!.id,
             createdAt = threeWeeksAgo
         )
         val meldingStatus = MeldingStatus(
@@ -343,7 +365,7 @@ class UbesvartMeldingCronjobTest {
         database.connection.use { connection ->
             connection.createMeldingStatus(
                 meldingStatus = meldingStatus,
-                meldingId = idList.first(),
+                meldingId = pMelding.id,
             )
             connection.commit()
         }
