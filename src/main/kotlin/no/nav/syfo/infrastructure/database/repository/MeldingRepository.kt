@@ -9,6 +9,7 @@ import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.PVedlegg
 import no.nav.syfo.infrastructure.database.domain.toMeldingFraBehandler
+import no.nav.syfo.infrastructure.database.domain.toMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.toList
 import no.nav.syfo.util.configuredJacksonMapper
 import java.sql.*
@@ -27,26 +28,22 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
-    override fun createMeldingTilBehandler(
-        meldingTilBehandler: Melding.MeldingTilBehandler,
-        connection: Connection?,
-    ): PMelding.Id =
-        if (connection != null) {
-            connection.createMelding(melding = meldingTilBehandler, shouldCommit = false)
-        } else {
-            database.connection.use { connection ->
-                connection.createMelding(
-                    melding = meldingTilBehandler,
-                    shouldCommit = true,
-                )
-            }
+    override fun createMeldingTilBehandler(meldingTilBehandler: Melding.MeldingTilBehandler, pdf: ByteArray): Melding.MeldingTilBehandler =
+        database.connection.use { connection ->
+            val melding = connection.createMelding(
+                melding = meldingTilBehandler,
+                shouldCommit = false,
+            )
+            connection.createPdf(pdf, melding.id)
+            connection.commit()
+            melding.toMeldingTilBehandler()
         }
 
     override fun createMeldingFraBehandler(
         meldingFraBehandler: Melding.MeldingFraBehandler,
         fellesformat: String?,
         connection: Connection?,
-    ): PMelding.Id =
+    ): PMelding =
         if (connection != null) {
             connection.createMelding(
                 melding = meldingFraBehandler,
@@ -63,12 +60,12 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
-    private fun Connection.createMelding(
+    internal fun Connection.createMelding(
         melding: Melding,
         fellesformat: String? = null,
         shouldCommit: Boolean,
-    ): PMelding.Id {
-        val idList = this.prepareStatement(QUERY_CREATE_MELDING).use {
+    ): PMelding {
+        val pMelding = this.prepareStatement(QUERY_CREATE_MELDING).use {
             it.setString(1, melding.uuid.toString())
             it.setObject(2, OffsetDateTime.now())
             it.setBoolean(3, melding.innkommende)
@@ -89,15 +86,11 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             it.setNull(18, Types.TIMESTAMP_WITH_TIMEZONE)
             it.setString(19, melding.veilederIdent)
             it.setNull(20, Types.TIMESTAMP_WITH_TIMEZONE)
-            it.executeQuery().toList { getInt("id") }
-        }
-        if (idList.size != 1) {
-            throw SQLException("Creating Melding failed, no rows affected.")
-        }
-        val id = idList.first()
+            it.executeQuery().toList { toPMelding() }
+        }.single()
         if (fellesformat != null) {
             this.prepareStatement(QUERY_CREATE_MELDING_FELLESFORMAT).use {
-                it.setInt(1, id)
+                it.setInt(1, pMelding.id.id)
                 it.setString(2, fellesformat)
                 it.executeQuery()
             }
@@ -105,7 +98,7 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         if (shouldCommit) {
             this.commit()
         }
-        return PMelding.Id(id)
+        return pMelding
     }
 
     override fun getMeldingerForArbeidstaker(arbeidstakerPersonIdent: PersonIdent): List<PMelding> =
@@ -168,6 +161,23 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
+    private fun Connection.createPdf(pdf: ByteArray, meldingId: PMelding.Id): Int {
+        val now = OffsetDateTime.now()
+        val pdfUuid = UUID.randomUUID()
+        val idList = this.prepareStatement(QUERY_CREATE_PDF).use {
+            it.setInt(1, meldingId.id)
+            it.setString(2, pdfUuid.toString())
+            it.setObject(3, now)
+            it.setObject(4, now)
+            it.setBytes(5, pdf)
+            it.executeQuery().toList { getInt("id") }
+        }
+        if (idList.size != 1) {
+            throw SQLException("Creating Pdf failed, no rows affected.")
+        }
+        return idList.first()
+    }
+
     override fun createVedlegg(pdf: ByteArray, meldingId: PMelding.Id, number: Int, connection: Connection): Int {
         val now = OffsetDateTime.now()
         val vedleggUuid = UUID.randomUUID()
@@ -187,6 +197,17 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
     }
 
     companion object {
+        private const val QUERY_CREATE_PDF =
+            """
+                INSERT INTO pdf (
+                    id,
+                    melding_id,
+                    uuid,
+                    created_at,
+                    updated_at,
+                    pdf) VALUES (DEFAULT, ?, ?, ?, ?, ?) RETURNING id
+            """
+
         private const val QUERY_CREATE_VEDLEGG =
             """
                 INSERT INTO vedlegg (
@@ -292,7 +313,8 @@ private const val QUERY_CREATE_MELDING =
             ubesvart_published_at,
             veileder_ident,
             avvist_published_at
-        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+        ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?) 
+        RETURNING *
     """
 
 private const val QUERY_CREATE_MELDING_FELLESFORMAT =

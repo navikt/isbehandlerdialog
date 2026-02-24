@@ -1,10 +1,14 @@
 package no.nav.syfo.melding.cronjob
 
-import io.mockk.*
+import io.mockk.clearMocks
+import io.mockk.coEvery
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.domain.MeldingStatusType
 import no.nav.syfo.infrastructure.cronjob.AvvistMeldingCronjob
 import no.nav.syfo.infrastructure.database.createMeldingStatus
-import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.kafka.domain.KafkaMeldingDTO
 import no.nav.syfo.infrastructure.kafka.producer.AvvistMeldingProducer
 import no.nav.syfo.infrastructure.kafka.producer.PublishAvvistMeldingService
@@ -17,8 +21,12 @@ import no.nav.syfo.testhelper.updateAvvistMeldingPublishedAt
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.assertNull
 import java.util.concurrent.Future
 
 class AvvistMeldingCronjobTest {
@@ -57,16 +65,16 @@ class AvvistMeldingCronjobTest {
         val avvistMeldingStatus = generateMeldingStatus(
             status = MeldingStatusType.AVVIST,
         )
-        var meldingId: PMelding.Id
 
+        val meldingTilBehandler = meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = generateMeldingTilBehandler(),
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
+        )
+        val meldingId = runBlocking { meldingRepository.getMelding(uuid = meldingTilBehandler.uuid)?.id }
         database.connection.use {
-            meldingId = meldingRepository.createMeldingTilBehandler(
-                meldingTilBehandler = generateMeldingTilBehandler(),
-                connection = it
-            )
             it.createMeldingStatus(
                 meldingStatus = avvistMeldingStatus,
-                meldingId = meldingId,
+                meldingId = meldingId!!,
             )
             it.commit()
         }
@@ -93,20 +101,20 @@ class AvvistMeldingCronjobTest {
         val avvistMeldingStatus = generateMeldingStatus(
             status = MeldingStatusType.AVVIST,
         )
-        var meldingId: PMelding.Id
 
+        val meldingTilBehandler = meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = generateMeldingTilBehandler(),
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
+        )
+        val meldingId = runBlocking { meldingRepository.getMelding(uuid = meldingTilBehandler.uuid)?.id }
         database.connection.use {
-            meldingId = meldingRepository.createMeldingTilBehandler(
-                meldingTilBehandler = generateMeldingTilBehandler(),
-                connection = it
-            )
             it.createMeldingStatus(
                 meldingStatus = avvistMeldingStatus,
-                meldingId = meldingId,
+                meldingId = meldingId!!,
             )
             it.commit()
         }
-        database.updateAvvistMeldingPublishedAt(meldingId)
+        database.updateAvvistMeldingPublishedAt(meldingId!!)
 
         val result = avvistMeldingCronjob.runJob()
 
@@ -119,16 +127,16 @@ class AvvistMeldingCronjobTest {
         val okMeldingStatus = generateMeldingStatus(
             status = MeldingStatusType.OK,
         )
-        var meldingId: PMelding.Id
 
+        val meldingTilBehandler = meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = generateMeldingTilBehandler(tekst = "Ikke avvist melding"),
+            pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
+        )
+        val meldingId = runBlocking { meldingRepository.getMelding(uuid = meldingTilBehandler.uuid)?.id }
         database.connection.use {
-            meldingId = meldingRepository.createMeldingTilBehandler(
-                meldingTilBehandler = generateMeldingTilBehandler(tekst = "Ikke avvist melding"),
-                connection = it
-            )
             it.createMeldingStatus(
                 meldingStatus = okMeldingStatus,
-                meldingId = meldingId,
+                meldingId = meldingId!!,
             )
             it.commit()
         }

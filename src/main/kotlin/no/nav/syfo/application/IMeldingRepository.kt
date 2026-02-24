@@ -10,16 +10,13 @@ import java.util.*
 
 interface IMeldingRepository {
     suspend fun getMelding(uuid: UUID): PMelding?
-    fun createMeldingTilBehandler(
-        meldingTilBehandler: Melding.MeldingTilBehandler,
-        connection: Connection? = null,
-    ): PMelding.Id
+    fun createMeldingTilBehandler(meldingTilBehandler: Melding.MeldingTilBehandler, pdf: ByteArray): Melding.MeldingTilBehandler
 
     fun createMeldingFraBehandler(
         meldingFraBehandler: Melding.MeldingFraBehandler,
         fellesformat: String? = null,
         connection: Connection? = null,
-    ): PMelding.Id
+    ): PMelding
 
     fun getMeldingerForArbeidstaker(arbeidstakerPersonIdent: PersonIdent): List<PMelding>
     suspend fun getUbesvarteMeldinger(fristDato: OffsetDateTime): List<PMelding>

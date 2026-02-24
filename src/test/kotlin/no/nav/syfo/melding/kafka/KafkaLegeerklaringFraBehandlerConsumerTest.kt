@@ -17,7 +17,6 @@ import no.nav.syfo.infrastructure.kafka.legeerklaring.LegeerklaringVedleggDTO
 import no.nav.syfo.infrastructure.kafka.legeerklaring.Vedlegg
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
-import no.nav.syfo.testhelper.createMeldingerTilBehandler
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateKafkaLegeerklaringFraBehandlerDTO
@@ -115,15 +114,15 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     fun `Should store legeerklaring when melding sent with same conversationRef`() = runTest {
         val msgId = UUID.randomUUID().toString()
         val meldingTilBehandler = defaultMeldingTilBehandler
-        val (conversationRef, _) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val conversationRef = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
                 type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-            )
-        )
+            ),
+            pdf = byteArrayOf(),
+        ).conversationRef
         val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
             behandlerPersonIdent = behandlerPersonIdent,
             behandlerNavn = behandlerNavn,
@@ -169,15 +168,15 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     fun `Should store legeerklaring when melding recently sent to behandler`() = runTest {
         val msgId = UUID.randomUUID().toString()
         val meldingTilBehandler = defaultMeldingTilBehandler
-        val (conversationRef, _) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val conversationRef = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
                 type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-            )
-        )
+            ),
+            pdf = byteArrayOf(),
+        ).conversationRef
         val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
             behandlerPersonIdent = behandlerPersonIdent,
             behandlerNavn = behandlerNavn,
@@ -223,15 +222,15 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     fun `Should store legeerklaring with vedlegg when melding recently sent to behandler`() = runTest {
         val msgId = UUID.randomUUID().toString()
         val meldingTilBehandler = defaultMeldingTilBehandler
-        val (conversationRef, _) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val conversationRef = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
                 type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-            )
-        )
+            ),
+            pdf = byteArrayOf(),
+        ).conversationRef
         val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
             behandlerPersonIdent = behandlerPersonIdent,
             behandlerNavn = behandlerNavn,
@@ -292,15 +291,15 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     fun `Should store legeerklaring when melding sent with same conversationRef and includes parentRef`() = runTest {
         val msgId = UUID.randomUUID().toString()
         val meldingTilBehandler = defaultMeldingTilBehandler
-        val (conversationRef, _) = createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        val conversationRef = meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = meldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
                 type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-            )
-        )
+            ),
+            pdf = byteArrayOf(),
+        ).conversationRef
         val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
             behandlerPersonIdent = behandlerPersonIdent,
             behandlerNavn = behandlerNavn,
@@ -361,15 +360,15 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         runTest {
             val msgId = UUID.randomUUID().toString()
             val meldingTilBehandler = defaultMeldingTilBehandler
-            val (conversationRef, _) = createMeldingerTilBehandler(
-                meldingRepository = meldingRepository,
+            val conversationRef = meldingRepository.createMeldingTilBehandler(
                 meldingTilBehandler = meldingTilBehandler.copy(
                     arbeidstakerPersonIdent = personIdent,
                     behandlerPersonIdent = behandlerPersonIdent,
                     behandlerNavn = behandlerNavn,
                     type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-                )
-            )
+                ),
+                pdf = byteArrayOf(),
+            ).conversationRef
             val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
@@ -413,15 +412,15 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     @Test
     fun `Should not store legeerklaring when melding sent to behandler long time ago`() = runTest {
         val msgId = UUID.randomUUID().toString()
-        createMeldingerTilBehandler(
-            meldingRepository = meldingRepository,
+        meldingRepository.createMeldingTilBehandler(
             meldingTilBehandler = defaultMeldingTilBehandler.copy(
                 arbeidstakerPersonIdent = personIdent,
                 behandlerPersonIdent = behandlerPersonIdent,
                 behandlerNavn = behandlerNavn,
                 type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
                 tidspunkt = OffsetDateTime.now().minusYears(1),
-            )
+            ),
+            pdf = byteArrayOf(),
         )
         val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
             behandlerPersonIdent = behandlerPersonIdent,

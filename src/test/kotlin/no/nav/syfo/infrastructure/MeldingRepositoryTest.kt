@@ -3,7 +3,6 @@ package no.nav.syfo.infrastructure
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
-import no.nav.syfo.testhelper.createMeldingerTilBehandler
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
@@ -31,10 +30,9 @@ class MeldingRepositoryTest {
             val meldingTilBehandler = generateMeldingTilBehandler(
                 personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
             )
-            createMeldingerTilBehandler(
-                meldingRepository = meldingRepository,
+            meldingRepository.createMeldingTilBehandler(
                 meldingTilBehandler = meldingTilBehandler,
-                numberOfMeldinger = 1,
+                pdf = byteArrayOf(),
             )
 
             val result = meldingRepository.getMelding(meldingTilBehandler.uuid)
@@ -53,10 +51,9 @@ class MeldingRepositoryTest {
             val meldingTilBehandler = defaultMeldingTilBehandler.copy(
                 uuid = UUID.randomUUID(),
             )
-            createMeldingerTilBehandler(
-                meldingRepository = meldingRepository,
+            meldingRepository.createMeldingTilBehandler(
                 meldingTilBehandler = meldingTilBehandler,
-                numberOfMeldinger = 1,
+                pdf = byteArrayOf(),
             )
 
             val result = meldingRepository.getMelding(meldingTilBehandler.uuid)
@@ -86,8 +83,8 @@ class MeldingRepositoryTest {
                 personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
             )
 
-            createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = firstMelding, numberOfMeldinger = 1)
-            createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = secondMelding, numberOfMeldinger = 1)
+            meldingRepository.createMeldingTilBehandler(meldingTilBehandler = firstMelding, pdf = byteArrayOf())
+            meldingRepository.createMeldingTilBehandler(meldingTilBehandler = secondMelding, pdf = byteArrayOf())
 
             val result = meldingRepository.getMelding(secondMelding.uuid)
 

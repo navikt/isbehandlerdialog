@@ -9,7 +9,6 @@ import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.PdfContent
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.createPdf
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.toMeldingFraBehandler
 import no.nav.syfo.infrastructure.database.domain.toMeldingTilBehandler
@@ -219,13 +218,13 @@ class MeldingService(
         } else {
             log.info("Received a dialogmelding of type ${meldingFraBehandler.type} from behandler: ${meldingFraBehandler.conversationRef}")
 
-            val meldingId = meldingRepository.createMeldingFraBehandler(
+            val melding = meldingRepository.createMeldingFraBehandler(
                 meldingFraBehandler = meldingFraBehandler,
                 fellesformat = fellesformatXML,
                 connection = connection,
             )
             if (meldingFraBehandler.antallVedlegg > 0) {
-                lagreMeldingVedleggFraMelding(meldingId = meldingId, meldingFraBehandler = meldingFraBehandler, connection = connection)
+                lagreMeldingVedleggFraMelding(meldingId = melding.id, meldingFraBehandler = meldingFraBehandler, connection = connection)
             }
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
         }
@@ -258,7 +257,7 @@ class MeldingService(
     fun createMeldingFraBehandler(
         meldingFraBehandler: Melding.MeldingFraBehandler,
         connection: Connection?,
-    ): PMelding.Id {
+    ): PMelding {
         return meldingRepository.createMeldingFraBehandler(
             meldingFraBehandler = meldingFraBehandler,
             fellesformat = null,
@@ -349,18 +348,10 @@ class MeldingService(
         meldingTilBehandler: Melding.MeldingTilBehandler,
         pdf: ByteArray,
     ) {
-        database.connection.use { connection ->
-            val meldingId = meldingRepository.createMeldingTilBehandler(
-                meldingTilBehandler = meldingTilBehandler,
-                connection = connection,
-            )
-            connection.createPdf(
-                pdf = pdf,
-                meldingId = meldingId,
-                commit = false,
-            )
-            connection.commit()
-        }
+        meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = meldingTilBehandler,
+            pdf = pdf,
+        )
 
         dialogmeldingBestillingProducer.sendDialogmeldingBestilling(
             meldingTilBehandler = meldingTilBehandler,

@@ -78,7 +78,10 @@ class MeldingApiPostTest {
 
             @Test
             fun `Creates paminnelse for melding til behandler and produces dialogmelding-bestilling to kafka`() {
-                meldingRepository.createMeldingTilBehandler(defaultMeldingTilBehandler)
+                meldingRepository.createMeldingTilBehandler(
+                    meldingTilBehandler = defaultMeldingTilBehandler,
+                    pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
+                )
 
                 testApplication {
                     val client = setupApiAndClient(dialogmeldingBestillingProducer)
@@ -183,7 +186,10 @@ class MeldingApiPostTest {
 
             @Test
             fun `returns status BadRequest if given uuid is meldingFraBehandler`() {
-                val (conversation, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
+                val conversation = meldingRepository.createMeldingTilBehandler(
+                    meldingTilBehandler = defaultMeldingTilBehandler,
+                    pdf = byteArrayOf(),
+                ).conversationRef
                 val meldingFraBehandler = generateMeldingFraBehandler(
                     conversationRef = conversation,
                     personIdent = personIdent,
@@ -207,7 +213,10 @@ class MeldingApiPostTest {
             fun `returns status BadRequest if given uuid is melding til behandler påminnelse`() {
                 val meldingTilBehandlerPaminnelse =
                     generateMeldingTilBehandler(type = Melding.MeldingType.FORESPORSEL_PASIENT_PAMINNELSE)
-                meldingRepository.createMeldingTilBehandler(meldingTilBehandlerPaminnelse)
+                meldingRepository.createMeldingTilBehandler(
+                    meldingTilBehandlerPaminnelse,
+                    UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE
+                )
 
                 testApplication {
                     val client = setupApiAndClient()
@@ -225,7 +234,10 @@ class MeldingApiPostTest {
             @Test
             fun `returns status BadRequest if given uuid is melding til behandler henvendelse melding fra NAV`() {
                 val meldingFraNav = generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV)
-                meldingRepository.createMeldingTilBehandler(meldingFraNav)
+                meldingRepository.createMeldingTilBehandler(
+                    meldingTilBehandler = meldingFraNav,
+                    pdf = UserConstants.PDF_HENVENDELSE_MELDING_FRA_NAV
+                )
 
                 testApplication {
                     val client = setupApiAndClient()
@@ -554,8 +566,11 @@ class MeldingApiPostTest {
                     conversationRef = foresporselLegeerklaring.conversationRef,
                     type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
                 )
-                meldingRepository.createMeldingTilBehandler(foresporselLegeerklaring)
-                meldingRepository.createMeldingTilBehandler(paminnelse)
+                meldingRepository.createMeldingTilBehandler(
+                    foresporselLegeerklaring,
+                    pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_LEGEERKLARING
+                )
+                meldingRepository.createMeldingTilBehandler(paminnelse, pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE)
                 meldingRepository.createMeldingFraBehandler(innkommendeLegeerklaring)
 
                 testApplication {
@@ -661,7 +676,10 @@ class MeldingApiPostTest {
                     conversationRef = foresporselTilleggsopplysninger.conversationRef,
                     type = Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER,
                 )
-                meldingRepository.createMeldingTilBehandler(foresporselTilleggsopplysninger)
+                meldingRepository.createMeldingTilBehandler(
+                    foresporselTilleggsopplysninger,
+                    pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER
+                )
                 meldingRepository.createMeldingFraBehandler(foresporselSvar)
 
                 testApplication {

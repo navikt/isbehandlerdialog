@@ -7,7 +7,6 @@ import no.nav.syfo.infrastructure.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDL
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DialogmeldingFraBehandlerConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
-import no.nav.syfo.testhelper.createMeldingerTilBehandler
 import no.nav.syfo.testhelper.dropData
 import no.nav.syfo.testhelper.generator.defaultMeldingTilBehandler
 import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerDialogNotatDTO
@@ -145,7 +144,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         @Test
         fun `Receive dialogmelding DIALOG_SVAR and known conversationRef creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER`() =
             runTest {
-                val (conversationRef, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
+                val conversationRef = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, pdf = byteArrayOf()).conversationRef
                 val msgId = UUID.randomUUID()
                 val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
                     uuid = msgId,
@@ -177,7 +176,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         @Test
         @DisplayName("Receive dialogmelding DIALOG_SVAR and known conversationRef matching uuid of sent message creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER")
         fun `Receive dialogmelding DIALOG_SVAR and known conversationRef matching uuid of sent message`() = runTest {
-            createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
+            meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, pdf = byteArrayOf())
             val msgId = UUID.randomUUID()
             val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
                 uuid = msgId,
@@ -204,7 +203,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         @Test
         fun `Receive dialogmelding DIALOG_SVAR and parentRef matching uuid of sent message creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER`() =
             runTest {
-                createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
+                meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, pdf = byteArrayOf())
                 val msgId = UUID.randomUUID()
                 val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
                     uuid = msgId,
@@ -230,7 +229,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         @Test
         fun `Receive dialogmelding DIALOG_SVAR and known conversationRef and with vedlegg creates melding with vedlegg`() = runTest {
-            val (conversationRef, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
+            val conversationRef = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, pdf = byteArrayOf()).conversationRef
             val msgId = UserConstants.MSG_ID_WITH_VEDLEGG
             val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
                 uuid = msgId,
@@ -259,7 +258,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         @Test
         fun `Receive duplicate dialogmelding DIALOG_SVAR and known conversationRef creates no duplicate melding fra behandler`() = runTest {
-            val (conversationRef, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
+            val conversationRef = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, pdf = byteArrayOf()).conversationRef
 
             val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
                 conversationRef = conversationRef.toString(),
@@ -281,7 +280,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         @Test
         fun `Receive two dialogmelding DIALOG_SVAR and known conversationRef creates two melding fra behandler`() = runTest {
-            val (conversationRef, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
+            val conversationRef = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, pdf = byteArrayOf()).conversationRef
 
             val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerForesporselSvarDTO(
                 conversationRef = conversationRef.toString(),
@@ -309,7 +308,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         @Test
         fun `Receive DIALOG_SVAR and unknown conversationref creates no MeldingFraBehandler`() = runTest {
-            createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
+            meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, pdf = byteArrayOf())
             val dialogmelding = generateDialogmeldingFraBehandlerForesporselSvarDTO()
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
@@ -324,7 +323,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         @Test
         fun `Receive DIALOG_NOTAT and known conversationref creates MeldingFraBehandler`() = runTest {
-            val (conversationRef, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = defaultMeldingTilBehandler)
+            val conversationRef = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = defaultMeldingTilBehandler, pdf = byteArrayOf()).conversationRef
             val dialogmelding =
                 generateDialogmeldingFraBehandlerDialogNotatDTO(conversationRef = conversationRef.toString())
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
@@ -353,14 +352,14 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         fun `Receive dialogmelding DIALOG_SVAR and known conversationRef creates melding fra behandler with type FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER`() =
             runTest {
                 val meldingTilBehandler = defaultMeldingTilBehandler
-                val (conversationRef, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = meldingTilBehandler)
-                createMeldingerTilBehandler(
-                    meldingRepository = meldingRepository,
+                val conversationRef = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = meldingTilBehandler, pdf = byteArrayOf()).conversationRef
+                meldingRepository.createMeldingTilBehandler(
                     meldingTilBehandler = Melding.MeldingTilBehandler.createForesporselPasientPaminnelse(
                         opprinneligMelding = meldingTilBehandler,
                         veilederIdent = UserConstants.VEILEDER_IDENT,
                         document = emptyList(),
-                    )
+                    ),
+                    pdf = byteArrayOf(),
                 )
 
                 val msgId = UUID.randomUUID()
@@ -393,7 +392,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         @Test
         fun `Receive dialogmelding DIALOG_NOTAT and known conversationRef creates MeldingFraBehandler with type HENVENDELSE_MELDING_FRA_NAV`() =
             runTest {
-                val (conversationRef, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV))
+                val conversationRef = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV), pdf = byteArrayOf()).conversationRef
                 val msgId = UUID.randomUUID()
                 val dialogmeldingInnkommet = generateDialogmeldingFraBehandlerDialogNotatDTO(
                     uuid = msgId,
@@ -426,7 +425,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         @Test
         fun `Receive DIALOG_NOTAT and unknown conversationref creates no MeldingFraBehandler`() = runTest {
-            createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV))
+            meldingRepository.createMeldingTilBehandler(meldingTilBehandler = generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV), pdf = byteArrayOf())
             val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatIkkeSykefravrDTO()
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
 
@@ -441,7 +440,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
 
         @Test
         fun `Receive DIALOG_SVAR and known conversationref creates no MeldingFraBehandler`() = runTest {
-            val (conversationRef, _) = createMeldingerTilBehandler(meldingRepository = meldingRepository, meldingTilBehandler = generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV))
+            val conversationRef = meldingRepository.createMeldingTilBehandler(meldingTilBehandler = generateMeldingTilBehandler(type = Melding.MeldingType.HENVENDELSE_MELDING_FRA_NAV), pdf = byteArrayOf()).conversationRef
             val dialogmelding =
                 generateDialogmeldingFraBehandlerForesporselSvarDTO(conversationRef = conversationRef.toString())
             val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)

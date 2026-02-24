@@ -5,6 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.api.endpoints.meldingApiBasePath
 import no.nav.syfo.api.models.MeldingResponseDTO
 import no.nav.syfo.domain.MOTTATT_LEGEERKLARING_TEKST
@@ -60,11 +61,18 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns all meldinger for personident grouped by conversationRef`() {
-                val (firstConversation, _) = createMeldingerTilBehandler(
-                    meldingRepository = meldingRepository,
+                val firstMelding = meldingRepository.createMeldingTilBehandler(
                     meldingTilBehandler = defaultMeldingTilBehandler,
-                    numberOfMeldinger = 2,
+                    pdf = byteArrayOf(),
                 )
+                val secondMelding = meldingRepository.createMeldingTilBehandler(
+                    meldingTilBehandler = defaultMeldingTilBehandler
+                        .copy(uuid = UUID.randomUUID()),
+                    pdf = byteArrayOf(),
+                )
+                assertEquals(firstMelding.conversationRef, secondMelding.conversationRef)
+                val firstConversation = firstMelding.conversationRef
+
                 val meldingFraBehandler = generateMeldingFraBehandler(
                     conversationRef = firstConversation,
                     personIdent = personIdent,
@@ -74,13 +82,13 @@ class MeldingApiGetTest {
                     meldingFraBehandler = meldingFraBehandler,
                     numberOfMeldinger = 2,
                 )
-                val (secondConversation, _) = createMeldingerTilBehandler(
-                    meldingRepository = meldingRepository,
+                val secondConversation = meldingRepository.createMeldingTilBehandler(
                     meldingTilBehandler = defaultMeldingTilBehandler.copy(
                         uuid = UUID.randomUUID(),
                         conversationRef = UUID.randomUUID(),
                     ),
-                )
+                    pdf = byteArrayOf(),
+                ).conversationRef
 
                 testApplication {
                     val client = setupApiAndClient()
@@ -117,18 +125,19 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns meldinger for personident with status for melding til behander`() {
+                val melding = meldingRepository.createMeldingTilBehandler(
+                    meldingTilBehandler = defaultMeldingTilBehandler,
+                    pdf = ByteArray(0),
+                )
+                val meldingId = runBlocking { meldingRepository.getMelding(uuid = melding.uuid)?.id }
                 database.connection.use {
-                    val meldingId = meldingRepository.createMeldingTilBehandler(
-                        meldingTilBehandler = defaultMeldingTilBehandler,
-                        connection = it,
-                    )
                     it.createMeldingStatus(
                         meldingStatus = MeldingStatus(
                             uuid = UUID.randomUUID(),
                             status = MeldingStatusType.AVVIST,
                             tekst = "Melding avvist",
                         ),
-                        meldingId = meldingId,
+                        meldingId = meldingId!!,
                     )
                     it.commit()
                 }
@@ -152,10 +161,10 @@ class MeldingApiGetTest {
             @Test
             fun `Returns meldinger for personident with isFirstVedleggLegeerklaring true for legeerklaring melding fra behandler`() {
                 val meldingTilBehandler = generateMeldingTilBehandler(type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING)
-                val (firstConversation, _) = createMeldingerTilBehandler(
-                    meldingRepository = meldingRepository,
+                val firstConversation = meldingRepository.createMeldingTilBehandler(
                     meldingTilBehandler = meldingTilBehandler,
-                )
+                    pdf = byteArrayOf(),
+                ).conversationRef
                 val meldingFraBehandler = generateKafkaLegeerklaringFraBehandlerDTO(
                     behandlerPersonIdent = UserConstants.BEHANDLER_PERSONIDENT,
                     behandlerNavn = UserConstants.BEHANDLER_NAVN,
@@ -233,24 +242,24 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns vedlegg for melding`() {
-                val (conversation, _) = createMeldingerTilBehandler(
-                    meldingRepository = meldingRepository,
+                val conversation = meldingRepository.createMeldingTilBehandler(
                     meldingTilBehandler = defaultMeldingTilBehandler,
-                )
+                    pdf = byteArrayOf(),
+                ).conversationRef
                 val meldingFraBehandler = generateMeldingFraBehandler(
                     conversationRef = conversation,
                     personIdent = personIdent,
                 )
                 val vedleggNumber = 0
                 database.connection.use {
-                    val meldingId = meldingRepository.createMeldingFraBehandler(
+                    val pMelding = meldingRepository.createMeldingFraBehandler(
                         meldingFraBehandler = meldingFraBehandler,
                         fellesformat = null,
                         connection = it
                     )
                     meldingRepository.createVedlegg(
                         pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
-                        meldingId = meldingId,
+                        meldingId = pMelding.id,
                         number = vedleggNumber,
                         connection = it
                     )
@@ -272,10 +281,10 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns 204 when no vedlegg for melding`() {
-                val (conversation, _) = createMeldingerTilBehandler(
-                    meldingRepository = meldingRepository,
+                val conversation = meldingRepository.createMeldingTilBehandler(
                     meldingTilBehandler = defaultMeldingTilBehandler,
-                )
+                    pdf = byteArrayOf(),
+                ).conversationRef
                 val meldingFraBehandler = generateMeldingFraBehandler(
                     conversationRef = conversation,
                     personIdent = personIdent,
@@ -326,27 +335,27 @@ class MeldingApiGetTest {
 
             @Test
             fun `Returns status Forbidden if denied access to person`() {
-                val (conversation, _) = createMeldingerTilBehandler(
-                    meldingRepository = meldingRepository,
+                val conversation = meldingRepository.createMeldingTilBehandler(
                     meldingTilBehandler = generateMeldingTilBehandler(
                         personIdent = UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS,
                         veilederIdent = veilederIdent,
                     ),
-                )
+                    pdf = byteArrayOf(),
+                ).conversationRef
                 val meldingFraBehandler = generateMeldingFraBehandler(
                     conversationRef = conversation,
                     personIdent = UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS,
                 )
                 val vedleggNumber = 0
                 database.connection.use {
-                    val meldingId = meldingRepository.createMeldingFraBehandler(
+                    val melding = meldingRepository.createMeldingFraBehandler(
                         meldingFraBehandler = meldingFraBehandler,
                         fellesformat = null,
                         connection = it
                     )
                     meldingRepository.createVedlegg(
                         pdf = UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER,
-                        meldingId = meldingId,
+                        meldingId = melding.id,
                         number = vedleggNumber,
                         connection = it
                     )

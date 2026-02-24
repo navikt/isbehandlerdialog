@@ -13,7 +13,6 @@ import no.nav.syfo.infrastructure.client.dokarkiv.domain.MeldingTittel
 import no.nav.syfo.infrastructure.client.dokarkiv.domain.OverstyrInnsynsregler
 import no.nav.syfo.infrastructure.cronjob.CronjobResult
 import no.nav.syfo.infrastructure.cronjob.JournalforMeldingTilBehandlerCronjob
-import no.nav.syfo.infrastructure.database.createPdf
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.dropData
@@ -80,30 +79,19 @@ class JournalforDialogmeldingCronjobTest {
 
         coEvery { dokarkivClient.journalfor(any()) } returns journalpostResponse
 
-        database.connection.use { connection ->
-            listOf(
-                meldingTilBehandlerTilleggsopplysninger,
-                meldingTilBehandlerLegeerklaring
-            ).forEach { melding ->
-                val meldingId = meldingRepository.createMeldingTilBehandler(
-                    melding,
-                    connection = connection
-                )
-                connection.createPdf(
-                    pdf = pdf,
-                    meldingId = meldingId,
-                    commit = false,
-                )
-            }
-            val paminnelseId = meldingRepository.createMeldingTilBehandler(
-                meldingTilBehandler = meldingTilBehandlerPaminnelse,
-                connection = connection
-            )
-            connection.createPdf(
+        listOf(
+            meldingTilBehandlerTilleggsopplysninger,
+            meldingTilBehandlerLegeerklaring
+        ).forEach { melding ->
+            meldingRepository.createMeldingTilBehandler(
+                melding,
                 pdf = pdf,
-                meldingId = paminnelseId,
             )
         }
+        meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = meldingTilBehandlerPaminnelse,
+            pdf = pdf,
+        )
 
         var result: CronjobResult
         result = journalforDialogmeldingCronjob.runJournalforDialogmeldingJob()
