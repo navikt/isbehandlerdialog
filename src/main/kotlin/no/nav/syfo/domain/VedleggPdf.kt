@@ -3,7 +3,7 @@ package no.nav.syfo.domain
 import io.ktor.http.*
 import io.ktor.http.content.*
 
-class PdfContent(
+class VedleggPdf(
     val pdf: ByteArray,
     override val contentType: ContentType = ContentType.Application.Pdf,
 ) : OutgoingContent.ByteArrayContent() {

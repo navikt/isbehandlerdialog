@@ -96,41 +96,6 @@ fun Connection.getUtgaendeMeldingerWithType(
     }
 }
 
-const val queryGetUnpublishedAvvisteMeldinger =
-    """
-        SELECT *
-        FROM melding m
-        INNER JOIN melding_status ms on (m.id = ms.melding_id)
-        WHERE ms.status = 'AVVIST' AND m.avvist_published_at IS NULL
-    """
-
-fun DatabaseInterface.getUnpublishedAvvisteMeldinger(): List<PMelding> =
-    connection.use { connection ->
-        connection.prepareStatement(queryGetUnpublishedAvvisteMeldinger).use {
-            it.executeQuery().toList { toPMelding() }
-        }
-    }
-
-const val queryUpdateAvvistMeldingPublishedAt =
-    """
-        UPDATE MELDING
-        SET avvist_published_at = ?
-        WHERE uuid = ?
-    """
-
-fun DatabaseInterface.updateAvvistMeldingPublishedAt(uuid: UUID) =
-    connection.use { connection ->
-        connection.prepareStatement(queryUpdateAvvistMeldingPublishedAt).use {
-            it.setObject(1, OffsetDateTime.now())
-            it.setString(2, uuid.toString())
-            val updated = it.executeUpdate()
-            if (updated != 1) {
-                throw SQLException("Expected a single row to be updated, got update count $updated")
-            }
-        }
-        connection.commit()
-    }
-
 const val queryGetMeldingerTilBehandlerWithoutJournalpostId = """
     SELECT m.*, p.pdf as pdf
     FROM melding m

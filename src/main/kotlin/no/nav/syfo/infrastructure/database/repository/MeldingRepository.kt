@@ -4,12 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.Melding
+import no.nav.syfo.domain.VedleggPdf
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.PVedlegg
-import no.nav.syfo.infrastructure.database.domain.toMeldingFraBehandler
-import no.nav.syfo.infrastructure.database.domain.toMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.toList
 import no.nav.syfo.util.configuredJacksonMapper
 import java.sql.*
@@ -109,13 +108,13 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
-    override suspend fun getUbesvarteMeldinger(fristDato: OffsetDateTime): List<PMelding> =
+    override suspend fun getUbesvarteMeldingerTilBehandler(fristDato: OffsetDateTime): List<Melding.MeldingTilBehandler> =
         database.connection.use { connection ->
             connection.prepareStatement(QUERY_GET_UBESVARTE_MELDINGER).use {
                 it.setObject(1, fristDato)
                 it.executeQuery().toList { toPMelding() }
             }
-        }
+        }.map { it.toMeldingTilBehandler() }
 
     override suspend fun updateUbesvartPublishedAt(uuid: UUID) {
         database.connection.use { connection ->
@@ -145,14 +144,14 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         }
     }
 
-    override fun getVedlegg(uuid: UUID, number: Int): PVedlegg? =
+    override fun getVedlegg(uuid: UUID, number: Int): VedleggPdf? =
         database.connection.use { connection ->
             connection.prepareStatement(QUERY_GET_VEDLEGG).use {
                 it.setString(1, uuid.toString())
                 it.setInt(2, number)
                 it.executeQuery().toList { toPVedlegg() }.firstOrNull()
             }
-        }
+        }?.toVedleggPdf()
 
     override fun getUnpublishedMeldingerFraBehandler(): List<Melding.MeldingFraBehandler> =
         database.connection.use { connection ->
@@ -160,6 +159,27 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 it.executeQuery().toList { toPMelding().toMeldingFraBehandler() }
             }
         }
+
+    override fun getUnpublishedAvvisteMeldinger(): List<Melding.MeldingTilBehandler> =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_GET_UNPUBLISHED_AVVISTE_MELDINGER).use {
+                it.executeQuery().toList { toPMelding().toMeldingTilBehandler() }
+            }
+        }
+
+    override fun updateAvvistMeldingPublishedAt(uuid: UUID) {
+        database.connection.use { connection ->
+            val rowCount = connection.prepareStatement(QUERY_UPDATE_AVVIST_PUBLISHED_AT).use {
+                it.setObject(1, OffsetDateTime.now())
+                it.setString(2, uuid.toString())
+                it.executeUpdate()
+            }
+            if (rowCount != 1) {
+                throw SQLException("Failed to update avvist_published_at for melding with uuid: $uuid")
+            }
+            connection.commit()
+        }
+    }
 
     private fun Connection.createPdf(pdf: ByteArray, meldingId: PMelding.Id): Int {
         val now = OffsetDateTime.now()
@@ -285,6 +305,21 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 FROM MELDING
                 WHERE innkommende AND innkommende_published_at IS NULL
                 ORDER BY created_at ASC
+            """
+
+        private const val QUERY_GET_UNPUBLISHED_AVVISTE_MELDINGER =
+            """
+                SELECT *
+                FROM melding m
+                INNER JOIN melding_status ms on (m.id = ms.melding_id)
+                WHERE ms.status = 'AVVIST' AND m.avvist_published_at IS NULL
+            """
+
+        private const val QUERY_UPDATE_AVVIST_PUBLISHED_AT =
+            """
+                UPDATE MELDING
+                SET avvist_published_at = ?
+                WHERE uuid = ?
             """
     }
 }

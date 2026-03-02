@@ -92,7 +92,7 @@ fun Application.cronjobModule(
         )
     )
     val publishAvvistMeldingService = PublishAvvistMeldingService(
-        database = database,
+        meldingRepository = meldingRepository,
         avvistMeldingProducer = avvistMeldingProducer
     )
     val avvistMeldingStatusCronjob = AvvistMeldingCronjob(
