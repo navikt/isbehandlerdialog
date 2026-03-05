@@ -6,12 +6,10 @@ import no.nav.syfo.api.models.MeldingTilBehandlerRequestDTO
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingStatus
-import no.nav.syfo.domain.PdfContent
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.domain.VedleggPdf
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
-import no.nav.syfo.infrastructure.database.domain.toMeldingFraBehandler
-import no.nav.syfo.infrastructure.database.domain.toMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.getMeldingForMsgId
 import no.nav.syfo.infrastructure.database.getMeldingStatus
 import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
@@ -230,13 +228,11 @@ class MeldingService(
         }
     }
 
-    fun getVedlegg(uuid: UUID, vedleggNumber: Int): PdfContent? =
+    fun getVedlegg(uuid: UUID, vedleggNumber: Int): VedleggPdf? =
         meldingRepository.getVedlegg(
             uuid = uuid,
             number = vedleggNumber,
-        )?.let {
-            PdfContent(it.pdf)
-        }
+        )
 
     fun lagreMeldingVedleggFraMelding(meldingId: PMelding.Id, meldingFraBehandler: Melding.MeldingFraBehandler, connection: Connection) {
         val vedlegg = runBlocking { padm2Client.hentVedlegg(meldingFraBehandler.msgId) }

@@ -38,7 +38,7 @@ class AvvistMeldingCronjobTest {
     private val avvistMeldingProducer = AvvistMeldingProducer(kafkaProducer = kafkaProducer)
 
     private val publishAvvistMeldingService = PublishAvvistMeldingService(
-        database = database,
+        meldingRepository = meldingRepository,
         avvistMeldingProducer = avvistMeldingProducer,
     )
 

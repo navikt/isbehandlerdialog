@@ -2,7 +2,6 @@ package no.nav.syfo.application
 
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.database.DatabaseInterface
-import no.nav.syfo.infrastructure.database.domain.toMeldingTilBehandler
 import no.nav.syfo.infrastructure.database.getIkkeJournalforteMeldingerTilBehandler
 import no.nav.syfo.infrastructure.database.updateMeldingJournalpostId
 

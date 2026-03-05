@@ -31,38 +31,38 @@ data class PMelding(
 ) {
     @JvmInline
     value class Id(val id: Int)
+
+    fun toMeldingTilBehandler() = Melding.MeldingTilBehandler(
+        uuid = uuid,
+        createdAt = createdAt,
+        type = Melding.MeldingType.valueOf(type),
+        conversationRef = conversationRef,
+        parentRef = parentRef,
+        tidspunkt = tidspunkt,
+        arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
+        behandlerPersonIdent = behandlerPersonIdent?.let { PersonIdent(it) },
+        behandlerNavn = behandlerNavn,
+        behandlerRef = behandlerRef ?: throw IllegalStateException("Mangler behandlerRef for MeldingTilBehandler"),
+        tekst = tekst ?: "",
+        document = document,
+        antallVedlegg = antallVedlegg,
+        ubesvartPublishedAt = ubesvartPublishedAt,
+        veilederIdent = veilederIdent,
+    )
+
+    fun toMeldingFraBehandler() = Melding.MeldingFraBehandler(
+        uuid = uuid,
+        createdAt = createdAt,
+        type = Melding.MeldingType.valueOf(type),
+        conversationRef = conversationRef,
+        parentRef = parentRef,
+        msgId = msgId ?: "",
+        tidspunkt = tidspunkt,
+        arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
+        behandlerPersonIdent = behandlerPersonIdent?.let { PersonIdent(it) },
+        behandlerNavn = behandlerNavn,
+        tekst = tekst ?: "",
+        antallVedlegg = antallVedlegg,
+        innkommendePublishedAt = innkommendePublishedAt,
+    )
 }
-
-fun PMelding.toMeldingTilBehandler() = Melding.MeldingTilBehandler(
-    uuid = uuid,
-    createdAt = createdAt,
-    type = Melding.MeldingType.valueOf(type),
-    conversationRef = conversationRef,
-    parentRef = parentRef,
-    tidspunkt = tidspunkt,
-    arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
-    behandlerPersonIdent = behandlerPersonIdent?.let { PersonIdent(it) },
-    behandlerNavn = behandlerNavn,
-    behandlerRef = behandlerRef ?: throw IllegalStateException("Mangler behandlerRef for MeldingTilBehandler"),
-    tekst = tekst ?: "",
-    document = document,
-    antallVedlegg = antallVedlegg,
-    ubesvartPublishedAt = ubesvartPublishedAt,
-    veilederIdent = veilederIdent,
-)
-
-fun PMelding.toMeldingFraBehandler() = Melding.MeldingFraBehandler(
-    uuid = uuid,
-    createdAt = createdAt,
-    type = Melding.MeldingType.valueOf(type),
-    conversationRef = conversationRef,
-    parentRef = parentRef,
-    msgId = msgId ?: "",
-    tidspunkt = tidspunkt,
-    arbeidstakerPersonIdent = PersonIdent(arbeidstakerPersonIdent),
-    behandlerPersonIdent = behandlerPersonIdent?.let { PersonIdent(it) },
-    behandlerNavn = behandlerNavn,
-    tekst = tekst ?: "",
-    antallVedlegg = antallVedlegg,
-    innkommendePublishedAt = innkommendePublishedAt,
-)
