@@ -47,6 +47,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
 
     private val legeerklaringConsumer = LegeerklaringConsumer(
         database = database,
+        meldingRepository = meldingRepository,
         storage = storage,
         bucketName = bucketName,
         bucketNameVedlegg = bucketNameVedlegg,

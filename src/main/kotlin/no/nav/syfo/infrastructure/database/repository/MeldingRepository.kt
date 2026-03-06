@@ -181,6 +181,38 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         }
     }
 
+    override fun getIkkeJournalforteMeldingerTilBehandler(): List<Pair<Melding.MeldingTilBehandler, ByteArray>> =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_GET_MELDINGER_TIL_BEHANDLER_WITHOUT_JOURNALPOST_ID).use {
+                it.executeQuery().toList { Pair(toPMelding(), getBytes("pdf")) }
+            }
+        }.map { (pMelding, pdf) -> Pair(pMelding.toMeldingTilBehandler(), pdf) }
+
+    override fun getUtgaendeMeldingerWithType(
+        meldingType: Melding.MeldingType,
+        arbeidstakerPersonIdent: String,
+        connection: Connection,
+    ): List<PMelding> =
+        connection.prepareStatement(QUERY_GET_UTGAENDE_MELDING_FOR_TYPE_AND_ARBEIDSTAKER_PERSONIDENT).use {
+            it.setString(1, meldingType.name)
+            it.setString(2, arbeidstakerPersonIdent)
+            it.executeQuery().toList { toPMelding() }
+        }
+
+    override fun updateMeldingJournalpostId(melding: Melding.MeldingTilBehandler, journalpostId: String) {
+        database.connection.use { connection ->
+            val updated = connection.prepareStatement(QUERY_UPDATE_JOURNALPOST_ID).use {
+                it.setString(1, journalpostId)
+                it.setString(2, melding.uuid.toString())
+                it.executeUpdate()
+            }
+            if (updated != 1) {
+                throw SQLException("Expected a single row to be updated, got update count $updated")
+            }
+            connection.commit()
+        }
+    }
+
     private fun Connection.createPdf(pdf: ByteArray, meldingId: PMelding.Id): Int {
         val now = OffsetDateTime.now()
         val pdfUuid = UUID.randomUUID()
@@ -319,6 +351,30 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             """
                 UPDATE MELDING
                 SET avvist_published_at = ?
+                WHERE uuid = ?
+            """
+
+        private const val QUERY_GET_MELDINGER_TIL_BEHANDLER_WITHOUT_JOURNALPOST_ID =
+            """
+                SELECT m.*, p.pdf as pdf
+                FROM melding m
+                INNER JOIN pdf p on m.id = p.melding_id
+                WHERE m.journalpost_id IS NULL
+                AND m.innkommende = false
+            """
+
+        private const val QUERY_GET_UTGAENDE_MELDING_FOR_TYPE_AND_ARBEIDSTAKER_PERSONIDENT =
+            """
+                SELECT *
+                FROM MELDING
+                WHERE type = ? AND arbeidstaker_personident = ? AND NOT innkommende
+                ORDER BY tidspunkt ASC
+            """
+
+        private const val QUERY_UPDATE_JOURNALPOST_ID =
+            """
+                UPDATE melding
+                SET journalpost_id = ?
                 WHERE uuid = ?
             """
     }

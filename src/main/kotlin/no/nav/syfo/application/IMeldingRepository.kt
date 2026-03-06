@@ -27,4 +27,11 @@ interface IMeldingRepository {
     fun getUnpublishedMeldingerFraBehandler(): List<Melding.MeldingFraBehandler>
     fun getUnpublishedAvvisteMeldinger(): List<Melding.MeldingTilBehandler>
     fun updateAvvistMeldingPublishedAt(uuid: UUID)
+    fun getIkkeJournalforteMeldingerTilBehandler(): List<Pair<Melding.MeldingTilBehandler, ByteArray>>
+    fun getUtgaendeMeldingerWithType(
+        meldingType: Melding.MeldingType,
+        arbeidstakerPersonIdent: String,
+        connection: Connection,
+    ): List<PMelding>
+    fun updateMeldingJournalpostId(melding: Melding.MeldingTilBehandler, journalpostId: String)
 }

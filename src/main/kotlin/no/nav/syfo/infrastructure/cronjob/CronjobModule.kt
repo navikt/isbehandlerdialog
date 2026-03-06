@@ -44,7 +44,7 @@ fun Application.cronjobModule(
     )
 
     val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
-        database = database,
+        meldingRepository = meldingRepository,
     )
 
     val journalforMeldingTilBehandlerCronjob = JournalforMeldingTilBehandlerCronjob(

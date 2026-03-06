@@ -2,6 +2,7 @@ package no.nav.syfo.infrastructure.kafka.legeerklaring
 
 import com.google.cloud.storage.StorageOptions
 import no.nav.syfo.ApplicationState
+import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.application.IPdfGenClient
 import no.nav.syfo.application.MeldingService
 import no.nav.syfo.infrastructure.database.DatabaseInterface
@@ -22,11 +23,13 @@ fun launchKafkaTaskLegeerklaring(
     bucketNameVedlegg: String,
     meldingService: MeldingService,
     database: DatabaseInterface,
+    meldingRepository: IMeldingRepository,
     pdfgenClient: IPdfGenClient,
 ) {
     val storage = StorageOptions.newBuilder().build().service
     val legeerklaringConsumer = LegeerklaringConsumer(
         database = database,
+        meldingRepository = meldingRepository,
         storage = storage,
         bucketName = bucketName,
         bucketNameVedlegg = bucketNameVedlegg,

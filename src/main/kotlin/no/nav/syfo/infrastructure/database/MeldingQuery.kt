@@ -77,61 +77,6 @@ fun Connection.getUtgaendeMeldingerInConversation(
     }
 }
 
-const val queryGetUtgaendeMeldingForTypeAndArbeidstakerident =
-    """
-        SELECT *
-        FROM MELDING
-        WHERE type = ? AND arbeidstaker_personident = ? AND NOT innkommende
-        ORDER BY tidspunkt ASC
-    """
-
-fun Connection.getUtgaendeMeldingerWithType(
-    meldingType: Melding.MeldingType,
-    arbeidstakerPersonIdent: String,
-): List<PMelding> {
-    return this.prepareStatement(queryGetUtgaendeMeldingForTypeAndArbeidstakerident).use {
-        it.setString(1, meldingType.name)
-        it.setString(2, arbeidstakerPersonIdent)
-        it.executeQuery().toList { toPMelding() }
-    }
-}
-
-const val queryGetMeldingerTilBehandlerWithoutJournalpostId = """
-    SELECT m.*, p.pdf as pdf
-    FROM melding m
-    INNER JOIN pdf p on m.id = p.melding_id
-    WHERE m.journalpost_id IS NULL
-    AND m.innkommende = false
-"""
-
-fun DatabaseInterface.getIkkeJournalforteMeldingerTilBehandler(): List<Pair<PMelding, ByteArray>> {
-    return connection.use { connection ->
-        connection.prepareStatement(queryGetMeldingerTilBehandlerWithoutJournalpostId).use {
-            it.executeQuery().toList { Pair(toPMelding(), getBytes("pdf")) }
-        }
-    }
-}
-
-const val queryUpdateJournalpostId = """
-    UPDATE melding
-    SET journalpost_id = ?
-    WHERE uuid = ?
-"""
-
-fun DatabaseInterface.updateMeldingJournalpostId(melding: Melding.MeldingTilBehandler, journalpostId: String) {
-    connection.use { connection ->
-        connection.prepareStatement(queryUpdateJournalpostId).use {
-            it.setString(1, journalpostId)
-            it.setString(2, melding.uuid.toString())
-            val updated = it.executeUpdate()
-            if (updated != 1) {
-                throw SQLException("Expected a single row to be updated, got update count $updated")
-            }
-        }
-        connection.commit()
-    }
-}
-
 const val queryUpdateArbeidstakerPersonident = """
     UPDATE melding
     SET arbeidstaker_personident = ?
