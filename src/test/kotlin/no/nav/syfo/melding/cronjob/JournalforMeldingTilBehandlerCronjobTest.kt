@@ -30,7 +30,7 @@ class JournalforDialogmeldingCronjobTest {
     private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
     private val dokarkivClient = mockk<DokarkivClient>()
     private val journalforMeldingTilBehandlerService = JournalforMeldingTilBehandlerService(
-        database = database,
+        meldingRepository = meldingRepository,
     )
     private val dialogmeldingClient = ExternalMockEnvironment.instance.dialogmeldingClient
     private val journalforDialogmeldingCronjob = JournalforMeldingTilBehandlerCronjob(

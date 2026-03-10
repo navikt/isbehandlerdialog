@@ -137,6 +137,7 @@ fun main() {
                     bucketNameVedlegg = environment.legeerklaringVedleggBucketName,
                     meldingService = meldingService,
                     database = applicationDatabase,
+                    meldingRepository = meldingRepository,
                     pdfgenClient = pdfgenClient,
                 )
 

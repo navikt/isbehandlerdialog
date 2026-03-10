@@ -3,13 +3,13 @@ package no.nav.syfo.infrastructure.kafka.legeerklaring
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.cloud.storage.Storage
 import kotlinx.coroutines.runBlocking
+import no.nav.syfo.application.IMeldingRepository
 import no.nav.syfo.application.IPdfGenClient
 import no.nav.syfo.application.MeldingService
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
-import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerWithType
 import no.nav.syfo.infrastructure.kafka.config.KafkaConsumerService
 import no.nav.syfo.infrastructure.kafka.domain.KafkaLegeerklaeringMessage
 import no.nav.syfo.infrastructure.kafka.domain.Status
@@ -24,6 +24,7 @@ import java.util.*
 
 class LegeerklaringConsumer(
     private val database: DatabaseInterface,
+    private val meldingRepository: IMeldingRepository,
     private val storage: Storage,
     private val bucketName: String,
     private val bucketNameVedlegg: String,
@@ -125,9 +126,10 @@ class LegeerklaringConsumer(
         vedleggIds: List<String>,
         connection: Connection,
     ) {
-        val utgaaende = connection.getUtgaendeMeldingerWithType(
+        val utgaaende = meldingRepository.getUtgaendeMeldingerWithType(
             meldingType = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
-            arbeidstakerPersonIdent = legeerklaring.personNrPasient
+            arbeidstakerPersonIdent = legeerklaring.personNrPasient,
+            connection = connection,
         ).lastOrNull()
 
         if (utgaaende != null && utgaaende.tidspunkt > OffsetDateTime.now().minusMonths(2)) {
