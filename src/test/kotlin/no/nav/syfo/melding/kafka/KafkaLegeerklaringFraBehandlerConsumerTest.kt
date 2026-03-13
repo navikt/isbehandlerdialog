@@ -46,7 +46,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
     private val bucketNameVedlegg = externalMockEnvironment.environment.legeerklaringVedleggBucketName
 
     private val legeerklaringConsumer = LegeerklaringConsumer(
-        database = database,
+        transactionManager = externalMockEnvironment.transactionManager,
         meldingRepository = meldingRepository,
         storage = storage,
         bucketName = bucketName,

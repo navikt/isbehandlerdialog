@@ -1,7 +1,7 @@
 package no.nav.syfo.infrastructure.database
 
-import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.domain.MeldingStatus
+import no.nav.syfo.infrastructure.database.domain.PMelding
 import java.sql.*
 import java.time.OffsetDateTime
 import java.util.*
@@ -53,39 +53,3 @@ fun Connection.updateMeldingStatus(meldingStatus: MeldingStatus) {
         throw SQLException("Failed to update MeldingStatus with uuid: ${meldingStatus.uuid}")
     }
 }
-
-const val queryGetMeldingStatusForMeldingId =
-    """
-        SELECT *
-        FROM MELDING_STATUS
-        WHERE melding_id = ?
-    """
-
-fun DatabaseInterface.getMeldingStatus(meldingId: PMelding.Id, connection: Connection? = null): PMeldingStatus? {
-    return connection?.getMeldingStatus(
-        meldingId = meldingId,
-    )
-        ?: this.connection.use {
-            it.getMeldingStatus(
-                meldingId = meldingId,
-            )
-        }
-}
-
-fun Connection.getMeldingStatus(meldingId: PMelding.Id): PMeldingStatus? {
-    return this.prepareStatement(queryGetMeldingStatusForMeldingId).use {
-        it.setInt(1, meldingId.id)
-        it.executeQuery().toList { toPMeldingStatus() }.firstOrNull()
-    }
-}
-
-fun ResultSet.toPMeldingStatus() =
-    PMeldingStatus(
-        id = getInt("id"),
-        uuid = UUID.fromString(getString("uuid")),
-        meldingId = PMelding.Id(getInt("melding_id")),
-        createdAt = getObject("created_at", OffsetDateTime::class.java),
-        updatedAt = getObject("updated_at", OffsetDateTime::class.java),
-        status = getString("status"),
-        tekst = getString("tekst"),
-    )
