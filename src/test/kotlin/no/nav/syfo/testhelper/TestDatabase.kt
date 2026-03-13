@@ -8,8 +8,8 @@ import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.PMeldingStatus
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.domain.PPdf
+import no.nav.syfo.infrastructure.database.repository.toPMeldingStatus
 import no.nav.syfo.infrastructure.database.toList
-import no.nav.syfo.infrastructure.database.toPMeldingStatus
 import no.nav.syfo.infrastructure.database.toPPdf
 import org.flywaydb.core.Flyway
 import java.sql.Connection

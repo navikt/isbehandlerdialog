@@ -1,11 +1,11 @@
 package no.nav.syfo.infrastructure.kafka
 
 import no.nav.syfo.ApplicationState
-import no.nav.syfo.infrastructure.database.DatabaseInterface
+import no.nav.syfo.application.ITransactionManager
+import no.nav.syfo.application.MeldingService
 import no.nav.syfo.infrastructure.kafka.config.KafkaEnvironment
 import no.nav.syfo.infrastructure.kafka.config.kafkaConsumerConfig
 import no.nav.syfo.infrastructure.kafka.config.launchKafkaTask
-import no.nav.syfo.application.MeldingService
 import no.nav.syfo.infrastructure.database.repository.MeldingRepository
 import no.nav.syfo.util.configuredJacksonMapper
 import org.apache.kafka.common.serialization.Deserializer
@@ -15,12 +15,12 @@ const val DIALOGMELDING_STATUS_TOPIC = "teamsykefravr.behandler-dialogmelding-st
 fun launchKafkaTaskDialogmeldingStatus(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
-    database: DatabaseInterface,
+    transactionManager: ITransactionManager,
     meldingRepository: MeldingRepository,
     meldingService: MeldingService,
 ) {
     val dialogmeldingStatusConsumer = DialogmeldingStatusConsumer(
-        database = database,
+        transactionManager = transactionManager,
         meldingRepository = meldingRepository,
         meldingService = meldingService,
     )

@@ -1,8 +1,8 @@
 package no.nav.syfo.infrastructure.kafka.dialogmelding
 
 import no.nav.syfo.ApplicationState
+import no.nav.syfo.application.ITransactionManager
 import no.nav.syfo.application.MeldingService
-import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.kafka.config.JacksonKafkaDeserializerDialogmeldingFraBehandler
 import no.nav.syfo.infrastructure.kafka.config.KafkaEnvironment
 import no.nav.syfo.infrastructure.kafka.config.kafkaConsumerConfig
@@ -14,11 +14,11 @@ const val DIALOGMELDING_FROM_BEHANDLER_TOPIC = "teamsykefravr.dialogmelding"
 fun launchKafkaTaskDialogmeldingFraBehandler(
     applicationState: ApplicationState,
     kafkaEnvironment: KafkaEnvironment,
-    database: DatabaseInterface,
+    transactionManager: ITransactionManager,
     meldingService: MeldingService,
 ) {
     val dialogmeldingFraBehandlerConsumer = DialogmeldingFraBehandlerConsumer(
-        database = database,
+        transactionManager = transactionManager,
         meldingService = meldingService
     )
     val consumerProperties =
