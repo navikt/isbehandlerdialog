@@ -29,7 +29,7 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
     private val meldingRepository = externalMockEnvironment.meldingRepository
 
     private val dialogmeldingFraBehandlerConsumer = DialogmeldingFraBehandlerConsumer(
-        database = database,
+        transactionManager = externalMockEnvironment.transactionManager,
         meldingService = externalMockEnvironment.meldingService,
     )
     private val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT

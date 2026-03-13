@@ -11,6 +11,7 @@ import no.nav.syfo.infrastructure.client.padm2.Padm2Client
 import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.client.wellknown.WellKnown
+import no.nav.syfo.infrastructure.database.TransactionManager
 import no.nav.syfo.infrastructure.database.repository.MeldingRepository
 import no.nav.syfo.testhelper.mock.mockHttpClient
 import java.nio.file.Paths
@@ -35,6 +36,7 @@ class ExternalMockEnvironment private constructor() {
     val wellKnownInternalAzureAD = wellKnownInternalAzureAD()
 
     val meldingRepository = MeldingRepository(database = database)
+    val transactionManager = TransactionManager(database = database)
 
     val pdfgenClient = PdfGenClient(
         pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,

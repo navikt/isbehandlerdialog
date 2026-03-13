@@ -1,7 +1,7 @@
 package no.nav.syfo.infrastructure.kafka.dialogmelding
 
+import no.nav.syfo.application.ITransactionManager
 import no.nav.syfo.application.MeldingService
-import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.kafka.config.KafkaConsumerService
 import no.nav.syfo.infrastructure.kafka.domain.KafkaDialogmeldingFraBehandlerDTO
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 
 class DialogmeldingFraBehandlerConsumer(
-    private val database: DatabaseInterface,
+    private val transactionManager: ITransactionManager,
     private val meldingService: MeldingService,
 ) : KafkaConsumerService<KafkaDialogmeldingFraBehandlerDTO> {
 
@@ -29,7 +29,7 @@ class DialogmeldingFraBehandlerConsumer(
     private fun processConsumerRecords(
         records: ConsumerRecords<String, KafkaDialogmeldingFraBehandlerDTO>,
     ) {
-        database.connection.use { connection ->
+        transactionManager.run { transaction ->
             records.forEach {
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_READ.increment()
                 val kafkaDialogmeldingFraBehandler = it.value()
@@ -37,7 +37,7 @@ class DialogmeldingFraBehandlerConsumer(
                     if (kafkaDialogmeldingFraBehandler.dialogmelding.innkallingMoterespons == null) {
                         meldingService.receiveDialogmeldingFromBehandler(
                             kafkaDialogmeldingFraBehandler = kafkaDialogmeldingFraBehandler,
-                            connection = connection,
+                            transaction = transaction,
                         )
                     } // else: dialogmøterelaterte meldinger konsumeres av isdialogmote
                 } else {
@@ -45,7 +45,6 @@ class DialogmeldingFraBehandlerConsumer(
                     log.warn("Received kafkaDialogmeldingFraBehandler with no value: could be tombstone")
                 }
             }
-            connection.commit()
         }
     }
 

@@ -1,8 +1,10 @@
 package no.nav.syfo.infrastructure.kafka
 
+import kotlinx.coroutines.runBlocking
+import no.nav.syfo.application.ITransaction
+import no.nav.syfo.application.ITransactionManager
 import no.nav.syfo.application.MeldingService
 import no.nav.syfo.domain.MeldingStatusType
-import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.createMeldingStatus
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.repository.MeldingRepository
@@ -11,12 +13,11 @@ import no.nav.syfo.infrastructure.kafka.config.KafkaConsumerService
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.LoggerFactory
-import java.sql.Connection
 import java.time.Duration
 import java.util.*
 
 class DialogmeldingStatusConsumer(
-    private val database: DatabaseInterface,
+    private val transactionManager: ITransactionManager,
     private val meldingRepository: MeldingRepository,
     private val meldingService: MeldingService,
 ) : KafkaConsumerService<KafkaDialogmeldingStatusDTO> {
@@ -31,35 +32,36 @@ class DialogmeldingStatusConsumer(
         }
     }
 
-    private suspend fun processRecords(records: ConsumerRecords<String, KafkaDialogmeldingStatusDTO>) {
-        database.connection.use { connection ->
+    private fun processRecords(records: ConsumerRecords<String, KafkaDialogmeldingStatusDTO>) {
+        transactionManager.run { transaction ->
             records.forEach {
                 COUNT_KAFKA_CONSUMER_DIALOGMELDING_STATUS_READ.increment()
                 val kafkaDialogmeldingStatus = it.value()
                 if (kafkaDialogmeldingStatus != null) {
-                    processDialogmeldingStatus(
-                        kafkaDialogmeldingStatus = kafkaDialogmeldingStatus,
-                        connection = connection,
-                    )
+                    runBlocking {
+                        processDialogmeldingStatus(
+                            kafkaDialogmeldingStatus = kafkaDialogmeldingStatus,
+                            transaction = transaction,
+                        )
+                    }
                 } else {
                     COUNT_KAFKA_CONSUMER_DIALOGMELDING_STATUS_TOMBSTONE.increment()
                     log.warn("Received KafkaDialogmeldingStatusDTO with no value: could be tombstone")
                 }
             }
-            connection.commit()
         }
     }
 
     private suspend fun processDialogmeldingStatus(
         kafkaDialogmeldingStatus: KafkaDialogmeldingStatusDTO,
-        connection: Connection,
+        transaction: ITransaction,
     ) {
         val meldingUuid = UUID.fromString(kafkaDialogmeldingStatus.bestillingUuid)
         val meldingId = meldingRepository.getMelding(uuid = meldingUuid)?.id
         if (meldingId != null) {
             log.info("Received KafkaDialogmeldingStatusDTO for known melding: meldingUuid $meldingUuid")
             createOrUpdateMeldingStatus(
-                connection = connection,
+                transaction = transaction,
                 meldingId = meldingId,
                 kafkaDialogmeldingStatus = kafkaDialogmeldingStatus,
             )
@@ -69,21 +71,21 @@ class DialogmeldingStatusConsumer(
     }
 
     private fun createOrUpdateMeldingStatus(
-        connection: Connection,
+        transaction: ITransaction,
         meldingId: PMelding.Id,
         kafkaDialogmeldingStatus: KafkaDialogmeldingStatusDTO,
     ) {
-        val existingMeldingStatus = meldingService.getMeldingStatus(meldingId = meldingId, connection = connection)
+        val existingMeldingStatus = meldingService.getMeldingStatus(meldingId = meldingId, transaction = transaction)
         if (existingMeldingStatus != null) {
             val updatedMeldingStatus = existingMeldingStatus.copy(
                 status = MeldingStatusType.valueOf(kafkaDialogmeldingStatus.status),
                 tekst = kafkaDialogmeldingStatus.tekst,
             )
-            connection.updateMeldingStatus(meldingStatus = updatedMeldingStatus)
+            transaction.connection.updateMeldingStatus(meldingStatus = updatedMeldingStatus)
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_STATUS_UPDATED.increment()
         } else {
             val meldingStatus = kafkaDialogmeldingStatus.toMeldingStatus()
-            connection.createMeldingStatus(meldingStatus = meldingStatus, meldingId = meldingId)
+            transaction.connection.createMeldingStatus(meldingStatus = meldingStatus, meldingId = meldingId)
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_STATUS_CREATED.increment()
         }
         if (kafkaDialogmeldingStatus.status == MeldingStatusType.AVVIST.name) {

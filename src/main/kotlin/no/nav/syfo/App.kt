@@ -14,6 +14,7 @@ import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient
 import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrollClient
 import no.nav.syfo.infrastructure.client.wellknown.getWellKnown
 import no.nav.syfo.infrastructure.cronjob.cronjobModule
+import no.nav.syfo.infrastructure.database.TransactionManager
 import no.nav.syfo.infrastructure.database.applicationDatabase
 import no.nav.syfo.infrastructure.database.databaseModule
 import no.nav.syfo.infrastructure.database.repository.MeldingRepository
@@ -86,6 +87,7 @@ fun main() {
             databaseModule(
                 databaseEnvironment = environment.database,
             )
+            val transactionManager = TransactionManager(applicationDatabase)
             meldingRepository = MeldingRepository(database = applicationDatabase)
             meldingService = MeldingService(
                 database = applicationDatabase,
@@ -118,14 +120,14 @@ fun main() {
                 launchKafkaTaskDialogmeldingFraBehandler(
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
-                    database = applicationDatabase,
+                    transactionManager = transactionManager,
                     meldingService = meldingService,
                 )
 
                 launchKafkaTaskDialogmeldingStatus(
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
-                    database = applicationDatabase,
+                    transactionManager = transactionManager,
                     meldingRepository = meldingRepository,
                     meldingService = meldingService,
                 )
@@ -136,7 +138,7 @@ fun main() {
                     bucketName = environment.legeerklaringBucketName,
                     bucketNameVedlegg = environment.legeerklaringVedleggBucketName,
                     meldingService = meldingService,
-                    database = applicationDatabase,
+                    transactionManager = transactionManager,
                     meldingRepository = meldingRepository,
                     pdfgenClient = pdfgenClient,
                 )

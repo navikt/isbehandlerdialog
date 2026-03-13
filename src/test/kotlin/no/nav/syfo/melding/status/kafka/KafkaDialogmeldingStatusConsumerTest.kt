@@ -26,7 +26,7 @@ class KafkaDialogmeldingStatusConsumerTest {
     private val database = externalMockEnvironment.database
     private val meldingRepository = externalMockEnvironment.meldingRepository
     private val dialogmeldingStatusConsumer = DialogmeldingStatusConsumer(
-        database = database,
+        transactionManager = externalMockEnvironment.transactionManager,
         meldingRepository = externalMockEnvironment.meldingRepository,
         meldingService = externalMockEnvironment.meldingService,
     )

@@ -11,7 +11,6 @@ import no.nav.syfo.domain.VedleggPdf
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.infrastructure.database.getMeldingForMsgId
-import no.nav.syfo.infrastructure.database.getMeldingStatus
 import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
 import no.nav.syfo.infrastructure.database.hasMelding
 import no.nav.syfo.infrastructure.database.toMeldingStatus
@@ -94,14 +93,14 @@ class MeldingService(
 
     internal fun getMeldingStatus(
         meldingId: PMelding.Id,
-        connection: Connection? = null,
-    ): MeldingStatus? = database.getMeldingStatus(meldingId = meldingId, connection = connection)?.toMeldingStatus()
+        transaction: ITransaction? = null,
+    ): MeldingStatus? = meldingRepository.getMeldingStatus(meldingId = meldingId, transaction = transaction)?.toMeldingStatus()
 
     internal fun hasMelding(msgId: String): Boolean = database.hasMelding(msgId = msgId)
 
     fun receiveDialogmeldingFromBehandler(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
-        connection: Connection,
+        transaction: ITransaction,
     ) {
         val conversationRef = kafkaDialogmeldingFraBehandler.conversationRef
         val conversationRefUuid = if (conversationRef.isNullOrBlank()) {
@@ -117,7 +116,7 @@ class MeldingService(
             meldingParentRef = kafkaDialogmeldingFraBehandler.parentRef,
             arbeidstakerPersonIdent = PersonIdent(kafkaDialogmeldingFraBehandler.personIdentPasient),
             conversationRef = conversationRefUuid,
-            connection = connection,
+            transaction = transaction,
         )
         if (utgaendeMelding != null) {
             val utgaendeMelding = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
@@ -125,7 +124,7 @@ class MeldingService(
                 conversationRef = utgaendeMelding.conversationRef,
             )
             storeDialogmeldingFromBehandler(
-                connection = connection,
+                transaction = transaction,
                 meldingFraBehandler = utgaendeMelding,
                 fellesformatXML = kafkaDialogmeldingFraBehandler.fellesformatXML,
             )
@@ -135,7 +134,7 @@ class MeldingService(
                 conversationRef = conversationRefUuid ?: UUID.randomUUID(),
             )
             handleHenvendelseTilNAV(
-                connection = connection,
+                transaction = transaction,
                 meldingFraBehandler = meldingFraBehandler,
                 fellesformatXML = kafkaDialogmeldingFraBehandler.fellesformatXML,
             )
@@ -156,10 +155,10 @@ class MeldingService(
         meldingParentRef: String?,
         arbeidstakerPersonIdent: PersonIdent,
         conversationRef: UUID?,
-        connection: Connection,
+        transaction: ITransaction,
     ): PMelding? {
         val utgaaende = conversationRef?.let {
-            connection.getUtgaendeMeldingerInConversation(
+            transaction.connection.getUtgaendeMeldingerInConversation(
                 uuidParam = conversationRef,
                 arbeidstakerPersonIdent = arbeidstakerPersonIdent,
             )
@@ -173,7 +172,7 @@ class MeldingService(
             }
             if (parentRef != null) {
                 utgaaende.addAll(
-                    connection.getUtgaendeMeldingerInConversation(
+                    transaction.connection.getUtgaendeMeldingerInConversation(
                         uuidParam = parentRef,
                         arbeidstakerPersonIdent = arbeidstakerPersonIdent,
                     )
@@ -184,7 +183,7 @@ class MeldingService(
     }
 
     private fun handleHenvendelseTilNAV(
-        connection: Connection,
+        transaction: ITransaction,
         meldingFraBehandler: Melding.MeldingFraBehandler,
         fellesformatXML: String,
     ) {
@@ -193,7 +192,7 @@ class MeldingService(
         }
         if (latestOppfolgingstilfelle?.isActive() == true) {
             storeDialogmeldingFromBehandler(
-                connection = connection,
+                transaction = transaction,
                 meldingFraBehandler = meldingFraBehandler,
                 fellesformatXML = fellesformatXML,
             )
@@ -204,11 +203,11 @@ class MeldingService(
     }
 
     private fun storeDialogmeldingFromBehandler(
-        connection: Connection,
+        transaction: ITransaction,
         meldingFraBehandler: Melding.MeldingFraBehandler,
         fellesformatXML: String,
     ) {
-        val melding = connection.getMeldingForMsgId(meldingFraBehandler.msgId)
+        val melding = transaction.connection.getMeldingForMsgId(meldingFraBehandler.msgId)
         val isDuplicate = melding != null
         if (isDuplicate) {
             log.warn("Received a duplicate dialogmelding of type ${meldingFraBehandler.type} from behandler: ${meldingFraBehandler.conversationRef}")
@@ -219,10 +218,10 @@ class MeldingService(
             val melding = meldingRepository.createMeldingFraBehandler(
                 meldingFraBehandler = meldingFraBehandler,
                 fellesformat = fellesformatXML,
-                connection = connection,
+                connection = transaction.connection,
             )
             if (meldingFraBehandler.antallVedlegg > 0) {
-                lagreMeldingVedleggFraMelding(meldingId = melding.id, meldingFraBehandler = meldingFraBehandler, connection = connection)
+                lagreMeldingVedleggFraMelding(meldingId = melding.id, meldingFraBehandler = meldingFraBehandler, transaction = transaction)
             }
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED.increment()
         }
@@ -234,18 +233,18 @@ class MeldingService(
             number = vedleggNumber,
         )
 
-    fun lagreMeldingVedleggFraMelding(meldingId: PMelding.Id, meldingFraBehandler: Melding.MeldingFraBehandler, connection: Connection) {
+    fun lagreMeldingVedleggFraMelding(meldingId: PMelding.Id, meldingFraBehandler: Melding.MeldingFraBehandler, transaction: ITransaction) {
         val vedlegg = runBlocking { padm2Client.hentVedlegg(meldingFraBehandler.msgId) }
-        lagreVedlegg(vedlegg = vedlegg.map { it.bytes }, meldingId = meldingId, connection = connection)
+        lagreVedlegg(vedlegg = vedlegg.map { it.bytes }, meldingId = meldingId, transaction = transaction)
     }
 
-    fun lagreVedlegg(vedlegg: List<ByteArray>, meldingId: PMelding.Id, connection: Connection) {
+    fun lagreVedlegg(vedlegg: List<ByteArray>, meldingId: PMelding.Id, transaction: ITransaction) {
         vedlegg.forEachIndexed { index, pdf ->
             meldingRepository.createVedlegg(
                 pdf = pdf,
                 meldingId = meldingId,
                 number = index,
-                connection = connection,
+                connection = transaction.connection,
             )
         }
     }
@@ -259,14 +258,6 @@ class MeldingService(
             fellesformat = null,
             connection = connection,
         )
-    }
-
-    private suspend fun getMeldingTilBehandler(meldingUuid: UUID): Melding.MeldingTilBehandler? {
-        return meldingRepository.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
-    }
-
-    private suspend fun getMeldingFraBehandler(meldingUuid: UUID): Melding.MeldingFraBehandler? {
-        return meldingRepository.getMelding(meldingUuid)?.takeUnless { !it.innkommende }?.toMeldingFraBehandler()
     }
 
     private fun getUtgaendeMeldingerInConversation(
@@ -287,7 +278,7 @@ class MeldingService(
         veilederIdent: String,
         document: List<DocumentComponentDTO>,
     ) {
-        val opprinneligMelding = getMeldingTilBehandler(meldingUuid = meldingUuid)
+        val opprinneligMelding = meldingRepository.getMelding(meldingUuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
             ?: throw IllegalArgumentException("Failed to create påminnelse: Melding with uuid $meldingUuid does not exist")
         val paminnelse = Melding.MeldingTilBehandler.createForesporselPasientPaminnelse(
             opprinneligMelding = opprinneligMelding,
@@ -306,7 +297,7 @@ class MeldingService(
         document: List<DocumentComponentDTO>,
         tekst: String,
     ) {
-        val innkommendeLegeerklaring = getMeldingFraBehandler(meldingUuid)
+        val innkommendeLegeerklaring = meldingRepository.getMelding(meldingUuid)?.takeUnless { !it.innkommende }?.toMeldingFraBehandler()
             ?.takeIf { it.type == Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING }
             ?: throw IllegalArgumentException("Failed to create retur av legeerklæring: Melding with uuid $meldingUuid does not exist")
         val opprinneligForesporselLegeerklaring = getUtgaendeMeldingerInConversation(
