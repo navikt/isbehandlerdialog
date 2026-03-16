@@ -14,10 +14,10 @@ data class PMeldingStatus(
     val updatedAt: OffsetDateTime,
     val status: String,
     val tekst: String?,
-)
-
-fun PMeldingStatus.toMeldingStatus(): MeldingStatus = MeldingStatus(
-    uuid = this.uuid,
-    status = MeldingStatusType.valueOf(this.status),
-    tekst = this.tekst,
-)
+) {
+    fun toMeldingStatus(): MeldingStatus = MeldingStatus(
+        uuid = this.uuid,
+        status = MeldingStatusType.valueOf(this.status),
+        tekst = this.tekst,
+    )
+}

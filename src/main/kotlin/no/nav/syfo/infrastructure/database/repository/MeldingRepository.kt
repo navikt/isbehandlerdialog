@@ -2,9 +2,12 @@ package no.nav.syfo.infrastructure.database.repository
 
 import com.fasterxml.jackson.core.type.TypeReference
 import no.nav.syfo.application.IMeldingRepository
+import no.nav.syfo.application.ITransaction
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.Melding
+import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.VedleggPdf
+import no.nav.syfo.infrastructure.database.PMeldingStatus
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
@@ -26,6 +29,12 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 it.executeQuery().toList { toPMelding() }.firstOrNull()
             }
         }
+
+    override suspend fun getMeldingTilBehandler(uuid: UUID): Melding.MeldingTilBehandler? =
+        getMelding(uuid)?.takeUnless { it.innkommende }?.toMeldingTilBehandler()
+
+    override suspend fun getMeldingFraBehandler(uuid: UUID): Melding.MeldingFraBehandler? =
+        getMelding(uuid)?.takeIf { it.innkommende }?.toMeldingFraBehandler()
 
     override fun createMeldingTilBehandler(meldingTilBehandler: Melding.MeldingTilBehandler, pdf: ByteArray): Melding.MeldingTilBehandler =
         database.connection.use { connection ->
@@ -107,6 +116,15 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 it.executeQuery().toList { toPMelding() }
             }
         }
+
+    override fun getMeldingStatus(meldingId: PMelding.Id, transaction: ITransaction?): MeldingStatus? =
+        if (transaction != null) {
+            transaction.connection.getMeldingStatus(meldingId = meldingId)
+        } else {
+            database.connection.use { connection ->
+                connection.getMeldingStatus(meldingId = meldingId)
+            }
+        }?.toMeldingStatus()
 
     override suspend fun getUbesvarteMeldingerTilBehandler(fristDato: OffsetDateTime): List<Melding.MeldingTilBehandler> =
         database.connection.use { connection ->
@@ -213,6 +231,12 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         }
     }
 
+    private fun Connection.getMeldingStatus(meldingId: PMelding.Id): PMeldingStatus? =
+        this.prepareStatement(QUERY_GET_MELDING_STATUS_FOR_MELDING_ID).use {
+            it.setInt(1, meldingId.id)
+            it.executeQuery().toList { toPMeldingStatus() }.firstOrNull()
+        }
+
     private fun Connection.createPdf(pdf: ByteArray, meldingId: PMelding.Id): Int {
         val now = OffsetDateTime.now()
         val pdfUuid = UUID.randomUUID()
@@ -285,6 +309,13 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 FROM MELDING
                 WHERE arbeidstaker_personident = ?
                 ORDER BY id ASC
+            """
+
+        private const val QUERY_GET_MELDING_STATUS_FOR_MELDING_ID =
+            """
+                SELECT *
+                FROM MELDING_STATUS
+                WHERE melding_id = ?
             """
 
         private const val QUERY_GET_UBESVARTE_MELDINGER =
@@ -451,4 +482,15 @@ private fun ResultSet.toPVedlegg() =
         updatedAt = getObject("updated_at", OffsetDateTime::class.java),
         number = getInt("number"),
         pdf = getBytes("pdf"),
+    )
+
+internal fun ResultSet.toPMeldingStatus() =
+    PMeldingStatus(
+        id = getInt("id"),
+        uuid = UUID.fromString(getString("uuid")),
+        meldingId = PMelding.Id(getInt("melding_id")),
+        createdAt = getObject("created_at", OffsetDateTime::class.java),
+        updatedAt = getObject("updated_at", OffsetDateTime::class.java),
+        status = getString("status"),
+        tekst = getString("tekst"),
     )

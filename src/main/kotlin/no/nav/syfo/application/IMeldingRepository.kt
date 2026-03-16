@@ -1,8 +1,9 @@
 package no.nav.syfo.application
 
 import no.nav.syfo.domain.Melding
-import no.nav.syfo.domain.VedleggPdf
+import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.PersonIdent
+import no.nav.syfo.domain.VedleggPdf
 import no.nav.syfo.infrastructure.database.domain.PMelding
 import java.sql.Connection
 import java.time.OffsetDateTime
@@ -10,6 +11,8 @@ import java.util.*
 
 interface IMeldingRepository {
     suspend fun getMelding(uuid: UUID): PMelding?
+    suspend fun getMeldingTilBehandler(uuid: UUID): Melding.MeldingTilBehandler?
+    suspend fun getMeldingFraBehandler(uuid: UUID): Melding.MeldingFraBehandler?
     fun createMeldingTilBehandler(meldingTilBehandler: Melding.MeldingTilBehandler, pdf: ByteArray): Melding.MeldingTilBehandler
 
     fun createMeldingFraBehandler(
@@ -19,6 +22,7 @@ interface IMeldingRepository {
     ): PMelding
 
     fun getMeldingerForArbeidstaker(arbeidstakerPersonIdent: PersonIdent): List<PMelding>
+    fun getMeldingStatus(meldingId: PMelding.Id, transaction: ITransaction? = null): MeldingStatus?
     suspend fun getUbesvarteMeldingerTilBehandler(fristDato: OffsetDateTime): List<Melding.MeldingTilBehandler>
     suspend fun updateUbesvartPublishedAt(uuid: UUID)
     fun updateInnkommendePublishedAt(uuid: UUID)
@@ -33,5 +37,6 @@ interface IMeldingRepository {
         arbeidstakerPersonIdent: String,
         connection: Connection,
     ): List<PMelding>
+
     fun updateMeldingJournalpostId(melding: Melding.MeldingTilBehandler, journalpostId: String)
 }
