@@ -39,4 +39,5 @@ interface IMeldingRepository {
     ): List<PMelding>
 
     fun updateMeldingJournalpostId(melding: Melding.MeldingTilBehandler, journalpostId: String)
+    fun updateArbeidstakerPersonident(meldinger: List<PMelding>, personident: PersonIdent)
 }

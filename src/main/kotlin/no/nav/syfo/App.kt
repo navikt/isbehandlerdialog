@@ -146,7 +146,6 @@ fun main() {
                 launchKafkaTaskIdenthendelse(
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
-                    database = applicationDatabase,
                     meldingRepository = meldingRepository,
                 )
             }

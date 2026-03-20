@@ -8,7 +8,6 @@ import no.nav.syfo.infrastructure.database.domain.PMelding
 import no.nav.syfo.util.configuredJacksonMapper
 import java.sql.Connection
 import java.sql.ResultSet
-import java.sql.SQLException
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -74,28 +73,6 @@ fun Connection.getUtgaendeMeldingerInConversation(
         it.setString(2, arbeidstakerPersonIdent.value)
         it.setString(3, type.name)
         it.executeQuery().toList { toPMelding() }
-    }
-}
-
-const val queryUpdateArbeidstakerPersonident = """
-    UPDATE melding
-    SET arbeidstaker_personident = ?
-    WHERE id = ?
-"""
-
-fun DatabaseInterface.updateArbeidstakerPersonident(meldinger: List<PMelding>, personident: PersonIdent) {
-    connection.use { connection ->
-        connection.prepareStatement(queryUpdateArbeidstakerPersonident).use {
-            meldinger.forEach { melding ->
-                it.setString(1, personident.value)
-                it.setInt(2, melding.id.id)
-                val updated = it.executeUpdate()
-                if (updated != 1) {
-                    throw SQLException("Expected a single row to be updated, got update count $updated")
-                }
-            }
-        }
-        connection.commit()
     }
 }
 

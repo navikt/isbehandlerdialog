@@ -231,6 +231,22 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         }
     }
 
+    override fun updateArbeidstakerPersonident(meldinger: List<PMelding>, personident: PersonIdent) {
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_UPDATE_ARBEIDSTAKER_PERSONIDENT).use {
+                meldinger.forEach { melding ->
+                    it.setString(1, personident.value)
+                    it.setInt(2, melding.id.id)
+                    val updated = it.executeUpdate()
+                    if (updated != 1) {
+                        throw SQLException("Expected a single row to be updated, got update count $updated")
+                    }
+                }
+            }
+            connection.commit()
+        }
+    }
+
     private fun Connection.getMeldingStatus(meldingId: PMelding.Id): PMeldingStatus? =
         this.prepareStatement(QUERY_GET_MELDING_STATUS_FOR_MELDING_ID).use {
             it.setInt(1, meldingId.id)
@@ -407,6 +423,13 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 UPDATE melding
                 SET journalpost_id = ?
                 WHERE uuid = ?
+            """
+
+        private const val QUERY_UPDATE_ARBEIDSTAKER_PERSONIDENT =
+            """
+                UPDATE melding
+                SET arbeidstaker_personident = ?
+                WHERE id = ?
             """
     }
 }
