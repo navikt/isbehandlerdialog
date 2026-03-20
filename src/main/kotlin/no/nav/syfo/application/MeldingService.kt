@@ -8,9 +8,7 @@ import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.MeldingStatus
 import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.VedleggPdf
-import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
-import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
 import no.nav.syfo.infrastructure.kafka.dialogmelding.COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED
 import no.nav.syfo.infrastructure.kafka.dialogmelding.COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE
 import no.nav.syfo.infrastructure.kafka.dialogmelding.COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA
@@ -22,7 +20,6 @@ import java.sql.Connection
 import java.util.*
 
 class MeldingService(
-    private val database: DatabaseInterface,
     private val meldingRepository: IMeldingRepository,
     private val dialogmeldingBestillingProducer: DialogmeldingBestillingProducer,
     private val oppfolgingstilfelleClient: IOppfolgingstilfelleClient,
@@ -155,12 +152,16 @@ class MeldingService(
         conversationRef: UUID?,
         transaction: ITransaction,
     ): PMelding? {
-        val utgaaende = conversationRef?.let {
-            transaction.connection.getUtgaendeMeldingerInConversation(
-                uuidParam = conversationRef,
-                arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+        val utgaaende = mutableListOf<PMelding>()
+        conversationRef?.let {
+            utgaaende.addAll(
+                meldingRepository.getUtgaendeMeldingerInConversation(
+                    uuidParam = conversationRef,
+                    arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+                    connection = transaction.connection,
+                )
             )
-        } ?: mutableListOf()
+        }
 
         if (utgaaende.isEmpty() && !meldingParentRef.isNullOrBlank()) {
             val parentRef = try {
@@ -170,9 +171,10 @@ class MeldingService(
             }
             if (parentRef != null) {
                 utgaaende.addAll(
-                    transaction.connection.getUtgaendeMeldingerInConversation(
+                    meldingRepository.getUtgaendeMeldingerInConversation(
                         uuidParam = parentRef,
                         arbeidstakerPersonIdent = arbeidstakerPersonIdent,
+                        connection = transaction.connection,
                     )
                 )
             }
@@ -261,14 +263,11 @@ class MeldingService(
     private fun getUtgaendeMeldingerInConversation(
         conversationRef: UUID,
         personIdent: PersonIdent,
-    ): List<Melding.MeldingTilBehandler> {
-        return database.connection.use {
-            it.getUtgaendeMeldingerInConversation(
-                uuidParam = conversationRef,
-                arbeidstakerPersonIdent = personIdent,
-            )
-        }.map { it.toMeldingTilBehandler() }
-    }
+    ): List<Melding.MeldingTilBehandler> =
+        meldingRepository.getUtgaendeMeldingerInConversation(
+            uuidParam = conversationRef,
+            arbeidstakerPersonIdent = personIdent,
+        ).map { it.toMeldingTilBehandler() }
 
     internal suspend fun createPaminnelse(
         callId: String,
