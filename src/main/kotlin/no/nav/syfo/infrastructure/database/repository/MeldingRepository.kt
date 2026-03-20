@@ -247,6 +247,17 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         }
     }
 
+    override fun hasMelding(msgId: String): Boolean =
+        database.connection.use { connection ->
+            getMeldingForMsgId(msgId, connection) != null
+        }
+
+    override fun getMeldingForMsgId(msgId: String, connection: Connection): PMelding? =
+        connection.prepareStatement(QUERY_GET_MELDING_FOR_MSG_ID).use {
+            it.setString(1, msgId)
+            it.executeQuery().toList { toPMelding() }.firstOrNull()
+        }
+
     private fun Connection.getMeldingStatus(meldingId: PMelding.Id): PMeldingStatus? =
         this.prepareStatement(QUERY_GET_MELDING_STATUS_FOR_MELDING_ID).use {
             it.setInt(1, meldingId.id)
@@ -430,6 +441,13 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 UPDATE melding
                 SET arbeidstaker_personident = ?
                 WHERE id = ?
+            """
+
+        private const val QUERY_GET_MELDING_FOR_MSG_ID =
+            """
+                SELECT *
+                FROM MELDING
+                WHERE msg_id = ?
             """
     }
 }
