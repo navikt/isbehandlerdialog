@@ -16,7 +16,6 @@ class IdenthendelseServiceTest {
     private val database = externalMockEnvironment.database
     private val meldingRepository = externalMockEnvironment.meldingRepository
     private val identhendelseService = IdenthendelseService(
-        database = database,
         meldingRepository = meldingRepository,
     )
 
