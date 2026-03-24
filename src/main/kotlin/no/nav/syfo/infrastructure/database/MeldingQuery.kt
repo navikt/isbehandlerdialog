@@ -13,28 +13,6 @@ import java.util.*
 
 private val mapper = configuredJacksonMapper()
 
-const val queryGetMeldingForMsgId =
-    """
-        SELECT *
-        FROM MELDING
-        WHERE msg_id = ?
-    """
-
-fun Connection.getMeldingForMsgId(
-    msgId: String,
-): PMelding? {
-    return this.prepareStatement(queryGetMeldingForMsgId).use {
-        it.setString(1, msgId)
-        it.executeQuery().toList { toPMelding() }.firstOrNull()
-    }
-}
-
-fun DatabaseInterface.hasMelding(msgId: String): Boolean {
-    return this.connection.use { connection ->
-        connection.getMeldingForMsgId(msgId) != null
-    }
-}
-
 const val queryGetMeldingerWithTypeForConversationRefAndArbeidstakerident =
     """
         SELECT *

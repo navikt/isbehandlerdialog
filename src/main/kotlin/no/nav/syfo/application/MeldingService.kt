@@ -10,9 +10,7 @@ import no.nav.syfo.domain.PersonIdent
 import no.nav.syfo.domain.VedleggPdf
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.domain.PMelding
-import no.nav.syfo.infrastructure.database.getMeldingForMsgId
 import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
-import no.nav.syfo.infrastructure.database.hasMelding
 import no.nav.syfo.infrastructure.kafka.dialogmelding.COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_MELDING_CREATED
 import no.nav.syfo.infrastructure.kafka.dialogmelding.COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_DUPLICATE
 import no.nav.syfo.infrastructure.kafka.dialogmelding.COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA
@@ -96,7 +94,7 @@ class MeldingService(
     ): MeldingStatus? =
         meldingRepository.getMeldingStatus(meldingId = meldingId, transaction = transaction)
 
-    internal fun hasMelding(msgId: String): Boolean = database.hasMelding(msgId = msgId)
+    internal fun hasMelding(msgId: String): Boolean = meldingRepository.hasMelding(msgId = msgId)
 
     fun receiveDialogmeldingFromBehandler(
         kafkaDialogmeldingFraBehandler: KafkaDialogmeldingFraBehandlerDTO,
@@ -207,7 +205,7 @@ class MeldingService(
         meldingFraBehandler: Melding.MeldingFraBehandler,
         fellesformatXML: String,
     ) {
-        val melding = transaction.connection.getMeldingForMsgId(meldingFraBehandler.msgId)
+        val melding = meldingRepository.getMeldingForMsgId(meldingFraBehandler.msgId, transaction.connection)
         val isDuplicate = melding != null
         if (isDuplicate) {
             log.warn("Received a duplicate dialogmelding of type ${meldingFraBehandler.type} from behandler: ${meldingFraBehandler.conversationRef}")
