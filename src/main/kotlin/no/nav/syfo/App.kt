@@ -90,7 +90,6 @@ fun main() {
             val transactionManager = TransactionManager(applicationDatabase)
             meldingRepository = MeldingRepository(database = applicationDatabase)
             meldingService = MeldingService(
-                database = applicationDatabase,
                 meldingRepository = meldingRepository,
                 pdfgenClient = pdfgenClient,
                 dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,

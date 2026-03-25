@@ -74,7 +74,6 @@ class ExternalMockEnvironment private constructor() {
     )
 
     val meldingService = MeldingService(
-        database = database,
         meldingRepository = meldingRepository,
         dialogmeldingBestillingProducer = mockk(),
         oppfolgingstilfelleClient = oppfolgingstilfelleClient,

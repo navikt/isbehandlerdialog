@@ -258,6 +258,39 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             it.executeQuery().toList { toPMelding() }.firstOrNull()
         }
 
+    override fun getUtgaendeMeldingerInConversation(
+        uuidParam: UUID,
+        arbeidstakerPersonIdent: PersonIdent,
+    ): List<PMelding> =
+        database.connection.use { connection ->
+            getUtgaendeMeldingerInConversation(uuidParam, arbeidstakerPersonIdent, connection)
+        }
+
+    override fun getUtgaendeMeldingerInConversation(
+        uuidParam: UUID,
+        arbeidstakerPersonIdent: PersonIdent,
+        connection: Connection,
+    ): List<PMelding> =
+        connection.prepareStatement(QUERY_GET_MELDINGER_FOR_CONVERSATION_REF_AND_ARBEIDSTAKERIDENT).use {
+            it.setString(1, uuidParam.toString())
+            it.setString(2, uuidParam.toString())
+            it.setString(3, arbeidstakerPersonIdent.value)
+            it.executeQuery().toList { toPMelding() }
+        }
+
+    override fun getUtgaendeMeldingerInConversation(
+        conversationRef: UUID,
+        arbeidstakerPersonIdent: PersonIdent,
+        type: Melding.MeldingType,
+        connection: Connection,
+    ): List<PMelding> =
+        connection.prepareStatement(QUERY_GET_MELDINGER_WITH_TYPE_FOR_CONVERSATION_REF_AND_ARBEIDSTAKERIDENT).use {
+            it.setString(1, conversationRef.toString())
+            it.setString(2, arbeidstakerPersonIdent.value)
+            it.setString(3, type.name)
+            it.executeQuery().toList { toPMelding() }
+        }
+
     private fun Connection.getMeldingStatus(meldingId: PMelding.Id): PMeldingStatus? =
         this.prepareStatement(QUERY_GET_MELDING_STATUS_FOR_MELDING_ID).use {
             it.setInt(1, meldingId.id)
@@ -448,6 +481,22 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 SELECT *
                 FROM MELDING
                 WHERE msg_id = ?
+            """
+
+        private const val QUERY_GET_MELDINGER_FOR_CONVERSATION_REF_AND_ARBEIDSTAKERIDENT =
+            """
+                SELECT *
+                FROM MELDING
+                WHERE (uuid = ? OR conversation_ref = ?) AND arbeidstaker_personident = ? AND NOT innkommende
+                ORDER BY tidspunkt ASC
+            """
+
+        private const val QUERY_GET_MELDINGER_WITH_TYPE_FOR_CONVERSATION_REF_AND_ARBEIDSTAKERIDENT =
+            """
+                SELECT *
+                FROM MELDING
+                WHERE conversation_ref = ? AND arbeidstaker_personident = ? AND type = ? AND NOT innkommende
+                ORDER BY tidspunkt ASC
             """
     }
 }

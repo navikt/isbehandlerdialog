@@ -42,4 +42,7 @@ interface IMeldingRepository {
     fun updateArbeidstakerPersonident(meldinger: List<PMelding>, personident: PersonIdent)
     fun hasMelding(msgId: String): Boolean
     fun getMeldingForMsgId(msgId: String, connection: Connection): PMelding?
+    fun getUtgaendeMeldingerInConversation(uuidParam: UUID, arbeidstakerPersonIdent: PersonIdent): List<PMelding>
+    fun getUtgaendeMeldingerInConversation(uuidParam: UUID, arbeidstakerPersonIdent: PersonIdent, connection: Connection): List<PMelding>
+    fun getUtgaendeMeldingerInConversation(conversationRef: UUID, arbeidstakerPersonIdent: PersonIdent, type: Melding.MeldingType, connection: Connection): List<PMelding>
 }

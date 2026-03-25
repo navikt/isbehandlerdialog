@@ -16,7 +16,6 @@ fun Application.testApiModule(
         wellKnownInternalAzureAD = externalMockEnvironment.wellKnownInternalAzureAD,
         veilederTilgangskontrollClient = externalMockEnvironment.veilederTilgangskontrollClient,
         meldingService = MeldingService(
-            database = externalMockEnvironment.database,
             meldingRepository = externalMockEnvironment.meldingRepository,
             dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
             oppfolgingstilfelleClient = externalMockEnvironment.oppfolgingstilfelleClient,

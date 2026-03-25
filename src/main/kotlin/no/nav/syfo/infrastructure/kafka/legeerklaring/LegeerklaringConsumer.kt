@@ -10,7 +10,6 @@ import no.nav.syfo.application.IPdfGenClient
 import no.nav.syfo.application.MeldingService
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.domain.PersonIdent
-import no.nav.syfo.infrastructure.database.getUtgaendeMeldingerInConversation
 import no.nav.syfo.infrastructure.kafka.config.KafkaConsumerService
 import no.nav.syfo.infrastructure.kafka.domain.KafkaLegeerklaeringMessage
 import no.nav.syfo.infrastructure.kafka.domain.Status
@@ -97,10 +96,11 @@ class LegeerklaringConsumer(
         transaction: ITransaction,
         conversationRef: String,
     ) {
-        val utgaaende = transaction.connection.getUtgaendeMeldingerInConversation(
+        val utgaaende = meldingRepository.getUtgaendeMeldingerInConversation(
             conversationRef = UUID.fromString(conversationRef),
             arbeidstakerPersonIdent = PersonIdent(legeerklaring.personNrPasient),
             type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+            connection = transaction.connection,
         ).lastOrNull()
         if (utgaaende != null) {
             val pdfVedlegg = getPDFVedlegg(legeerklaring, vedleggIds)
