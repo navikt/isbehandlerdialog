@@ -10,8 +10,8 @@ import no.nav.syfo.testhelper.generator.journalpostRequestGenerator
 import no.nav.syfo.testhelper.mock.conflictResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
 import java.util.*
+import kotlin.test.assertNotNull
 
 class DokarkivClientTest {
 

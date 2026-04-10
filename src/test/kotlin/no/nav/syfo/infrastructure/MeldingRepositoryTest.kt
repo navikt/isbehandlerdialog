@@ -9,6 +9,8 @@ import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.util.*
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class MeldingRepositoryTest {
 
