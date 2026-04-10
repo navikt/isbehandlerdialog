@@ -7,20 +7,21 @@ val confluent = "8.1.1"
 val flywayVersion = "11.19.0"
 val googleCloudStorageVersion = "2.57.0"
 val hikariVersion = "7.0.2"
-val jacksonDataTypeVersion = "2.20.1"
-val kafkaVersion = "4.1.0"
-val ktorVersion = "3.3.1"
-val logbackVersion = "1.5.22"
+val jacksonDataTypeVersion = "2.21.2"
+val jacksonDatabindVersion = "3.1.1"
+val kafkaVersion = "4.2.0"
+val ktorVersion = "3.4.2"
+val logbackVersion = "1.5.32"
 val logstashEncoderVersion = "9.0"
-val micrometerRegistryVersion = "1.12.13"
-val mockkVersion = "1.14.7"
+val micrometerRegistryVersion = "1.16.3"
+val mockkVersion = "1.14.9"
 val nimbusJoseJwtVersion = "10.6"
-val postgresVersion = "42.7.8"
+val postgresVersion = "42.7.10"
 val postgresEmbeddedVersion = "2.2.0"
 val postgresRuntimeVersion = "17.6.0"
 
 plugins {
-    kotlin("jvm") version "2.2.20"
+    kotlin("jvm") version "2.3.10"
     id("com.gradleup.shadow") version "8.3.8"
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
     id("com.adarshr.test-logger") version "4.0.0"
@@ -61,6 +62,7 @@ dependencies {
 
     // (De-)serialization
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonDataTypeVersion")
+    implementation("tools.jackson.core:jackson-databind:$jacksonDatabindVersion")
 
     // Kafka
     val excludeLog4j = fun ExternalModuleDependency.() {
@@ -70,26 +72,6 @@ dependencies {
 
     implementation("org.apache.kafka:kafka_2.13:$kafkaVersion", excludeLog4j)
     implementation("io.confluent:kafka-avro-serializer:$confluent", excludeLog4j)
-    constraints {
-        implementation("org.apache.avro:avro") {
-            because("io.confluent:kafka-schema-registry:$confluent -> https://www.cve.org/CVERecord?id=CVE-2023-39410")
-            version {
-                require("1.12.1")
-            }
-        }
-        implementation("org.apache.commons:commons-compress") {
-            because("org.apache.commons:commons-compress:1.22 -> https://www.cve.org/CVERecord?id=CVE-2012-2098")
-            version {
-                require("1.28.0")
-            }
-        }
-        implementation("commons-beanutils:commons-beanutils") {
-            because("io.confluent:kafka-avro-serializer:$confluent -> https://www.cve.org/CVERecord?id=CVE-2025-48734")
-            version {
-                require("1.11.0")
-            }
-        }
-    }
     implementation("com.google.cloud:google-cloud-storage:$googleCloudStorageVersion")
 
     // Tests

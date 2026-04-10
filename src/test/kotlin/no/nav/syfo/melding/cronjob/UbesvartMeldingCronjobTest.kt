@@ -30,11 +30,11 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
-import org.junit.jupiter.api.assertNull
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.Future
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 private val threeWeeksAgo = OffsetDateTime.now().minusDays(21)
 
