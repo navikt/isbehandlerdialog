@@ -28,9 +28,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
-import org.junit.jupiter.api.assertNull
 import java.util.*
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class MeldingApiGetTest {
 
