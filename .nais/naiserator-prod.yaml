@@ -53,7 +53,7 @@ spec:
         - application: padm2
         - application: isoppfolgingstilfelle
         - application: istilgangskontroll
-        - application: pale-2-pdfgen
+        - application: pale-2-pdfgenrs
           namespace: teamsykmelding
   gcp:
     sqlInstances:
