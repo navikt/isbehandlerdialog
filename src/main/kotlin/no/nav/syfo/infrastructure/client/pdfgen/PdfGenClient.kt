@@ -151,6 +151,8 @@ fun List<DocumentComponentDTO>.sanitizeForPdfGen(): List<DocumentComponentDTO> =
 }
 
 private fun String.sanitizeForPdfGen(): String {
+    // Allow: TAB, CR, LF, printable ASCII (U+0020..U+007E), and all bytes U+0080..U+00FF (including C1 range) per request.
+    // Excludes only DEL (0x7F) and any codepoints > U+00FF. Still normalizes NBSP to space and removes soft hyphen.
     val sanitized = this.replace(illegalCharsRegex) { match ->
         log.warn("Illegal character in document: U+%04X".format(match.value.first().code))
         ""
