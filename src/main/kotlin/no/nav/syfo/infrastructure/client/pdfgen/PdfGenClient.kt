@@ -19,12 +19,15 @@ import no.nav.syfo.infrastructure.kafka.legeerklaring.Legeerklaering
 import no.nav.syfo.infrastructure.kafka.legeerklaring.LegeerklaringDTO
 import no.nav.syfo.util.NAV_CALL_ID_HEADER
 import no.nav.syfo.util.callIdArgument
+import no.nav.syfo.util.configuredJacksonMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+
+private val mapper = configuredJacksonMapper()
 
 class PdfGenClient(
     private val pdfGenBaseUrl: String,
@@ -157,66 +160,5 @@ private fun String.sanitizeForPdfGen(): String {
         .replace("\u00AD", "")
 }
 
-private fun Legeerklaering.sanitizeForPdfGen(): Legeerklaering = this.copy(
-    pasient = pasient.copy(
-        fornavn = pasient.fornavn.sanitizeForPdfGen(),
-        mellomnavn = pasient.mellomnavn?.sanitizeForPdfGen(),
-        etternavn = pasient.etternavn.sanitizeForPdfGen(),
-        navKontor = pasient.navKontor?.sanitizeForPdfGen(),
-        adresse = pasient.adresse?.sanitizeForPdfGen(),
-        poststed = pasient.poststed?.sanitizeForPdfGen(),
-        yrke = pasient.yrke?.sanitizeForPdfGen(),
-        arbeidsgiver = pasient.arbeidsgiver.copy(
-            navn = pasient.arbeidsgiver.navn?.sanitizeForPdfGen(),
-            adresse = pasient.arbeidsgiver.adresse?.sanitizeForPdfGen(),
-            poststed = pasient.arbeidsgiver.poststed?.sanitizeForPdfGen(),
-        ),
-    ),
-    sykdomsopplysninger = sykdomsopplysninger.copy(
-        sykdomshistorie = sykdomsopplysninger.sykdomshistorie.sanitizeForPdfGen(),
-        statusPresens = sykdomsopplysninger.statusPresens.sanitizeForPdfGen(),
-        hoveddiagnose = sykdomsopplysninger.hoveddiagnose?.copy(
-            tekst = sykdomsopplysninger.hoveddiagnose.tekst?.sanitizeForPdfGen(),
-        ),
-        bidiagnose = sykdomsopplysninger.bidiagnose.map { diagnose ->
-            diagnose?.copy(tekst = diagnose.tekst?.sanitizeForPdfGen())
-        },
-    ),
-    plan = plan?.copy(
-        utredningsplan = plan.utredningsplan?.sanitizeForPdfGen(),
-        behandlingsplan = plan.behandlingsplan?.sanitizeForPdfGen(),
-        vurderingAvTidligerePlan = plan.vurderingAvTidligerePlan?.sanitizeForPdfGen(),
-        narSporreOmNyeLegeopplysninger = plan.narSporreOmNyeLegeopplysninger?.sanitizeForPdfGen(),
-        videreBehandlingIkkeAktueltGrunn = plan.videreBehandlingIkkeAktueltGrunn?.sanitizeForPdfGen(),
-        utredning = plan.utredning?.copy(tekst = plan.utredning.tekst.sanitizeForPdfGen()),
-        behandling = plan.behandling?.copy(tekst = plan.behandling.tekst.sanitizeForPdfGen()),
-    ),
-    forslagTilTiltak = forslagTilTiltak.copy(
-        andreTiltak = forslagTilTiltak.andreTiltak?.sanitizeForPdfGen(),
-        naermereOpplysninger = forslagTilTiltak.naermereOpplysninger.sanitizeForPdfGen(),
-        tekst = forslagTilTiltak.tekst.sanitizeForPdfGen(),
-    ),
-    funksjonsOgArbeidsevne = funksjonsOgArbeidsevne.copy(
-        vurderingFunksjonsevne = funksjonsOgArbeidsevne.vurderingFunksjonsevne?.sanitizeForPdfGen(),
-        annetArbeid = funksjonsOgArbeidsevne.annetArbeid.sanitizeForPdfGen(),
-        kravTilArbeid = funksjonsOgArbeidsevne.kravTilArbeid?.sanitizeForPdfGen(),
-        kanIkkeGjenopptaNaverendeArbeid = funksjonsOgArbeidsevne.kanIkkeGjenopptaNaverendeArbeid?.sanitizeForPdfGen(),
-        kanIkkeTaAnnetArbeid = funksjonsOgArbeidsevne.kanIkkeTaAnnetArbeid?.sanitizeForPdfGen(),
-    ),
-    prognose = prognose.copy(
-        anslattVarighetSykdom = prognose.anslattVarighetSykdom?.sanitizeForPdfGen(),
-        anslattVarighetFunksjonsnedsetting = prognose.anslattVarighetFunksjonsnedsetting?.sanitizeForPdfGen(),
-        anslattVarighetNedsattArbeidsevne = prognose.anslattVarighetNedsattArbeidsevne?.sanitizeForPdfGen(),
-    ),
-    arsakssammenheng = arsakssammenheng?.sanitizeForPdfGen(),
-    andreOpplysninger = andreOpplysninger?.sanitizeForPdfGen(),
-    pasientenBurdeIkkeVite = pasientenBurdeIkkeVite?.sanitizeForPdfGen(),
-    kontakt = kontakt.copy(
-        kontakteAnnenInstans = kontakt.kontakteAnnenInstans?.sanitizeForPdfGen(),
-    ),
-    signatur = signatur.copy(
-        navn = signatur.navn?.sanitizeForPdfGen(),
-        adresse = signatur.adresse?.sanitizeForPdfGen(),
-        poststed = signatur.poststed?.sanitizeForPdfGen(),
-    ),
-)
+private fun Legeerklaering.sanitizeForPdfGen(): Legeerklaering =
+    mapper.readValue(mapper.writeValueAsString(this).sanitizeForPdfGen(), Legeerklaering::class.java)
