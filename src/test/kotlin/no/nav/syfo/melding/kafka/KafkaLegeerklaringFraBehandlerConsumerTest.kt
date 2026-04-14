@@ -411,6 +411,51 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         }
 
     @Test
+    fun `Should store legeerklaring with emoji chars when melding sent with same conversationRef`() = runTest {
+        val msgId = UUID.randomUUID().toString()
+        val meldingTilBehandler = defaultMeldingTilBehandler
+        val conversationRef = meldingRepository.createMeldingTilBehandler(
+            meldingTilBehandler = meldingTilBehandler.copy(
+                arbeidstakerPersonIdent = personIdent,
+                behandlerPersonIdent = behandlerPersonIdent,
+                behandlerNavn = behandlerNavn,
+                type = Melding.MeldingType.FORESPORSEL_PASIENT_LEGEERKLARING,
+            ),
+            pdf = byteArrayOf(),
+        ).conversationRef
+        val legeerklaring = generateKafkaLegeerklaringFraBehandlerDTO(
+            behandlerPersonIdent = behandlerPersonIdent,
+            behandlerNavn = behandlerNavn,
+            personIdent = personIdent,
+            msgId = msgId,
+            conversationRef = conversationRef.toString(),
+            parentRef = null,
+            sykdomshistorie = "Pasient har hatt vondt i ryggen 😊",
+        )
+        val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
+            legeerklaeringObjectId = legeerklaring.msgId,
+            validationResult = ValidationResult(Status.OK),
+            vedlegg = emptyList(),
+        )
+        every { blob.getContent() } returns configuredJacksonMapper().writeValueAsBytes(legeerklaring)
+        every { storage.get(bucketName, legeerklaring.msgId) } returns blob
+        val mockConsumer = mockKafkaConsumer(kafkaLegeerklaring, LEGEERKLARING_TOPIC)
+
+        legeerklaringConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
+        )
+
+        verify(exactly = 1) { mockConsumer.commitSync() }
+
+        val pMeldingListAfter = meldingRepository.getMeldingerForArbeidstaker(personIdent)
+        assertEquals(2, pMeldingListAfter.size)
+        val pSvar = pMeldingListAfter.last()
+        assertEquals(1, pSvar.antallVedlegg)
+        val vedlegg = meldingRepository.getVedlegg(pSvar.uuid, 0)
+        assertArrayEquals(UserConstants.PDF_LEGEERKLARING, vedlegg!!.pdf)
+    }
+
+    @Test
     fun `Should not store legeerklaring when melding sent to behandler long time ago`() = runTest {
         val msgId = UUID.randomUUID().toString()
         meldingRepository.createMeldingTilBehandler(

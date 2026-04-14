@@ -11,7 +11,7 @@ import no.nav.syfo.application.IPdfGenClient
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.client.httpClientDefault
-import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient.Companion.illegalCharacters
+import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient.Companion.illegalCharsRegex
 import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient.Companion.log
 import no.nav.syfo.infrastructure.kafka.domain.Status
 import no.nav.syfo.infrastructure.kafka.domain.ValidationResult
@@ -58,7 +58,7 @@ class PdfGenClient(
         getPdf(
             callId = UUID.randomUUID().toString(),
             payload = PdfModelLegeerklaring(
-                legeerklaering = legeerklaringDTO.legeerklaering,
+                legeerklaering = legeerklaringDTO.legeerklaering.sanitizeForPdfGen(),
                 validationResult = ValidationResult(Status.OK),
                 mottattDato = legeerklaringDTO.mottattDato,
             ),
@@ -137,21 +137,86 @@ class PdfGenClient(
         private const val LEGEERKLARING_URL = "/api/v1/genpdf/pale-2/pale-2"
 
         val log: Logger = LoggerFactory.getLogger(PdfGenClient::class.java)
-        val illegalCharacters = listOf('\u0002')
+        val illegalCharsRegex = Regex("""[^\t\r\n\x20-\x7E\x80-\xFF]""")
     }
 }
 
 fun List<DocumentComponentDTO>.sanitizeForPdfGen(): List<DocumentComponentDTO> = this.map {
     it.copy(
-        texts = it.texts.map { text ->
-            text.toCharArray().filter { char ->
-                if (char in illegalCharacters) {
-                    log.warn("Illegal character in document: %x".format(char.code))
-                    false
-                } else {
-                    true
-                }
-            }.joinToString("")
-        }
+        texts = it.texts.map { text -> text.sanitizeForPdfGen() }
     )
 }
+
+private fun String.sanitizeForPdfGen(): String {
+    val sanitized = this.replace(illegalCharsRegex) { match ->
+        log.warn("Illegal character in document: U+%04X".format(match.value.first().code))
+        ""
+    }
+    return sanitized
+        .replace("\u00A0", " ")
+        .replace("\u00AD", "")
+}
+
+private fun Legeerklaering.sanitizeForPdfGen(): Legeerklaering = this.copy(
+    pasient = pasient.copy(
+        fornavn = pasient.fornavn.sanitizeForPdfGen(),
+        mellomnavn = pasient.mellomnavn?.sanitizeForPdfGen(),
+        etternavn = pasient.etternavn.sanitizeForPdfGen(),
+        navKontor = pasient.navKontor?.sanitizeForPdfGen(),
+        adresse = pasient.adresse?.sanitizeForPdfGen(),
+        poststed = pasient.poststed?.sanitizeForPdfGen(),
+        yrke = pasient.yrke?.sanitizeForPdfGen(),
+        arbeidsgiver = pasient.arbeidsgiver.copy(
+            navn = pasient.arbeidsgiver.navn?.sanitizeForPdfGen(),
+            adresse = pasient.arbeidsgiver.adresse?.sanitizeForPdfGen(),
+            poststed = pasient.arbeidsgiver.poststed?.sanitizeForPdfGen(),
+        ),
+    ),
+    sykdomsopplysninger = sykdomsopplysninger.copy(
+        sykdomshistorie = sykdomsopplysninger.sykdomshistorie.sanitizeForPdfGen(),
+        statusPresens = sykdomsopplysninger.statusPresens.sanitizeForPdfGen(),
+        hoveddiagnose = sykdomsopplysninger.hoveddiagnose?.copy(
+            tekst = sykdomsopplysninger.hoveddiagnose.tekst?.sanitizeForPdfGen(),
+        ),
+        bidiagnose = sykdomsopplysninger.bidiagnose.map { diagnose ->
+            diagnose?.copy(tekst = diagnose.tekst?.sanitizeForPdfGen())
+        },
+    ),
+    plan = plan?.copy(
+        utredningsplan = plan.utredningsplan?.sanitizeForPdfGen(),
+        behandlingsplan = plan.behandlingsplan?.sanitizeForPdfGen(),
+        vurderingAvTidligerePlan = plan.vurderingAvTidligerePlan?.sanitizeForPdfGen(),
+        narSporreOmNyeLegeopplysninger = plan.narSporreOmNyeLegeopplysninger?.sanitizeForPdfGen(),
+        videreBehandlingIkkeAktueltGrunn = plan.videreBehandlingIkkeAktueltGrunn?.sanitizeForPdfGen(),
+        utredning = plan.utredning?.copy(tekst = plan.utredning.tekst.sanitizeForPdfGen()),
+        behandling = plan.behandling?.copy(tekst = plan.behandling.tekst.sanitizeForPdfGen()),
+    ),
+    forslagTilTiltak = forslagTilTiltak.copy(
+        andreTiltak = forslagTilTiltak.andreTiltak?.sanitizeForPdfGen(),
+        naermereOpplysninger = forslagTilTiltak.naermereOpplysninger.sanitizeForPdfGen(),
+        tekst = forslagTilTiltak.tekst.sanitizeForPdfGen(),
+    ),
+    funksjonsOgArbeidsevne = funksjonsOgArbeidsevne.copy(
+        vurderingFunksjonsevne = funksjonsOgArbeidsevne.vurderingFunksjonsevne?.sanitizeForPdfGen(),
+        annetArbeid = funksjonsOgArbeidsevne.annetArbeid.sanitizeForPdfGen(),
+        kravTilArbeid = funksjonsOgArbeidsevne.kravTilArbeid?.sanitizeForPdfGen(),
+        kanIkkeGjenopptaNaverendeArbeid = funksjonsOgArbeidsevne.kanIkkeGjenopptaNaverendeArbeid?.sanitizeForPdfGen(),
+        kanIkkeTaAnnetArbeid = funksjonsOgArbeidsevne.kanIkkeTaAnnetArbeid?.sanitizeForPdfGen(),
+    ),
+    prognose = prognose.copy(
+        anslattVarighetSykdom = prognose.anslattVarighetSykdom?.sanitizeForPdfGen(),
+        anslattVarighetFunksjonsnedsetting = prognose.anslattVarighetFunksjonsnedsetting?.sanitizeForPdfGen(),
+        anslattVarighetNedsattArbeidsevne = prognose.anslattVarighetNedsattArbeidsevne?.sanitizeForPdfGen(),
+    ),
+    arsakssammenheng = arsakssammenheng?.sanitizeForPdfGen(),
+    andreOpplysninger = andreOpplysninger?.sanitizeForPdfGen(),
+    pasientenBurdeIkkeVite = pasientenBurdeIkkeVite?.sanitizeForPdfGen(),
+    kontakt = kontakt.copy(
+        kontakteAnnenInstans = kontakt.kontakteAnnenInstans?.sanitizeForPdfGen(),
+    ),
+    signatur = signatur.copy(
+        navn = signatur.navn?.sanitizeForPdfGen(),
+        adresse = signatur.adresse?.sanitizeForPdfGen(),
+        poststed = signatur.poststed?.sanitizeForPdfGen(),
+    ),
+)

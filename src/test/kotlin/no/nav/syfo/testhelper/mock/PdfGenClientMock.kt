@@ -2,9 +2,10 @@ package no.nav.syfo.testhelper.mock
 
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import no.nav.syfo.testhelper.UserConstants
 
-fun MockRequestHandleScope.pdfGenClientMockResponse(request: HttpRequestData): HttpResponseData {
+suspend fun MockRequestHandleScope.pdfGenClientMockResponse(request: HttpRequestData): HttpResponseData {
     val requestUrl = request.url.encodedPath
     val apiBasePath = "/api/v1/genpdf/isbehandlerdialog"
     return when {
@@ -18,7 +19,12 @@ fun MockRequestHandleScope.pdfGenClientMockResponse(request: HttpRequestData): H
             respond(content = UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE)
         }
         requestUrl.endsWith("/api/v1/genpdf/pale-2/pale-2") -> {
-            respond(content = UserConstants.PDF_LEGEERKLARING)
+            val bodyString = String(request.body.toByteArray(), Charsets.UTF_8)
+            if (Regex("""[^\t\r\n\x20-\x7E\x80-\xFF]""").containsMatchIn(bodyString)) {
+                respond(content = "Bad request - illegal characters in body".toByteArray(), status = HttpStatusCode.BadRequest)
+            } else {
+                respond(content = UserConstants.PDF_LEGEERKLARING)
+            }
         }
         requestUrl.endsWith("$apiBasePath/henvendelse-retur-legeerklaring") -> {
             respond(content = UserConstants.PDF_RETUR_LEGEERKLARING)
