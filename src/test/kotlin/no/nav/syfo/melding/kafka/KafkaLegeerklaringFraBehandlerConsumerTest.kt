@@ -411,7 +411,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
         }
 
     @Test
-    fun `Should store legeerklaring with emoji chars when melding sent with same conversationRef`() = runTest {
+    fun `Should store legeerklaring with emoji chars`() = runTest {
         val msgId = UUID.randomUUID().toString()
         val meldingTilBehandler = defaultMeldingTilBehandler
         val conversationRef = meldingRepository.createMeldingTilBehandler(
@@ -430,7 +430,7 @@ class KafkaLegeerklaringFraBehandlerConsumerTest {
             msgId = msgId,
             conversationRef = conversationRef.toString(),
             parentRef = null,
-            sykdomshistorie = "Pasient har hatt vondt i ryggen 😊",
+            sykdomshistorie = "Tekst med emoji 😊",
         )
         val kafkaLegeerklaring = KafkaLegeerklaeringMessage(
             legeerklaeringObjectId = legeerklaring.msgId,
