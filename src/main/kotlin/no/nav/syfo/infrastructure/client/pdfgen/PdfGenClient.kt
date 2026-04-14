@@ -11,7 +11,7 @@ import no.nav.syfo.application.IPdfGenClient
 import no.nav.syfo.domain.DocumentComponentDTO
 import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.client.httpClientDefault
-import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient.Companion.illegalCharacters
+import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient.Companion.illegalCharsRegex
 import no.nav.syfo.infrastructure.client.pdfgen.PdfGenClient.Companion.log
 import no.nav.syfo.infrastructure.kafka.domain.Status
 import no.nav.syfo.infrastructure.kafka.domain.ValidationResult
@@ -19,12 +19,15 @@ import no.nav.syfo.infrastructure.kafka.legeerklaring.Legeerklaering
 import no.nav.syfo.infrastructure.kafka.legeerklaring.LegeerklaringDTO
 import no.nav.syfo.util.NAV_CALL_ID_HEADER
 import no.nav.syfo.util.callIdArgument
+import no.nav.syfo.util.configuredJacksonMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+
+private val mapper = configuredJacksonMapper()
 
 class PdfGenClient(
     private val pdfGenBaseUrl: String,
@@ -58,7 +61,7 @@ class PdfGenClient(
         getPdf(
             callId = UUID.randomUUID().toString(),
             payload = PdfModelLegeerklaring(
-                legeerklaering = legeerklaringDTO.legeerklaering,
+                legeerklaering = legeerklaringDTO.legeerklaering.sanitizeForPdfGen(),
                 validationResult = ValidationResult(Status.OK),
                 mottattDato = legeerklaringDTO.mottattDato,
             ),
@@ -137,21 +140,27 @@ class PdfGenClient(
         private const val LEGEERKLARING_URL = "/api/v1/genpdf/pale-2/pale-2"
 
         val log: Logger = LoggerFactory.getLogger(PdfGenClient::class.java)
-        val illegalCharacters = listOf('\u0002')
+        val illegalCharsRegex = Regex("""[^\t\r\n\x20-\x7E\x80-\xFF]""")
     }
 }
 
 fun List<DocumentComponentDTO>.sanitizeForPdfGen(): List<DocumentComponentDTO> = this.map {
     it.copy(
-        texts = it.texts.map { text ->
-            text.toCharArray().filter { char ->
-                if (char in illegalCharacters) {
-                    log.warn("Illegal character in document: %x".format(char.code))
-                    false
-                } else {
-                    true
-                }
-            }.joinToString("")
-        }
+        texts = it.texts.map { text -> text.sanitizeForPdfGen() }
     )
 }
+
+private fun String.sanitizeForPdfGen(): String {
+    // Allow: TAB, CR, LF, printable ASCII (U+0020..U+007E), and all bytes U+0080..U+00FF (including C1 range) per request.
+    // Excludes only DEL (0x7F) and any codepoints > U+00FF. Still normalizes NBSP to space and removes soft hyphen.
+    val sanitized = this.replace(illegalCharsRegex) { match ->
+        log.warn("Illegal character in document: U+%04X".format(match.value.first().code))
+        ""
+    }
+    return sanitized
+        .replace("\u00A0", " ")
+        .replace("\u00AD", "")
+}
+
+private fun Legeerklaering.sanitizeForPdfGen(): Legeerklaering =
+    mapper.readValue(mapper.writeValueAsString(this).sanitizeForPdfGen(), Legeerklaering::class.java)

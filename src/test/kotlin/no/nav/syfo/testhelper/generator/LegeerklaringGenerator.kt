@@ -14,11 +14,13 @@ fun generateKafkaLegeerklaringFraBehandlerDTO(
     conversationRef: String? = UUID.randomUUID().toString(),
     tidspunkt: LocalDateTime = LocalDateTime.now(),
     parentRef: String? = UUID.randomUUID().toString(),
+    sykdomshistorie: String = "",
 ) = LegeerklaringDTO(
     legeerklaering = generateLegeerklaring(
         personIdent = personIdent.value,
         behandlerNavn = behandlerNavn,
         tidspunkt = tidspunkt,
+        sykdomshistorie = sykdomshistorie,
     ),
     personNrPasient = personIdent.value,
     personNrLege = behandlerPersonIdent.value,
@@ -40,6 +42,7 @@ fun generateLegeerklaring(
     personIdent: String,
     behandlerNavn: String,
     tidspunkt: LocalDateTime = LocalDateTime.now(),
+    sykdomshistorie: String = "",
 ) = Legeerklaering(
     id = UUID.randomUUID().toString(),
     arbeidsvurderingVedSykefravaer = false,
@@ -67,7 +70,7 @@ fun generateLegeerklaring(
         hoveddiagnose = null,
         bidiagnose = emptyList(),
         arbeidsuforFra = null,
-        sykdomshistorie = "",
+        sykdomshistorie = sykdomshistorie,
         statusPresens = "",
         borNavKontoretVurdereOmDetErEnYrkesskade = false,
         yrkesSkadeDato = null,
