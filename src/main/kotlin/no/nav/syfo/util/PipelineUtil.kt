@@ -8,9 +8,12 @@ import no.nav.syfo.domain.PersonIdent
 const val JWT_CLAIM_AZP = "azp"
 const val JWT_CLAIM_NAVIDENT = "NAVident"
 
+fun getNavIdentFromToken(token: String): String? =
+    runCatching { JWT.decode(token).claims[JWT_CLAIM_NAVIDENT]?.asString() }.getOrNull()
+
 fun ApplicationCall.getCallId(): String = this.request.headers[NAV_CALL_ID_HEADER].toString()
 
-fun ApplicationCall.getPersonIdent(): PersonIdent? =
+fun ApplicationCall.getPersonident(): PersonIdent? =
     this.request.headers[NAV_PERSONIDENT_HEADER]?.let { PersonIdent(it) }
 
 fun ApplicationCall.getConsumerClientId(): String? =
@@ -20,8 +23,7 @@ fun ApplicationCall.getConsumerClientId(): String? =
 
 fun ApplicationCall.getNAVIdent(): String {
     val token = getBearerHeader() ?: throw Error("No Authorization header supplied")
-    return JWT.decode(token).claims[JWT_CLAIM_NAVIDENT]?.asString()
-        ?: throw Error("Missing NAVident in private claims")
+    return getNavIdentFromToken(token) ?: throw Error("Missing NAVident in private claims")
 }
 
 fun ApplicationCall.getBearerHeader(): String? =
