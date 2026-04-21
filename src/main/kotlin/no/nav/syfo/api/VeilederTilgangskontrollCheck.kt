@@ -10,17 +10,26 @@ import no.nav.syfo.util.getCallId
 suspend fun ApplicationCall.checkVeilederTilgang(
     action: String,
     veilederTilgangskontrollClient: VeilederTilgangskontrollClient,
-    personIdent: PersonIdent,
+    personident: PersonIdent,
+    requiresWriteAccess: Boolean = false,
 ) {
     val callId = getCallId()
     val token = getBearerHeader()
         ?: throw IllegalArgumentException("Failed to complete the following action: $action. No Authorization header supplied")
 
-    val hasAccess = veilederTilgangskontrollClient.hasAccess(
-        callId = callId,
-        personIdent = personIdent,
-        token = token,
-    )
+    val hasAccess = if (requiresWriteAccess) {
+        veilederTilgangskontrollClient.hasWriteAccess(
+            callId = callId,
+            personident = personident,
+            token = token,
+        )
+    } else {
+        veilederTilgangskontrollClient.hasAccess(
+            callId = callId,
+            personident = personident,
+            token = token,
+        )
+    }
     if (!hasAccess) {
         throw ForbiddenAccessVeilederException(
             action = action,

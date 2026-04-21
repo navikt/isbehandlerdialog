@@ -16,7 +16,7 @@ import no.nav.syfo.infrastructure.client.veiledertilgang.VeilederTilgangskontrol
 import no.nav.syfo.util.NAV_PERSONIDENT_HEADER
 import no.nav.syfo.util.getCallId
 import no.nav.syfo.util.getNAVIdent
-import no.nav.syfo.util.getPersonIdent
+import no.nav.syfo.util.getPersonident
 import java.util.*
 
 const val meldingApiBasePath = "/api/internad/v1/melding"
@@ -31,13 +31,13 @@ fun Route.registerMeldingApi(
 ) {
     route(meldingApiBasePath) {
         get {
-            val personIdent = call.personIdent()
+            val personident = call.personident()
             call.checkVeilederTilgang(
                 action = API_ACTION,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
-                personIdent = personIdent
+                personident = personident
             )
-            val conversations = meldingService.getConversations(personIdent)
+            val conversations = meldingService.getConversations(personident)
 
             call.respond(
                 MeldingResponseDTO(conversations = conversations)
@@ -49,11 +49,11 @@ fun Route.registerMeldingApi(
             val vedleggNumberString = call.parameters[vedleggNumber]
                 ?: throw IllegalArgumentException("Missing value for vedleggNumber")
 
-            val personIdent = meldingService.getArbeidstakerPersonIdentForMelding(meldingUuid)
+            val personident = meldingService.getArbeidstakerPersonIdentForMelding(meldingUuid)
             call.checkVeilederTilgang(
                 action = API_ACTION,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
-                personIdent = personIdent
+                personident = personident
             )
 
             val pdfContent = meldingService.getVedlegg(
@@ -68,12 +68,13 @@ fun Route.registerMeldingApi(
         }
 
         post {
-            val personIdent = call.personIdent()
+            val personident = call.personident()
             val veilederIdent = call.getNAVIdent()
             call.checkVeilederTilgang(
                 action = API_ACTION,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
-                personIdent = personIdent
+                personident = personident,
+                requiresWriteAccess = true,
             )
             val requestDTO = call.receive<MeldingTilBehandlerRequestDTO>()
 
@@ -81,19 +82,20 @@ fun Route.registerMeldingApi(
                 requestDTO = requestDTO,
                 callId = getCallId(),
                 veilederIdent = veilederIdent,
-                personIdent = personIdent,
+                personIdent = personident,
             )
 
             call.respond(HttpStatusCode.OK)
         }
 
         post("/{$uuid}/paminnelse") {
-            val personIdent = call.personIdent()
+            val personident = call.personident()
             val veilederIdent = call.getNAVIdent()
             call.checkVeilederTilgang(
                 action = API_ACTION,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
-                personIdent = personIdent
+                personident = personident,
+                requiresWriteAccess = true,
             )
 
             val meldingUuid = call.meldingUuid()
@@ -110,12 +112,13 @@ fun Route.registerMeldingApi(
         }
 
         post("/{$uuid}/retur") {
-            val personIdent = call.personIdent()
+            val personident = call.personident()
             val veilederIdent = call.getNAVIdent()
             call.checkVeilederTilgang(
                 action = API_ACTION,
                 veilederTilgangskontrollClient = veilederTilgangskontrollClient,
-                personIdent = personIdent
+                personident = personident,
+                requiresWriteAccess = true,
             )
 
             val meldingUuid = call.meldingUuid()
@@ -137,5 +140,5 @@ fun Route.registerMeldingApi(
 private fun ApplicationCall.meldingUuid(): UUID = UUID.fromString(this.parameters[uuid])
     ?: throw IllegalArgumentException("Missing value for melding uuid")
 
-private fun ApplicationCall.personIdent(): PersonIdent = this.getPersonIdent()
+private fun ApplicationCall.personident(): PersonIdent = this.getPersonident()
     ?: throw IllegalArgumentException("Failed to $API_ACTION: No $NAV_PERSONIDENT_HEADER supplied in request header")

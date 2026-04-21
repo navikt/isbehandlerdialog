@@ -19,6 +19,7 @@ object UserConstants {
     var PDF_HENVENDELSE_MELDING_FRA_NAV = byteArrayOf(0x2E, 103)
 
     const val VEILEDER_IDENT = "Z999999"
+    const val VEILEDER_IDENT_NO_WRITE_ACCESS = "Z888888"
 
     val MSG_ID_WITH_VEDLEGG = UUID.randomUUID()
     val VEDLEGG_BYTEARRAY = byteArrayOf(0x2E, 0x28)

@@ -36,19 +36,15 @@ import kotlin.test.assertNull
 class MeldingApiPostTest {
 
     private val externalMockEnvironment = ExternalMockEnvironment.instance
-    private val database = ExternalMockEnvironment.instance.database
-    private val meldingRepository = ExternalMockEnvironment.instance.meldingRepository
+    private val database = externalMockEnvironment.database
+    private val meldingRepository = externalMockEnvironment.meldingRepository
     private val kafkaProducer = mockk<KafkaProducer<String, DialogmeldingBestillingDTO>>()
     private val dialogmeldingBestillingProducer = DialogmeldingBestillingProducer(
         dialogmeldingBestillingKafkaProducer = kafkaProducer,
     )
 
     private val apiUrl = meldingApiBasePath
-    private val validToken = generateJWT(
-        audience = externalMockEnvironment.environment.azure.appClientId,
-        issuer = externalMockEnvironment.wellKnownInternalAzureAD.issuer,
-        navIdent = UserConstants.VEILEDER_IDENT,
-    )
+    private val validToken = tokenForVeilederWithFullTilgang
     private val personIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT
     private val veilederIdent = UserConstants.VEILEDER_IDENT
 
@@ -162,6 +158,11 @@ class MeldingApiPostTest {
             @Test
             fun `returns status BadRequest if no NAV_PERSONIDENT_HEADER is supplied`() {
                 testMissingPersonIdent(paminnelseApiUrl, validToken, HttpMethod.Post)
+            }
+
+            @Test
+            fun `returns status Forbidden if denied write access`() {
+                testDeniedWriteAccess(paminnelseApiUrl)
             }
 
             @Test
@@ -534,6 +535,11 @@ class MeldingApiPostTest {
             }
 
             @Test
+            fun `returns status Forbidden if denied write access`() {
+                testDeniedWriteAccess(apiUrl)
+            }
+
+            @Test
             fun `returns status BadRequest if NAV_PERSONIDENT_HEADER with invalid PersonIdent is supplied`() {
                 testInvalidPersonIdent(apiUrl, validToken, HttpMethod.Post)
             }
@@ -645,6 +651,11 @@ class MeldingApiPostTest {
             @Test
             fun `returns status BadRequest if no NAV_PERSONIDENT_HEADER is supplied`() {
                 testMissingPersonIdent(returApiUrl, validToken, HttpMethod.Post)
+            }
+
+            @Test
+            fun `returns status Forbidden if denied write access`() {
+                testDeniedWriteAccess(returApiUrl)
             }
 
             @Test
