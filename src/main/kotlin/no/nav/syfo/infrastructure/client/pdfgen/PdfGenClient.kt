@@ -31,7 +31,6 @@ private val mapper = configuredJacksonMapper()
 
 class PdfGenClient(
     private val pdfGenBaseUrl: String,
-    private val legeerklaringPdfGenBaseUrl: String,
     private val httpClient: HttpClient = httpClientDefault(),
 ) : IPdfGenClient {
 
@@ -65,7 +64,7 @@ class PdfGenClient(
                 validationResult = ValidationResult(Status.OK),
                 mottattDato = legeerklaringDTO.mottattDato,
             ),
-            pdfUrl = legeerklaringPdfGenBaseUrl + LEGEERKLARING_URL,
+            pdfUrl = pdfGenBaseUrl + LEGEERKLARING_URL,
         )
 
     private suspend fun getPdf(
@@ -137,7 +136,7 @@ class PdfGenClient(
         private const val FORESPORSEL_OM_PASIENT_PAMINNELSE_URL = "$API_BASE_PATH/foresporselompasient-paminnelse"
         private const val RETUR_LEGEERKLARING_URL = "$API_BASE_PATH/henvendelse-retur-legeerklaring"
         private const val HENVENDELSE_MELDING_FRA_NAV_URL = "$API_BASE_PATH/henvendelse-meldingfranav"
-        private const val LEGEERKLARING_URL = "/api/v1/genpdf/pale-2/pale-2"
+        private const val LEGEERKLARING_URL = "$API_BASE_PATH/legeerklaring"
 
         val log: Logger = LoggerFactory.getLogger(PdfGenClient::class.java)
         val illegalCharsRegex = Regex("""[^\t\r\n\x20-\x7E\x80-\xFF]""")
