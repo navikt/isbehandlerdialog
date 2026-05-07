@@ -18,7 +18,7 @@ suspend fun MockRequestHandleScope.pdfGenClientMockResponse(request: HttpRequest
         requestUrl.endsWith("$apiBasePath/foresporselompasient-paminnelse") -> {
             respond(content = UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE)
         }
-        requestUrl.endsWith("/api/v1/genpdf/pale-2/pale-2") -> {
+        requestUrl.endsWith("$apiBasePath/legeerklaring") -> {
             val bodyString = String(request.body.toByteArray(), Charsets.UTF_8)
             if (Regex("""[^\t\r\n\x20-\x7E\x80-\xFF]""").containsMatchIn(bodyString)) {
                 respond(content = "Bad request - illegal characters in body".toByteArray(), status = HttpStatusCode.BadRequest)

@@ -44,9 +44,6 @@ fun testEnvironment() = Environment(
         dialogmeldingpdfgen = OpenClientEnvironment(
             baseUrl = "pdfGenClientUrl"
         ),
-        legeerklaringpdfgen = OpenClientEnvironment(
-            baseUrl = "pdfGenClientUrl"
-        ),
         padm2 = ClientEnvironment(
             baseUrl = "padm2Url",
             clientId = "dev-gcp.teamsykefravr.padm2",
