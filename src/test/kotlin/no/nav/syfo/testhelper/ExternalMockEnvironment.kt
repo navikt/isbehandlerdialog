@@ -40,7 +40,6 @@ class ExternalMockEnvironment private constructor() {
 
     val pdfgenClient = PdfGenClient(
         pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,
-        legeerklaringPdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,
         httpClient = mockHttpClient,
     )
     val azureAdClient = AzureAdClient(

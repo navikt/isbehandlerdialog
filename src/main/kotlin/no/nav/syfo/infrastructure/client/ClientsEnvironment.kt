@@ -4,7 +4,6 @@ data class ClientsEnvironment(
     val padm2: ClientEnvironment,
     val istilgangskontroll: ClientEnvironment,
     val dialogmeldingpdfgen: OpenClientEnvironment,
-    val legeerklaringpdfgen: OpenClientEnvironment,
     val dokarkiv: ClientEnvironment,
     val oppfolgingstilfelle: ClientEnvironment,
     val dialogmelding: ClientEnvironment,

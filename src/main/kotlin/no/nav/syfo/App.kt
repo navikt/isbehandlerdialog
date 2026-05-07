@@ -62,7 +62,6 @@ fun main() {
     )
     val pdfgenClient = PdfGenClient(
         pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,
-        legeerklaringPdfGenBaseUrl = environment.clients.legeerklaringpdfgen.baseUrl,
     )
 
     lateinit var meldingService: MeldingService

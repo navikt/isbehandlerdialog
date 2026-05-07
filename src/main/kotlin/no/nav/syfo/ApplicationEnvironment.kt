@@ -48,9 +48,6 @@ data class Environment(
         dialogmeldingpdfgen = OpenClientEnvironment(
             baseUrl = "http://ispdfgen",
         ),
-        legeerklaringpdfgen = OpenClientEnvironment(
-            baseUrl = "http://pale-2-pdfgenrs.teamsykmelding",
-        ),
         dokarkiv = ClientEnvironment(
             baseUrl = getEnvVar("DOKARKIV_URL"),
             clientId = getEnvVar("DOKARKIV_CLIENT_ID"),
