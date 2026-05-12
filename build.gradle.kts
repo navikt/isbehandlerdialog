@@ -5,7 +5,7 @@ version = "0.0.1"
 
 val confluent = "8.2.0"
 val flywayVersion = "11.19.0"
-val googleCloudStorageVersion = "2.67.0"
+val googleCloudStorageVersion = "2.68.0"
 val hikariVersion = "7.0.2"
 val jacksonDataTypeVersion = "2.21.3"
 val jacksonDatabindVersion = "3.1.3"
