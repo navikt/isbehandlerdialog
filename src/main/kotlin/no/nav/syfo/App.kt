@@ -27,7 +27,6 @@ import no.nav.syfo.infrastructure.kafka.producer.DialogmeldingBestillingProducer
 import no.nav.syfo.infrastructure.kafka.launchKafkaTaskDialogmeldingStatus
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
-import java.util.concurrent.TimeUnit
 
 const val applicationPort = 8080
 
@@ -152,7 +151,7 @@ fun main() {
 
     Runtime.getRuntime().addShutdownHook(
         Thread {
-            server.stop(10, 10, TimeUnit.SECONDS)
+            applicationState.ready = false
         }
     )
 
