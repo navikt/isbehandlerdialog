@@ -162,6 +162,20 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         }
     }
 
+    override fun updateUtgaendePublishedAt(uuid: UUID) {
+        database.connection.use { connection ->
+            val rowCount = connection.prepareStatement(QUERY_UPDATE_UTGAENDE_PUBLISHED_AT).use {
+                it.setObject(1, OffsetDateTime.now())
+                it.setString(2, uuid.toString())
+                it.executeUpdate()
+            }
+            if (rowCount != 1) {
+                throw SQLException("Failed to update published_at for ubesvart melding with uuid: $uuid ")
+            }
+            connection.commit()
+        }
+    }
+
     override fun getVedlegg(uuid: UUID, number: Int): VedleggPdf? =
         database.connection.use { connection ->
             connection.prepareStatement(QUERY_GET_VEDLEGG).use {
@@ -174,6 +188,13 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
     override fun getUnpublishedMeldingerFraBehandler(): List<Melding.MeldingFraBehandler> =
         database.connection.use { connection ->
             connection.prepareStatement(QUERY_GET_UNPUBLISHED_MELDINGER_FRA_BEHANDLER).use {
+                it.executeQuery().toList { toPMelding().toMeldingFraBehandler() }
+            }
+        }
+
+    override fun getUnpublishedMeldingerTilBehandler(): List<Melding.MeldingFraBehandler> =
+        database.connection.use { connection ->
+            connection.prepareStatement(QUERY_GET_UNPUBLISHED_MELDINGER_TIL_BEHANDLER).use {
                 it.executeQuery().toList { toPMelding().toMeldingFraBehandler() }
             }
         }
@@ -414,6 +435,13 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 WHERE uuid = ?
             """
 
+        private const val QUERY_UPDATE_UTGAENDE_PUBLISHED_AT =
+            """
+                UPDATE MELDING
+                SET utgaende_published_at = ?
+                WHERE uuid = ?
+            """
+
         private const val QUERY_GET_VEDLEGG =
             """
                 SELECT vedlegg.* 
@@ -427,6 +455,14 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 SELECT *
                 FROM MELDING
                 WHERE innkommende AND innkommende_published_at IS NULL
+                ORDER BY created_at ASC
+            """
+
+        private const val QUERY_GET_UNPUBLISHED_MELDINGER_TIL_BEHANDLER =
+            """
+                SELECT *
+                FROM MELDING
+                WHERE NOT innkommende AND utgaende_published_at IS NULL
                 ORDER BY created_at ASC
             """
 
@@ -557,6 +593,7 @@ private fun ResultSet.toPMelding() =
         document = mapper.readValue(getString("document"), object : TypeReference<List<DocumentComponentDTO>>() {}),
         antallVedlegg = getInt("antall_vedlegg"),
         innkommendePublishedAt = getObject("innkommende_published_at", OffsetDateTime::class.java),
+        utgaendePublishedAt = getObject("utgaende_published_at", OffsetDateTime::class.java),
         journalpostId = getString("journalpost_id"),
         ubesvartPublishedAt = getObject("ubesvart_published_at", OffsetDateTime::class.java),
         veilederIdent = getString("veileder_ident"),

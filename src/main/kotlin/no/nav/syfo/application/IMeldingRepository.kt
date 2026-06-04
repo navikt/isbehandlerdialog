@@ -26,9 +26,11 @@ interface IMeldingRepository {
     suspend fun getUbesvarteMeldingerTilBehandler(fristDato: OffsetDateTime): List<Melding.MeldingTilBehandler>
     suspend fun updateUbesvartPublishedAt(uuid: UUID)
     fun updateInnkommendePublishedAt(uuid: UUID)
+    fun updateUtgaendePublishedAt(uuid: UUID)
     fun getVedlegg(uuid: UUID, number: Int): VedleggPdf?
     fun createVedlegg(pdf: ByteArray, meldingId: PMelding.Id, number: Int, connection: Connection): Int
     fun getUnpublishedMeldingerFraBehandler(): List<Melding.MeldingFraBehandler>
+    fun getUnpublishedMeldingerTilBehandler(): List<Melding.MeldingFraBehandler>
     fun getUnpublishedAvvisteMeldinger(): List<Melding.MeldingTilBehandler>
     fun updateAvvistMeldingPublishedAt(uuid: UUID)
     fun getIkkeJournalforteMeldingerTilBehandler(): List<Pair<Melding.MeldingTilBehandler, ByteArray>>
