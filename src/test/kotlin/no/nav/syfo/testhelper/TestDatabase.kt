@@ -7,10 +7,8 @@ import no.nav.syfo.domain.Melding
 import no.nav.syfo.infrastructure.database.DatabaseInterface
 import no.nav.syfo.infrastructure.database.PMeldingStatus
 import no.nav.syfo.infrastructure.database.domain.PMelding
-import no.nav.syfo.infrastructure.database.domain.PPdf
 import no.nav.syfo.infrastructure.database.repository.toPMeldingStatus
 import no.nav.syfo.infrastructure.database.toList
-import no.nav.syfo.infrastructure.database.toPPdf
 import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.sql.SQLException
@@ -129,14 +127,14 @@ const val queryGetPDFs = """
     WHERE m.uuid = ?
 """
 
-fun DatabaseInterface.getPDFs(meldingUuid: UUID): List<PPdf> = this.connection.use { connection ->
+fun DatabaseInterface.getPDFs(meldingUuid: UUID): List<ByteArray> = this.connection.use { connection ->
     connection.prepareStatement(queryGetPDFs).use {
         it.setString(1, meldingUuid.toString())
-        it.executeQuery().toList { toPPdf() }
+        it.executeQuery().toList { getBytes("pdf") }
     }
 }
 
-fun DatabaseInterface.firstPdf(meldingUuid: UUID): PPdf = this.getPDFs(meldingUuid).first()
+fun DatabaseInterface.firstPdf(meldingUuid: UUID): ByteArray = this.getPDFs(meldingUuid).first()
 
 fun DatabaseInterface.getMeldingStatus(): List<PMeldingStatus> = this.connection.use { connection ->
     connection.prepareStatement("SELECT * FROM MELDING_STATUS").use {

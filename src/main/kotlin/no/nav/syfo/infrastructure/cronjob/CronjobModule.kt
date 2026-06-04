@@ -24,6 +24,7 @@ fun Application.cronjobModule(
     meldingRepository: IMeldingRepository,
     environment: Environment,
     azureAdClient: AzureAdClient,
+    dialogmeldingBestillingProducer: DialogmeldingBestillingProducer,
 ) {
     val leaderPodClient = LeaderPodClient(
         electorPath = environment.electorPath
@@ -99,10 +100,15 @@ fun Application.cronjobModule(
         publishAvvistMeldingService = publishAvvistMeldingService,
         intervalDelayMinutes = environment.cronjobAvvistMeldingStatusIntervalDelayMinutes,
     )
+    val meldingTilBehandlerCronjob = MeldingTilBehandlerCronjob(
+        dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
+        meldingRepository = meldingRepository,
+    )
 
     val allCronjobs = mutableListOf(
         journalforMeldingTilBehandlerCronjob,
         meldingFraBehandlerCronjob,
+        meldingTilBehandlerCronjob,
         ubesvartMeldingCronjob,
         avvistMeldingStatusCronjob,
     )

@@ -102,8 +102,8 @@ class MeldingApiPostTest {
                         pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
                     assertEquals("Vi viser til tidligere forespørsel angående din pasient", brodtekst.texts.first())
 
-                    val pPdf = database.firstPdf(meldingUuid = pMelding.uuid)
-                    assertArrayEquals(UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE, pPdf.pdf)
+                    val pdf = database.firstPdf(meldingUuid = pMelding.uuid)
+                    assertArrayEquals(UserConstants.PDF_FORESPORSEL_OM_PASIENT_PAMINNELSE, pdf)
 
                     val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
                     verify(exactly = 1) {
@@ -344,8 +344,8 @@ class MeldingApiPostTest {
                         assertEquals(HttpStatusCode.OK, response.status)
 
                         val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
-                        val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
-                        assertArrayEquals(UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER, pPdf.pdf)
+                        val pdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
+                        assertArrayEquals(UserConstants.PDF_FORESPORSEL_OM_PASIENT_TILLEGGSOPPLYSNINGER, pdf)
                     }
                 }
             }
@@ -430,8 +430,8 @@ class MeldingApiPostTest {
                         assertEquals(HttpStatusCode.OK, response.status)
 
                         val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
-                        val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
-                        assertArrayEquals(UserConstants.PDF_FORESPORSEL_OM_PASIENT_LEGEERKLARING, pPdf.pdf)
+                        val pdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
+                        assertArrayEquals(UserConstants.PDF_FORESPORSEL_OM_PASIENT_LEGEERKLARING, pdf)
                     }
                 }
             }
@@ -510,8 +510,8 @@ class MeldingApiPostTest {
                         assertEquals(HttpStatusCode.OK, response.status)
 
                         val pMeldinger = meldingRepository.getMeldingerForArbeidstaker(personIdent)
-                        val pPdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
-                        assertArrayEquals(UserConstants.PDF_HENVENDELSE_MELDING_FRA_NAV, pPdf.pdf)
+                        val pdf = database.firstPdf(meldingUuid = pMeldinger.first().uuid)
+                        assertArrayEquals(UserConstants.PDF_HENVENDELSE_MELDING_FRA_NAV, pdf)
                     }
                 }
             }
@@ -607,8 +607,8 @@ class MeldingApiPostTest {
                         brodtekst.texts.first()
                     )
 
-                    val pPdf = database.firstPdf(meldingUuid = pMelding.uuid)
-                    assertArrayEquals(UserConstants.PDF_RETUR_LEGEERKLARING, pPdf.pdf)
+                    val pdf = database.firstPdf(meldingUuid = pMelding.uuid)
+                    assertArrayEquals(UserConstants.PDF_RETUR_LEGEERKLARING, pdf)
 
                     val producerRecordSlot = slot<ProducerRecord<String, DialogmeldingBestillingDTO>>()
                     verify(exactly = 1) {
