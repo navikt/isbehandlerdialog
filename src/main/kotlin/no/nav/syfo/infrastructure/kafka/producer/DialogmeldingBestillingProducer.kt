@@ -31,13 +31,12 @@ class DialogmeldingBestillingProducer(
                 Melding.MeldingType.HENVENDELSE_MELDING_TIL_NAV -> {} // only used for incoming messages
             }
         } catch (e: Exception) {
-            log.error(
-                "Exception was thrown when attempting to send behandler-dialogmelding-bestilling with key {}: ${e.message}",
-                key,
+            log.warn(
+                "Exception was thrown when attempting to send behandler-dialogmelding-bestilling, cronjob will retry. uuid {}: ${e.message}",
+                dialogmeldingBestillingDTO.dialogmeldingUuid,
                 e
             )
             COUNT_KAFKA_PRODUCER_MELDING_TIL_BEHANDLER_BESTILLING_ERROR.increment()
-            throw e
         }
     }
 
