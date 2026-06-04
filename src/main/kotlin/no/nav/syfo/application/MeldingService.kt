@@ -341,6 +341,9 @@ class MeldingService(
             meldingTilBehandler = meldingTilBehandler,
             meldingPdf = pdf,
         )
+        meldingRepository.updateUtgaendePublishedAt(
+            uuid = meldingTilBehandler.uuid,
+        )
     }
 
     companion object {

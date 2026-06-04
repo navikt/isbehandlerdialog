@@ -24,6 +24,7 @@ data class PMelding(
     val document: List<DocumentComponentDTO>,
     val antallVedlegg: Int,
     val innkommendePublishedAt: OffsetDateTime?,
+    val utgaendePublishedAt: OffsetDateTime?,
     val journalpostId: String?,
     val ubesvartPublishedAt: OffsetDateTime?,
     val veilederIdent: String?,

@@ -289,6 +289,8 @@ class MeldingApiPostTest {
                         assertEquals(Melding.MeldingType.FORESPORSEL_PASIENT_TILLEGGSOPPLYSNINGER.name, pMelding.type)
                         assertEquals(false, pMelding.innkommende)
                         assertEquals(veilederIdent, pMelding.veilederIdent)
+                        assertNull(pMelding.innkommendePublishedAt)
+                        assertNotNull(pMelding.utgaendePublishedAt)
 
                         val brodtekst =
                             pMelding.document.first { it.key == null && it.type == DocumentComponentType.PARAGRAPH }
