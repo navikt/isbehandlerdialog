@@ -192,11 +192,11 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             }
         }
 
-    override fun getUnpublishedMeldingerTilBehandler(): List<Melding.MeldingFraBehandler> =
+    override fun getUnpublishedMeldingerTilBehandler(): List<Pair<Melding.MeldingTilBehandler, ByteArray>> =
         database.connection.use { connection ->
             connection.prepareStatement(QUERY_GET_UNPUBLISHED_MELDINGER_TIL_BEHANDLER).use {
-                it.executeQuery().toList { toPMelding().toMeldingFraBehandler() }
-            }
+                it.executeQuery().toList { Pair(toPMelding(), getBytes("pdf")) }
+            }.map { (pMelding, pdf) -> Pair(pMelding.toMeldingTilBehandler(), pdf) }
         }
 
     override fun getUnpublishedAvvisteMeldinger(): List<Melding.MeldingTilBehandler> =
@@ -460,10 +460,11 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
 
         private const val QUERY_GET_UNPUBLISHED_MELDINGER_TIL_BEHANDLER =
             """
-                SELECT *
-                FROM MELDING
-                WHERE NOT innkommende AND utgaende_published_at IS NULL
-                ORDER BY created_at ASC
+                SELECT m.*, p.pdf as pdf
+                FROM melding m
+                INNER JOIN pdf p on m.id = p.melding_id
+                WHERE NOT m.innkommende AND m.utgaende_published_at IS NULL
+                ORDER BY m.created_at ASC
             """
 
         private const val QUERY_GET_UNPUBLISHED_AVVISTE_MELDINGER =

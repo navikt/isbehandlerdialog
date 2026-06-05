@@ -30,7 +30,7 @@ interface IMeldingRepository {
     fun getVedlegg(uuid: UUID, number: Int): VedleggPdf?
     fun createVedlegg(pdf: ByteArray, meldingId: PMelding.Id, number: Int, connection: Connection): Int
     fun getUnpublishedMeldingerFraBehandler(): List<Melding.MeldingFraBehandler>
-    fun getUnpublishedMeldingerTilBehandler(): List<Melding.MeldingFraBehandler>
+    fun getUnpublishedMeldingerTilBehandler(): List<Pair<Melding.MeldingTilBehandler, ByteArray>>
     fun getUnpublishedAvvisteMeldinger(): List<Melding.MeldingTilBehandler>
     fun updateAvvistMeldingPublishedAt(uuid: UUID)
     fun getIkkeJournalforteMeldingerTilBehandler(): List<Pair<Melding.MeldingTilBehandler, ByteArray>>

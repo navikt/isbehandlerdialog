@@ -108,6 +108,7 @@ fun main() {
                 meldingRepository = meldingRepository,
                 environment = environment,
                 azureAdClient = azureAdClient,
+                dialogmeldingBestillingProducer = dialogmeldingBestillingProducer,
             )
 
             monitor.subscribe(ApplicationStarted) {
