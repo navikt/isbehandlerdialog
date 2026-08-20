@@ -312,6 +312,29 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             it.executeQuery().toList { toPMelding() }
         }
 
+    override fun slettMelding(uuid: UUID) {
+        database.connection.use { connection ->
+            val melding = connection.prepareStatement(QUERY_GET_MELDING_FOR_UUID).use {
+                it.setString(1, uuid.toString())
+                it.executeQuery().toList { toPMelding() }.firstOrNull()
+            } ?: throw SQLException("Melding with uuid $uuid not found")
+
+            connection.prepareStatement(QUERY_SLETT_MELDING_CONTENT).use {
+                it.setString(1, uuid.toString())
+                it.executeUpdate()
+            }
+            connection.prepareStatement(QUERY_SLETT_PDF).use {
+                it.setInt(1, melding.id.id)
+                it.executeUpdate()
+            }
+            connection.prepareStatement(QUERY_SLETT_VEDLEGG).use {
+                it.setInt(1, melding.id.id)
+                it.executeUpdate()
+            }
+            connection.commit()
+        }
+    }
+
     private fun Connection.getMeldingStatus(meldingId: PMelding.Id): PMeldingStatus? =
         this.prepareStatement(QUERY_GET_MELDING_STATUS_FOR_MELDING_ID).use {
             it.setInt(1, meldingId.id)
@@ -534,6 +557,30 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 FROM MELDING
                 WHERE conversation_ref = ? AND arbeidstaker_personident = ? AND type = ? AND NOT innkommende
                 ORDER BY tidspunkt ASC
+            """
+
+        private const val QUERY_SLETT_MELDING_CONTENT =
+            """
+                UPDATE MELDING
+                SET tekst = '[Teksten er fjernet]',
+                    document = CASE
+                        WHEN innkommende THEN '[]'::jsonb
+                        ELSE '[{"key": null, "type": "PARAGRAPH", "texts": ["[Teksten er fjernet]"], "title": null}]'::jsonb
+                    END,
+                    antall_vedlegg = 0
+                WHERE uuid = ?
+            """
+
+        private const val QUERY_SLETT_PDF =
+            """
+                DELETE FROM pdf
+                WHERE melding_id = ?
+            """
+
+        private const val QUERY_SLETT_VEDLEGG =
+            """
+                DELETE FROM vedlegg
+                WHERE melding_id = ?
             """
     }
 }

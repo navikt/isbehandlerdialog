@@ -6,6 +6,7 @@ import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import no.nav.syfo.api.apiModule
+import no.nav.syfo.application.JanitorService
 import no.nav.syfo.application.MeldingService
 import no.nav.syfo.infrastructure.client.azuread.AzureAdClient
 import no.nav.syfo.infrastructure.client.oppfolgingstilfelle.OppfolgingstilfelleClient
@@ -23,6 +24,9 @@ import no.nav.syfo.infrastructure.kafka.config.kafkaAivenProducerConfig
 import no.nav.syfo.infrastructure.kafka.dialogmelding.launchKafkaTaskDialogmeldingFraBehandler
 import no.nav.syfo.infrastructure.kafka.identhendelse.launchKafkaTaskIdenthendelse
 import no.nav.syfo.infrastructure.kafka.legeerklaring.launchKafkaTaskLegeerklaring
+import no.nav.syfo.infrastructure.kafka.janitor.JanitorEventStatusProducer
+import no.nav.syfo.infrastructure.kafka.janitor.janitorEventStatusProducerConfig
+import no.nav.syfo.infrastructure.kafka.janitor.launchKafkaTaskJanitor
 import no.nav.syfo.infrastructure.kafka.producer.DialogmeldingBestillingProducer
 import no.nav.syfo.infrastructure.kafka.launchKafkaTaskDialogmeldingStatus
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -61,6 +65,10 @@ fun main() {
     )
     val pdfgenClient = PdfGenClient(
         pdfGenBaseUrl = environment.clients.dialogmeldingpdfgen.baseUrl,
+    )
+
+    val janitorEventStatusProducer = JanitorEventStatusProducer(
+        producer = janitorEventStatusProducerConfig(environment.kafka),
     )
 
     lateinit var meldingService: MeldingService
@@ -145,6 +153,15 @@ fun main() {
                     applicationState = applicationState,
                     kafkaEnvironment = environment.kafka,
                     meldingRepository = meldingRepository,
+                )
+
+                launchKafkaTaskJanitor(
+                    applicationState = applicationState,
+                    kafkaEnvironment = environment.kafka,
+                    janitorService = JanitorService(
+                        meldingRepository = meldingRepository,
+                        janitorEventStatusProducer = janitorEventStatusProducer,
+                    ),
                 )
             }
         }
