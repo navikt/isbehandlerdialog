@@ -47,4 +47,5 @@ interface IMeldingRepository {
     fun getUtgaendeMeldingerInConversation(uuidParam: UUID, arbeidstakerPersonIdent: PersonIdent): List<PMelding>
     fun getUtgaendeMeldingerInConversation(uuidParam: UUID, arbeidstakerPersonIdent: PersonIdent, connection: Connection): List<PMelding>
     fun getUtgaendeMeldingerInConversation(conversationRef: UUID, arbeidstakerPersonIdent: PersonIdent, type: Melding.MeldingType, connection: Connection): List<PMelding>
+    fun slettMelding(uuid: UUID)
 }
