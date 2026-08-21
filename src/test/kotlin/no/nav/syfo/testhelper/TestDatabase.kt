@@ -136,6 +136,19 @@ fun DatabaseInterface.getPDFs(meldingUuid: UUID): List<ByteArray> = this.connect
 
 fun DatabaseInterface.firstPdf(meldingUuid: UUID): ByteArray = this.getPDFs(meldingUuid).first()
 
+const val queryGetMeldingFellesformat = """
+    SELECT mf.fellesformat
+    FROM melding_fellesformat AS mf INNER JOIN melding m ON mf.melding_id = m.id
+    WHERE m.uuid = ?
+"""
+
+fun DatabaseInterface.getMeldingFellesformat(meldingUuid: UUID): String? = this.connection.use { connection ->
+    connection.prepareStatement(queryGetMeldingFellesformat).use {
+        it.setString(1, meldingUuid.toString())
+        it.executeQuery().toList { getString("fellesformat") }.firstOrNull()
+    }
+}
+
 fun DatabaseInterface.getMeldingStatus(): List<PMeldingStatus> = this.connection.use { connection ->
     connection.prepareStatement("SELECT * FROM MELDING_STATUS").use {
         it.executeQuery().toList { toPMeldingStatus() }

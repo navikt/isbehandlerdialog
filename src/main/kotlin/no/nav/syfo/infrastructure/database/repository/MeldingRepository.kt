@@ -331,6 +331,10 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 it.setInt(1, melding.id.id)
                 it.executeUpdate()
             }
+            connection.prepareStatement(QUERY_SLETT_MELDING_FELLESFORMAT).use {
+                it.setInt(1, melding.id.id)
+                it.executeUpdate()
+            }
             connection.commit()
         }
     }
@@ -580,6 +584,12 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
         private const val QUERY_SLETT_VEDLEGG =
             """
                 DELETE FROM vedlegg
+                WHERE melding_id = ?
+            """
+
+        private const val QUERY_SLETT_MELDING_FELLESFORMAT =
+            """
+                DELETE FROM melding_fellesformat
                 WHERE melding_id = ?
             """
     }

@@ -15,7 +15,9 @@ import no.nav.syfo.infrastructure.kafka.janitor.JanitorEventStatusProducer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
 import no.nav.syfo.testhelper.UserConstants
 import no.nav.syfo.testhelper.dropData
+import no.nav.syfo.testhelper.getMeldingFellesformat
 import no.nav.syfo.testhelper.getPDFs
+import no.nav.syfo.testhelper.generator.fellesformatXML
 import no.nav.syfo.testhelper.generator.generateJanitorEventDTO
 import no.nav.syfo.testhelper.generator.generateMeldingFraBehandler
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
@@ -80,7 +82,11 @@ class JanitorServiceTest {
         @Test
         fun `Redacts innkommende melding content and sends OK status`() = runTest {
             val meldingFraBehandler = generateMeldingFraBehandler()
-            meldingRepository.createMeldingFraBehandler(meldingFraBehandler = meldingFraBehandler)
+            meldingRepository.createMeldingFraBehandler(
+                meldingFraBehandler = meldingFraBehandler,
+                fellesformat = fellesformatXML,
+            )
+            assertEquals(fellesformatXML, database.getMeldingFellesformat(meldingFraBehandler.uuid))
 
             val event = generateJanitorEventDTO(referenceUUID = meldingFraBehandler.uuid.toString())
             janitorService.handle(event)
@@ -91,6 +97,7 @@ class JanitorServiceTest {
 
             val updatedMelding = meldingRepository.getMelding(meldingFraBehandler.uuid)!!
             assertEquals("[Teksten er fjernet]", updatedMelding.tekst)
+            assertEquals(null, database.getMeldingFellesformat(meldingFraBehandler.uuid))
         }
 
         @Test
