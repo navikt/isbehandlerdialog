@@ -7,8 +7,8 @@ val confluent = "8.3.0"
 val flywayVersion = "11.19.0"
 val googleCloudStorageVersion = "2.71.0"
 val hikariVersion = "7.1.0"
-val jacksonDataTypeVersion = "2.22.1"
-val jacksonDatabindVersion = "3.2.2"
+val jacksonDataTypeVersion = "2.22.3"
+val jacksonDatabindVersion = "3.2.3"
 val kafkaVersion = "4.3.1"
 val ktorVersion = "3.6.0"
 val logbackVersion = "1.6.1"
@@ -36,7 +36,7 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
-    implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache5:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
