@@ -185,7 +185,7 @@ class MeldingService(
     private fun handleHenvendelseTilNAV(
         transaction: ITransaction,
         meldingFraBehandler: Melding.MeldingFraBehandler,
-        fellesformatXML: String,
+        fellesformatXML: String?,
     ) {
         val latestOppfolgingstilfelle = runBlocking {
             oppfolgingstilfelleClient.getOppfolgingstilfelle(personIdent = meldingFraBehandler.arbeidstakerPersonIdent)
@@ -205,7 +205,7 @@ class MeldingService(
     private fun storeDialogmeldingFromBehandler(
         transaction: ITransaction,
         meldingFraBehandler: Melding.MeldingFraBehandler,
-        fellesformatXML: String,
+        fellesformatXML: String?,
     ) {
         val melding = meldingRepository.getMeldingForMsgId(meldingFraBehandler.msgId, transaction.connection)
         val isDuplicate = melding != null

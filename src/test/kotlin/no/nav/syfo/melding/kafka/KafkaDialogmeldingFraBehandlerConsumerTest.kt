@@ -105,6 +105,20 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
     }
 
     @Test
+    fun `Receive dialogmelding DIALOG_NOTAT (without fellesformat) from behandler creates melding when person sykmeldt`() = runTest {
+        val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO(fellesformat = null)
+        val mockConsumer = mockKafkaConsumer(dialogmelding, DIALOGMELDING_FROM_BEHANDLER_TOPIC)
+
+        dialogmeldingFraBehandlerConsumer.pollAndProcessRecords(
+            consumer = mockConsumer,
+        )
+
+        verify(exactly = 1) { mockConsumer.commitSync() }
+
+        assertEquals(1, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
+    }
+
+    @Test
     fun `Receive dialogmelding DIALOG_NOTAT from behandler creates no melding when person not sykmeldt`() = runTest {
         val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO(
             personIdent = UserConstants.PERSONIDENT_VEILEDER_NO_ACCESS,

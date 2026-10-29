@@ -90,6 +90,7 @@ fun generateDialogmeldingFraBehandlerDialogNotatDTO(
     personIdent: PersonIdent = UserConstants.ARBEIDSTAKER_PERSONIDENT,
     conversationRef: String = UUID.randomUUID().toString(),
     antallVedlegg: Int = 0,
+    fellesformat: String? = fellesformatXML,
 ) = KafkaDialogmeldingFraBehandlerDTO(
     msgId = uuid.toString(),
     msgType = DialogmeldingType.DIALOG_NOTAT.name,
