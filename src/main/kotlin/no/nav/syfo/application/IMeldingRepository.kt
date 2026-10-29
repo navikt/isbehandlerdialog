@@ -17,7 +17,6 @@ interface IMeldingRepository {
 
     fun createMeldingFraBehandler(
         meldingFraBehandler: Melding.MeldingFraBehandler,
-        fellesformat: String? = null,
         connection: Connection? = null,
     ): PMelding
 
