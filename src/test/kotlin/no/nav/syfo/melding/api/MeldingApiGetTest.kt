@@ -254,7 +254,6 @@ class MeldingApiGetTest {
                 database.connection.use {
                     val pMelding = meldingRepository.createMeldingFraBehandler(
                         meldingFraBehandler = meldingFraBehandler,
-                        fellesformat = null,
                         connection = it
                     )
                     meldingRepository.createVedlegg(
@@ -350,7 +349,6 @@ class MeldingApiGetTest {
                 database.connection.use {
                     val melding = meldingRepository.createMeldingFraBehandler(
                         meldingFraBehandler = meldingFraBehandler,
-                        fellesformat = null,
                         connection = it
                     )
                     meldingRepository.createVedlegg(

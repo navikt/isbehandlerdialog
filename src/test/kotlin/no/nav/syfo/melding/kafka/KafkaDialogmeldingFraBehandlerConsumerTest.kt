@@ -3,6 +3,7 @@ package no.nav.syfo.melding.kafka
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.syfo.domain.Melding
+import no.nav.syfo.infrastructure.kafka.config.JacksonKafkaDeserializerDialogmeldingFraBehandler
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DIALOGMELDING_FROM_BEHANDLER_TOPIC
 import no.nav.syfo.infrastructure.kafka.dialogmelding.DialogmeldingFraBehandlerConsumer
 import no.nav.syfo.testhelper.ExternalMockEnvironment
@@ -14,6 +15,7 @@ import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerDialogN
 import no.nav.syfo.testhelper.generator.generateDialogmeldingFraBehandlerForesporselSvarDTO
 import no.nav.syfo.testhelper.generator.generateMeldingTilBehandler
 import no.nav.syfo.testhelper.mock.mockKafkaConsumer
+import no.nav.syfo.util.configuredJacksonMapper
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DisplayName
@@ -102,6 +104,18 @@ class KafkaDialogmeldingFraBehandlerConsumerTest {
         verify(exactly = 1) { mockConsumer.commitSync() }
 
         assertEquals(1, meldingRepository.getMeldingerForArbeidstaker(personIdent).size)
+    }
+
+    @Test
+    fun `Deserialize dialogmelding with legacy fellesformatXML field`() {
+        val dialogmelding = generateDialogmeldingFraBehandlerDialogNotatDTO()
+        val mapper = configuredJacksonMapper()
+        val jsonNode = mapper.readTree(mapper.writeValueAsBytes(dialogmelding))
+        (jsonNode as com.fasterxml.jackson.databind.node.ObjectNode).put("fellesformatXML", "<legacy/>")
+
+        val deserialized = JacksonKafkaDeserializerDialogmeldingFraBehandler()
+            .deserialize(DIALOGMELDING_FROM_BEHANDLER_TOPIC, mapper.writeValueAsBytes(jsonNode))
+        assertEquals(dialogmelding.msgId, deserialized.msgId)
     }
 
     @Test

@@ -121,7 +121,6 @@ class MeldingService(
             storeDialogmeldingFromBehandler(
                 transaction = transaction,
                 meldingFraBehandler = utgaendeMelding,
-                fellesformatXML = kafkaDialogmeldingFraBehandler.fellesformatXML,
             )
         } else if (kafkaDialogmeldingFraBehandler.isHenvendelseTilNAV()) {
             val meldingFraBehandler = kafkaDialogmeldingFraBehandler.toMeldingFraBehandler(
@@ -131,7 +130,6 @@ class MeldingService(
             handleHenvendelseTilNAV(
                 transaction = transaction,
                 meldingFraBehandler = meldingFraBehandler,
-                fellesformatXML = kafkaDialogmeldingFraBehandler.fellesformatXML,
             )
         } else {
             COUNT_KAFKA_CONSUMER_DIALOGMELDING_FRA_BEHANDLER_SKIPPED_NOT_FOR_MODIA.increment()
@@ -185,7 +183,6 @@ class MeldingService(
     private fun handleHenvendelseTilNAV(
         transaction: ITransaction,
         meldingFraBehandler: Melding.MeldingFraBehandler,
-        fellesformatXML: String,
     ) {
         val latestOppfolgingstilfelle = runBlocking {
             oppfolgingstilfelleClient.getOppfolgingstilfelle(personIdent = meldingFraBehandler.arbeidstakerPersonIdent)
@@ -194,7 +191,6 @@ class MeldingService(
             storeDialogmeldingFromBehandler(
                 transaction = transaction,
                 meldingFraBehandler = meldingFraBehandler,
-                fellesformatXML = fellesformatXML,
             )
         } else {
             log.info("Received dialogmelding til NAV from behandler, but skipped since no active oppfolgingstilfelle")
@@ -205,7 +201,6 @@ class MeldingService(
     private fun storeDialogmeldingFromBehandler(
         transaction: ITransaction,
         meldingFraBehandler: Melding.MeldingFraBehandler,
-        fellesformatXML: String,
     ) {
         val melding = meldingRepository.getMeldingForMsgId(meldingFraBehandler.msgId, transaction.connection)
         val isDuplicate = melding != null
@@ -217,7 +212,6 @@ class MeldingService(
 
             val melding = meldingRepository.createMeldingFraBehandler(
                 meldingFraBehandler = meldingFraBehandler,
-                fellesformat = fellesformatXML,
                 connection = transaction.connection,
             )
             if (meldingFraBehandler.antallVedlegg > 0) {
@@ -255,7 +249,6 @@ class MeldingService(
     ): PMelding {
         return meldingRepository.createMeldingFraBehandler(
             meldingFraBehandler = meldingFraBehandler,
-            fellesformat = null,
             connection = connection,
         )
     }

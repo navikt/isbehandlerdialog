@@ -49,20 +49,17 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
 
     override fun createMeldingFraBehandler(
         meldingFraBehandler: Melding.MeldingFraBehandler,
-        fellesformat: String?,
         connection: Connection?,
     ): PMelding =
         if (connection != null) {
             connection.createMelding(
                 melding = meldingFraBehandler,
-                fellesformat = fellesformat,
                 shouldCommit = false,
             )
         } else {
             database.connection.use { connection ->
                 connection.createMelding(
                     melding = meldingFraBehandler,
-                    fellesformat = fellesformat,
                     shouldCommit = true,
                 )
             }
@@ -70,7 +67,6 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
 
     internal fun Connection.createMelding(
         melding: Melding,
-        fellesformat: String? = null,
         shouldCommit: Boolean,
     ): PMelding {
         val pMelding = this.prepareStatement(QUERY_CREATE_MELDING).use {
@@ -96,13 +92,6 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
             it.setNull(20, Types.TIMESTAMP_WITH_TIMEZONE)
             it.executeQuery().toList { toPMelding() }
         }.single()
-        if (fellesformat != null) {
-            this.prepareStatement(QUERY_CREATE_MELDING_FELLESFORMAT).use {
-                it.setInt(1, pMelding.id.id)
-                it.setString(2, fellesformat)
-                it.executeQuery()
-            }
-        }
         if (shouldCommit) {
             this.commit()
         }
@@ -328,10 +317,6 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 it.executeUpdate()
             }
             connection.prepareStatement(QUERY_SLETT_VEDLEGG).use {
-                it.setInt(1, melding.id.id)
-                it.executeUpdate()
-            }
-            connection.prepareStatement(QUERY_SLETT_MELDING_FELLESFORMAT).use {
                 it.setInt(1, melding.id.id)
                 it.executeUpdate()
             }
@@ -586,12 +571,6 @@ class MeldingRepository(private val database: DatabaseInterface) : IMeldingRepos
                 DELETE FROM vedlegg
                 WHERE melding_id = ?
             """
-
-        private const val QUERY_SLETT_MELDING_FELLESFORMAT =
-            """
-                DELETE FROM melding_fellesformat
-                WHERE melding_id = ?
-            """
     }
 }
 
@@ -621,15 +600,6 @@ private const val QUERY_CREATE_MELDING =
             avvist_published_at
         ) VALUES(DEFAULT, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?) 
         RETURNING *
-    """
-
-private const val QUERY_CREATE_MELDING_FELLESFORMAT =
-    """
-        INSERT INTO MELDING_FELLESFORMAT (
-            id,
-            melding_id,
-            fellesformat
-        ) VALUES (DEFAULT, ?, ?) RETURNING id
     """
 
 private fun ResultSet.toPMelding() =

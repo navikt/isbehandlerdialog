@@ -26,7 +26,6 @@ data class KafkaDialogmeldingFraBehandlerDTO(
     val legehpr: String?,
     val dialogmelding: Dialogmelding,
     val antallVedlegg: Int,
-    val fellesformatXML: String,
 )
 
 fun KafkaDialogmeldingFraBehandlerDTO.isHenvendelseTilNAV(): Boolean {
